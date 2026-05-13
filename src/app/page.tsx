@@ -1,65 +1,108 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import { motion } from "framer-motion"
+import { ArrowRight, Code2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { CodyzaLogo } from "@/components/shared/codyza-logo"
+import { GlowOrb } from "@/components/effects/glow-orb"
+import { SITE_CONFIG } from "@/constants/site"
+
+export default function HomePage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <main className="relative min-h-screen overflow-hidden bg-[#050508]">
+      {/* Animated grid overlay */}
+      <div className="absolute inset-0 grid-overlay" aria-hidden />
+
+      {/* Floating glow orbs */}
+      <GlowOrb color="purple" size={700} className="-top-40 -left-40" duration={14} />
+      <GlowOrb color="blue" size={600} className="top-1/3 -right-32" duration={16} />
+      <GlowOrb color="cyan" size={500} className="bottom-0 left-1/3" duration={12} />
+
+      {/* Hero content */}
+      <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 text-center">
+        {/* Logo */}
+        <motion.div
+          initial={{ opacity: 0, y: -30, scale: 0.8 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="mb-10"
+        >
+          <CodyzaLogo size={120} priority />
+        </motion.div>
+
+        {/* Badge */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-1.5 text-xs backdrop-blur-md"
+        >
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#22c55e] opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-[#22c55e]" />
+          </span>
+          <span className="font-mono uppercase tracking-widest text-zinc-400">
+            Now Onboarding Founding Contributors
+          </span>
+        </motion.div>
+
+        {/* Headline */}
+        <motion.h1
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="mb-6 max-w-5xl font-[family-name:var(--font-heading)] text-5xl font-bold leading-[1.05] tracking-tight md:text-7xl lg:text-8xl"
+        >
+          Build The Future
+          <br />
+          With <span className="text-gradient-codyza">Codyza</span>
+        </motion.h1>
+
+        {/* Tagline */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+          className="mb-10 max-w-2xl text-base text-zinc-400 md:text-lg"
+        >
+          {SITE_CONFIG.tagline} A developer ecosystem where you ship real
+          products, earn recognition, and grow inside a startup-style team.
+        </motion.p>
+
+        {/* CTAs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.8 }}
+          className="flex flex-col gap-4 sm:flex-row"
+        >
+          <Button
+            size="lg"
+            className="group h-12 bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6] px-8 text-base font-medium text-white hover:opacity-90"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            Apply To Join
+            <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            className="h-12 border-white/10 bg-white/[0.02] px-8 text-base font-medium backdrop-blur-md hover:bg-white/[0.05]"
           >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+            <Code2 className="mr-2 h-4 w-4" />
+            View Projects
+          </Button>
+        </motion.div>
+
+        {/* Bottom signature */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 1.2 }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-600"
+        >
+          v0.1 — Phase 1 Foundation
+        </motion.div>
+      </section>
+    </main>
+  )
 }
