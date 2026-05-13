@@ -1,0 +1,115 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Menu, X, ArrowRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { CodyzaLogo } from "@/components/shared/codyza-logo"
+import { NAV_LINKS, SITE_CONFIG } from "@/constants/site"
+import { cn } from "@/lib/utils"
+
+export function Navbar() {
+  const [scrolled, setScrolled] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20)
+    handleScroll()
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) setMobileOpen(false)
+    }
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [])
+
+  return (
+    <motion.header
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className={cn(
+        "fixed inset-x-0 top-0 z-50 transition-all duration-300",
+        scrolled
+          ? "border-b border-white/[0.06] bg-[#050508]/70 backdrop-blur-xl"
+          : "bg-transparent"
+      )}
+    >
+      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:h-20 md:px-8">
+        <a href="#" className="group flex items-center gap-3" aria-label="Codyza home">
+          <CodyzaLogo size={36} withGlow={false} />
+          <span className="hidden font-[family-name:var(--font-heading)] text-xl font-bold tracking-tight sm:inline-block">
+            {SITE_CONFIG.name}
+          </span>
+        </a>
+        <div className="hidden items-center gap-1 md:flex">
+          {NAV_LINKS.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              className="group relative rounded-md px-4 py-2 text-sm text-zinc-400 transition-colors hover:text-white"
+            >
+              {link.label}
+              <span className="absolute inset-x-4 -bottom-0.5 h-px scale-x-0 bg-gradient-to-r from-[#8b5cf6] via-[#3b82f6] to-[#06b6d4] transition-transform duration-300 group-hover:scale-x-100" />
+            </a>
+          ))}
+        </div>
+        <div className="flex items-center gap-3">
+          <Button
+            size="sm"
+            className="group hidden h-9 bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6] px-4 text-sm font-medium text-white hover:opacity-90 md:inline-flex"
+          >
+            Apply
+            <ArrowRight className="ml-1.5 h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+          </Button>
+          <button
+            onClick={() => setMobileOpen((v) => !v)}
+            className="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/[0.02] text-zinc-300 transition-colors hover:bg-white/[0.05] md:hidden"
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
+          >
+            {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          </button>
+        </div>
+      </nav>
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="overflow-hidden border-t border-white/[0.06] bg-[#050508]/95 backdrop-blur-xl md:hidden"
+          >
+            <div className="space-y-1 px-4 py-4">
+              {NAV_LINKS.map((link, i) => (
+                <motion.a
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="block rounded-md px-4 py-3 text-sm text-zinc-300 transition-colors hover:bg-white/5 hover:text-white"
+                >
+                  {link.label}
+                </motion.a>
+              ))}
+              <Button
+                size="sm"
+                className="mt-2 w-full bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6] text-white"
+              >
+                Apply
+                <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.header>
+  )
+}

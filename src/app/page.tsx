@@ -3,6 +3,7 @@
 import { motion } from "framer-motion"
 import { ArrowRight, Code2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Navbar } from "@/components/landing/navbar"
 import { CodyzaLogo } from "@/components/shared/codyza-logo"
 import { GlowOrb } from "@/components/effects/glow-orb"
 import { SITE_CONFIG } from "@/constants/site"
@@ -10,17 +11,15 @@ import { SITE_CONFIG } from "@/constants/site"
 export default function HomePage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#050508]">
-      {/* Animated grid overlay */}
+      <Navbar />
+
       <div className="absolute inset-0 grid-overlay" aria-hidden />
 
-      {/* Floating glow orbs */}
       <GlowOrb color="purple" size={700} className="-top-40 -left-40" duration={14} />
       <GlowOrb color="blue" size={600} className="top-1/3 -right-32" duration={16} />
       <GlowOrb color="cyan" size={500} className="bottom-0 left-1/3" duration={12} />
 
-      {/* Hero content */}
-      <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 text-center">
-        {/* Logo */}
+      <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 pt-20 text-center">
         <motion.div
           initial={{ opacity: 0, y: -30, scale: 0.8 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -30,7 +29,6 @@ export default function HomePage() {
           <CodyzaLogo size={120} priority />
         </motion.div>
 
-        {/* Badge */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -46,7 +44,6 @@ export default function HomePage() {
           </span>
         </motion.div>
 
-        {/* Headline */}
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -58,7 +55,6 @@ export default function HomePage() {
           With <span className="text-gradient-codyza">Codyza</span>
         </motion.h1>
 
-        {/* Tagline */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -69,7 +65,6 @@ export default function HomePage() {
           products, earn recognition, and grow inside a startup-style team.
         </motion.p>
 
-        {/* CTAs */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -93,7 +88,6 @@ export default function HomePage() {
           </Button>
         </motion.div>
 
-        {/* Bottom signature */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
