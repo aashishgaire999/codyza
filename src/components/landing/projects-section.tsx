@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Sparkles, ExternalLink, Github, Users as UsersIcon } from "lucide-react"
+import { Sparkles, ExternalLink, GitBranch as Github, Users as UsersIcon } from "lucide-react"
 
 const PROJECTS = [
   {
