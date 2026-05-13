@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Github, Twitter, MessageCircle } from "lucide-react"
+import { GitBranch as Github, Twitter, MessageCircle } from "lucide-react"
 import { CodyzaLogo } from "@/components/shared/codyza-logo"
 import { SITE_CONFIG, SOCIAL_LINKS } from "@/constants/site"
 
