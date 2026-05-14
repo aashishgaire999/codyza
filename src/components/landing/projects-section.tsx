@@ -85,7 +85,7 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
                 View Repository
               </a>
               
-                href={project.preview}
+              <a href={project.preview}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
