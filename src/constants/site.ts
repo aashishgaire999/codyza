@@ -6,7 +6,7 @@ export const SITE_CONFIG = {
   description:
     "A futuristic developer ecosystem where beginners and intermediates collaborate on real-world projects, build SaaS products, deploy AI tools, and grow through gamified contributor systems.",
   ogImage: "/og-image.png",
-  email: "hello@codyza.com",
+  email: "edit46150@gmail.com",
 } as const
 
 export const BRAND_COLORS = {
@@ -20,13 +20,13 @@ export const BRAND_COLORS = {
 export const SOCIAL_LINKS = {
   github: "https://github.com/aashishgaire999",
   twitter: "https://twitter.com/codyza",
-  discord: "https://discord.gg/codyza",
+  discord: "https://discord.gg/AEtRjNEuAr",
 } as const
 
 export const NAV_LINKS = [
   { label: "About", href: "#about" },
   { label: "Features", href: "#features" },
   { label: "Projects", href: "#projects" },
-  { label: "Contributors", href: "#contributors" },
-  { label: "Community", href: "#community" },
+  { label: "How It Works", href: "#how" },
+  { label: "Apply", href: "#apply" },
 ] as const
