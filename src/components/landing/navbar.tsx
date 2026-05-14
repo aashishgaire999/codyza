@@ -60,7 +60,7 @@ export function Navbar() {
         </div>
         <div className="flex items-center gap-3">
           <Button
-            size="sm"
+            size="sm" onClick={() => document.getElementById("apply")?.scrollIntoView({ behavior: "smooth" })}
             className="group hidden h-9 bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6] px-4 text-sm font-medium text-white hover:opacity-90 md:inline-flex"
           >
             Apply
@@ -100,7 +100,7 @@ export function Navbar() {
                 </motion.a>
               ))}
               <Button
-                size="sm"
+                size="sm" onClick={() => document.getElementById("apply")?.scrollIntoView({ behavior: "smooth" })}
                 className="mt-2 w-full bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6] text-white"
               >
                 Apply

@@ -17,9 +17,9 @@ export function Footer() {
             </div>
             <p className="mt-4 max-w-sm text-sm text-zinc-400">{SITE_CONFIG.description}</p>
             <div className="mt-6 flex items-center gap-3">
-              <a href={SOCIAL_LINKS.github} className="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/[0.02] text-zinc-400 transition-colors hover:bg-white/[0.05] hover:text-white"><Github className="h-4 w-4" /></a>
-              <a href={SOCIAL_LINKS.twitter} className="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/[0.02] text-zinc-400 transition-colors hover:bg-white/[0.05] hover:text-white"><Twitter className="h-4 w-4" /></a>
-              <a href={SOCIAL_LINKS.discord} className="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/[0.02] text-zinc-400 transition-colors hover:bg-white/[0.05] hover:text-white"><MessageCircle className="h-4 w-4" /></a>
+              <a href={SOCIAL_LINKS.github} target="_blank" rel="noopener noreferrer" className="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/[0.02] text-zinc-400 transition-colors hover:bg-white/[0.05] hover:text-white"><Github className="h-4 w-4" /></a>
+              <a href={SOCIAL_LINKS.twitter} target="_blank" rel="noopener noreferrer" className="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/[0.02] text-zinc-400 transition-colors hover:bg-white/[0.05] hover:text-white"><Twitter className="h-4 w-4" /></a>
+              <a href={SOCIAL_LINKS.discord} target="_blank" rel="noopener noreferrer" className="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/[0.02] text-zinc-400 transition-colors hover:bg-white/[0.05] hover:text-white"><MessageCircle className="h-4 w-4" /></a>
             </div>
           </div>
           <div>
@@ -35,9 +35,9 @@ export function Footer() {
             <h4 className="font-mono text-[10px] uppercase tracking-widest text-zinc-500">Join</h4>
             <ul className="mt-4 space-y-2 text-sm text-zinc-400">
               <li><a href="#apply" className="transition-colors hover:text-white">Apply</a></li>
-              <li><a href={SOCIAL_LINKS.discord} className="transition-colors hover:text-white">Discord</a></li>
-              <li><a href={SOCIAL_LINKS.github} className="transition-colors hover:text-white">GitHub</a></li>
-              <li><a href={`mailto:${SITE_CONFIG.email}`} className="transition-colors hover:text-white">Contact</a></li>
+              <li><a href={SOCIAL_LINKS.discord} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-white">Discord</a></li>
+              <li><a href={SOCIAL_LINKS.github} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-white">GitHub</a></li>
+              <li><a href={`mailto:${SITE_CONFIG.email}`} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-white">Contact</a></li>
             </ul>
           </div>
         </div>
