@@ -5,6 +5,10 @@ import { cn } from "@/lib/utils"
 import "./globals.css"
 
 export const metadata: Metadata = {
+  icons: {
+    icon: '/favicon.png',
+    apple: '/favicon.png',
+  },
   title: {
     default: `${SITE_CONFIG.name} — ${SITE_CONFIG.tagline}`,
     template: `%s | ${SITE_CONFIG.name}`,
