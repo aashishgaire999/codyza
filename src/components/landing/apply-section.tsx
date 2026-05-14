@@ -28,8 +28,15 @@ export function ApplySection() {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({ resolver: zodResolver(schema) })
 
   const onSubmit = async (data: FormData) => {
-    await new Promise((r) => setTimeout(r, 1200))
-    console.log("Application:", data)
+    try {
+      await fetch("/api/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+    } catch (e) {
+      console.error(e)
+    }
     setSubmitted(true)
   }
 
