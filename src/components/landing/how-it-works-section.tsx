@@ -18,7 +18,7 @@ export function HowItWorksSection() {
   return (
     <section id="how" className="relative scroll-mt-32 border-t border-white/[0.04] bg-[#050508] py-32">
       <div className="mx-auto max-w-6xl px-6 md:px-8">
-        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.6 }} className="mb-20 text-center">
+        <motion.div initial={{ opacity: 1, y: 0 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.1 }} transition={{ duration: 0.35 }} className="mb-20 text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[10px] font-mono uppercase tracking-widest text-zinc-400">
             <Sparkles className="h-3 w-3 text-[#3b82f6]" />
             How It Works
@@ -32,7 +32,7 @@ export function HowItWorksSection() {
           <div className="absolute left-7 top-0 h-full w-px bg-gradient-to-b from-[#8b5cf6]/30 via-[#06b6d4]/20 to-transparent md:left-1/2 md:-translate-x-1/2" aria-hidden />
           <div className="space-y-12">
             {STEPS.map((step, i) => (
-              <motion.div key={step.title} initial={{ opacity: 0, x: i % 2 === 0 ? -30 : 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ duration: 0.5 }} className={`relative flex items-start gap-6 md:items-center ${i % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}`}>
+              <motion.div key={step.title} initial={{ opacity: 0, x: i % 2 === 0 ? -30 : 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.1 }} transition={{ duration: 0.3 }} className={`relative flex items-start gap-6 md:items-center ${i % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}`}>
                 <div className="absolute left-7 z-10 -translate-x-1/2 md:left-1/2">
                   <div className="flex h-14 w-14 items-center justify-center rounded-full border border-white/[0.08] bg-[#0a0a12] shadow-[0_0_30px_rgba(139,92,246,0.2)]">
                     <step.icon className="h-5 w-5 text-[#8b5cf6]" />

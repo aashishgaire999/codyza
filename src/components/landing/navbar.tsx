@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
-import { Menu, X, ArrowRight } from "lucide-react"
+import { Menu, X, ArrowRight, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { CodyzaLogo } from "@/components/shared/codyza-logo"
 import { NAV_LINKS, SITE_CONFIG } from "@/constants/site"
@@ -11,6 +12,7 @@ import { cn } from "@/lib/utils"
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -27,11 +29,26 @@ export function Navbar() {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
+  useEffect(() => {
+    let unsubscribe: (() => void) | undefined
+    ;(async () => {
+      const { createClient } = await import("@/lib/supabase")
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      setIsLoggedIn(!!user)
+      const { data: subscription } = supabase.auth.onAuthStateChange((_e, session) => {
+        setIsLoggedIn(!!session?.user)
+      })
+      unsubscribe = () => subscription.subscription.unsubscribe()
+    })()
+    return () => unsubscribe?.()
+  }, [])
+
   return (
     <motion.header
-      initial={{ y: -20, opacity: 0 }}
+      initial={{ y: 0, opacity: 1 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
       className={cn(
         "fixed inset-x-0 top-0 z-50 transition-all duration-300",
         scrolled
@@ -42,7 +59,7 @@ export function Navbar() {
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:h-20 md:px-8">
         <a href="#" className="group flex items-center gap-3" aria-label="Codyza home">
           <CodyzaLogo size={36} withGlow={false} />
-          <span className="hidden font-[family-name:var(--font-heading)] text-xl font-bold tracking-tight sm:inline-block">
+          <span className="font-[family-name:var(--font-heading)] text-lg font-bold tracking-tight sm:text-xl">
             {SITE_CONFIG.name}
           </span>
         </a>
@@ -59,13 +76,22 @@ export function Navbar() {
           ))}
         </div>
         <div className="flex items-center gap-3">
-          <Button
-            size="sm" onClick={() => document.getElementById("apply")?.scrollIntoView({ behavior: "smooth" })}
-            className="group hidden h-9 bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6] px-4 text-sm font-medium text-white hover:opacity-90 md:inline-flex"
+          <a
+            href="/login"
+            className="hidden h-9 items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.02] px-4 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/[0.05] hover:text-white md:inline-flex"
           >
-            Apply
-            <ArrowRight className="ml-1.5 h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-          </Button>
+            <LogIn className="h-3.5 w-3.5" />
+            Member Login
+          </a>
+          <Link href="/apply" className="hidden md:inline-flex">
+            <Button
+              size="sm"
+              className="group h-9 bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6] px-4 text-sm font-medium text-white hover:opacity-90"
+            >
+              Apply
+              <ArrowRight className="ml-1.5 h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+            </Button>
+          </Link>
           <button
             onClick={() => setMobileOpen((v) => !v)}
             className="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/[0.02] text-zinc-300 transition-colors hover:bg-white/[0.05] md:hidden"
@@ -93,19 +119,46 @@ export function Navbar() {
                   onClick={() => setMobileOpen(false)}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05 }}
+                  transition={{ delay: i * 0.03 }}
                   className="block rounded-md px-4 py-3 text-sm text-zinc-300 transition-colors hover:bg-white/5 hover:text-white"
                 >
                   {link.label}
                 </motion.a>
               ))}
-              <Button
-                size="sm" onClick={() => document.getElementById("apply")?.scrollIntoView({ behavior: "smooth" })}
-                className="mt-2 w-full bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6] text-white"
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: NAV_LINKS.length * 0.05 }}
               >
-                Apply
-                <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-              </Button>
+                {isLoggedIn ? (
+                  <Link
+                    href="/member"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 rounded-md border border-purple-500/30 bg-purple-500/10 px-4 py-3 text-sm text-purple-300 transition-colors hover:bg-purple-500/20"
+                  >
+                    <LogIn className="h-4 w-4" />
+                    Dashboard
+                  </Link>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.02] px-4 py-3 text-sm text-zinc-300 transition-colors hover:bg-white/[0.05] hover:text-white"
+                  >
+                    <LogIn className="h-4 w-4" />
+                    Member Login
+                  </Link>
+                )}
+              </motion.div>
+              <Link href="/apply" onClick={() => setMobileOpen(false)}>
+                <Button
+                  size="sm"
+                  className="mt-2 w-full bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6] text-white"
+                >
+                  Apply
+                  <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                </Button>
+              </Link>
             </div>
           </motion.div>
         )}
