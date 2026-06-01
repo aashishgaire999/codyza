@@ -17,6 +17,9 @@ function SetPasswordContent() {
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
   const [sessionReady, setSessionReady] = useState(false)
+  const [requestEmail, setRequestEmail] = useState("")
+  const [requesting, setRequesting] = useState(false)
+  const [requested, setRequested] = useState(false)
 
   useEffect(() => {
     establishSession()
@@ -75,6 +78,21 @@ function SetPasswordContent() {
     setLoading(false)
   }
 
+  const handleRequestNewLink = async () => {
+    if (!requestEmail) return
+    setRequesting(true)
+    const supabase = createClient()
+    await supabase.auth.signInWithOtp({
+      email: requestEmail,
+      options: {
+        shouldCreateUser: false,
+        emailRedirectTo: `${window.location.origin}/set-password`,
+      },
+    })
+    setRequesting(false)
+    setRequested(true)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
@@ -116,13 +134,47 @@ function SetPasswordContent() {
         <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
           <AlertCircle className="mx-auto mb-4 h-12 w-12 text-red-500" />
           <h1 className="mb-2 text-xl font-bold">Link expired or invalid</h1>
-          <p className="mb-6 text-sm text-gray-400">{error}</p>
-          <Link
-            href="/login"
-            className="inline-block rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90"
-          >
-            Back to login
-          </Link>
+          <p className="mb-4 text-sm text-gray-400">
+            This link has already been used or expired. Enter your email below to request a fresh invitation link.
+          </p>
+
+          {requested ? (
+            <div className="rounded-lg border border-green-500/20 bg-green-500/10 p-4 text-sm text-green-400">
+              ✓ Check your inbox — a new link is on its way.
+            </div>
+          ) : (
+            <div className="space-y-3 text-left">
+              <input
+                type="email"
+                value={requestEmail}
+                onChange={(e) => setRequestEmail(e.target.value)}
+                placeholder="your.email@example.com"
+                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-gray-500 focus:border-purple-500 focus:outline-none"
+              />
+              <button
+                onClick={handleRequestNewLink}
+                disabled={requesting || !requestEmail}
+                className="w-full rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-3 text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
+                {requesting ? "Sending..." : "Request new invitation →"}
+              </button>
+            </div>
+          )}
+
+          <div className="mt-5 flex flex-col gap-2">
+            <p className="text-xs text-gray-500">
+              Already have a password?{" "}
+              <Link href="/login" className="text-purple-400 hover:text-purple-300">
+                Sign in here
+              </Link>
+            </p>
+            <p className="text-xs text-gray-500">
+              Or go to login and use{" "}
+              <Link href="/login" className="text-purple-400 hover:text-purple-300">
+                &ldquo;email me a login link instead&rdquo;
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     )
