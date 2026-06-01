@@ -84,7 +84,6 @@ async function getLeaderboard(): Promise<Contributor[]> {
   const { data, error } = await supabase
     .from("contributors")
     .select("codyza_id, name, github, xp, rank, streak, role")
-    .eq("is_crew", false)
     .order("xp", { ascending: false })
     .limit(100);
 
