@@ -275,7 +275,7 @@ export default function MemberSubmitPage() {
         {/* Actions */}
         <div style={{ display:"flex", gap:12 }}>
           <Link href="/member" style={{ flex:1, padding:14, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:12, textAlign:"center", fontWeight:600, fontSize:14, color:"#f8fafc", textDecoration:"none" }}>
-            Back to Dashboard
+            Back to Hub
           </Link>
           <button onClick={resetForm} style={{ flex:1, padding:14, background:"linear-gradient(135deg,#7c3aed,#2563eb)", border:"none", borderRadius:12, fontWeight:600, fontSize:14, color:"#fff", cursor:"pointer" }}>
             Submit Another
@@ -288,7 +288,7 @@ export default function MemberSubmitPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
       <Link href="/member" className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6">
-        <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+        <ArrowLeft className="w-4 h-4" /> Back to Hub
       </Link>
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Submit Your Project</h1>

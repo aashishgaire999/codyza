@@ -46,13 +46,10 @@ export function MemberNavbar() {
           </Link>
           <div className="hidden items-center gap-1 md:flex">
             <Link href="/member" className="rounded-lg px-4 py-2 text-sm text-gray-400 transition-colors hover:bg-white/5 hover:text-white">
-              Dashboard
+              Hub
             </Link>
             <Link href="/member/submit" className="rounded-lg px-4 py-2 text-sm text-gray-400 transition-colors hover:bg-white/5 hover:text-white">
               Submit Project
-            </Link>
-            <Link href="/member/standup" className="rounded-lg px-4 py-2 text-sm text-gray-400 transition-colors hover:bg-white/5 hover:text-white">
-              Standup
             </Link>
             <Link href="/leaderboard" className="rounded-lg px-4 py-2 text-sm text-gray-400 transition-colors hover:bg-white/5 hover:text-white">
               Leaderboard
