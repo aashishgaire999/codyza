@@ -43,27 +43,38 @@ export async function POST(req: Request) {
       .single()
 
     if (fetchError || !contributor) {
-      return NextResponse.json({ error: "Invalid Codyza ID. Please check your ID and try again." }, { status: 404 })
+      return NextResponse.json({ error: "Invalid Codyza ID." }, { status: 404 })
     }
 
     let ai_score = 7
     let ai_feedback = "Project reviewed. Good work on the submission."
+    let ai_review: Record<string, unknown> = {}
 
     try {
       const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" })
-      const prompt = `Review this developer project submission for quality and give a score from 1-10.
+      const prompt = `You are a senior software engineer doing a thorough code review for Codyza, a developer community. A contributor submitted their project. Give an honest, detailed, constructive review. Be specific — reference the actual tech stack and project type.
 
-Project: ${project_name}
-GitHub: ${github_url}
-Live URL: ${live_url || "Not provided"}
-Description: ${description}
-Tech Stack: ${tech_stack?.join(", ") || "Not specified"}
+PROJECT DETAILS:
+- Name: ${project_name}
+- GitHub: ${github_url}
+- Live URL: ${live_url || "Not deployed"}
+- Description: ${description}
+- Tech Stack: ${tech_stack?.join(", ") || "Not specified"}
 
-Respond in this exact JSON format:
-{"score": 7, "feedback": "Your brief feedback here in 2-3 sentences. Be encouraging but honest.", "xp_bonus": 0}
+Respond ONLY with valid JSON (no markdown, no backticks):
+{
+  "score": <integer 1-10>,
+  "summary": "<2-3 sentences: what the project is and what it does>",
+  "strengths": ["<specific strength 1>", "<specific strength 2>", "<specific strength 3>"],
+  "improvements": ["<specific issue 1>", "<specific issue 2>", "<specific issue 3>"],
+  "roadmap": ["<top priority next step>", "<second priority>", "<third priority>"],
+  "xp_breakdown": { "code_quality": <0-40>, "originality": <0-35>, "completeness": <0-25>, "documentation": <0-20> },
+  "references": ["<open source project or resource to study, with brief why>", "<reference 2>"],
+  "one_liner": "<one punchy sentence capturing the project potential>",
+  "feedback": "<2-3 sentence honest overall summary for the contributor>"
+}
 
-Score guide: 1-4 = needs work, 5-7 = good, 8-9 = excellent, 10 = exceptional
-xp_bonus: 0 for score 1-7, 100 for score 8, 200 for score 9, 300 for score 10`
+Score: 1-4 needs major work, 5-6 decent start, 7-8 solid, 9 excellent, 10 exceptional.`
 
       const result = await model.generateContent(prompt)
       const text = result.response.text()
@@ -72,9 +83,10 @@ xp_bonus: 0 for score 1-7, 100 for score 8, 200 for score 9, 300 for score 10`
         const parsed = JSON.parse(jsonMatch[0])
         ai_score = parsed.score || 7
         ai_feedback = parsed.feedback || ai_feedback
+        ai_review = parsed
       }
     } catch (e) {
-      console.log("AI review skipped:", e)
+      console.log("AI review error:", e)
     }
 
     const base_xp = 100
@@ -83,7 +95,8 @@ xp_bonus: 0 for score 1-7, 100 for score 8, 200 for score 9, 300 for score 10`
 
     const today = new Date().toISOString().split("T")[0]
     const lastSub = contributor.last_submission
-    const isStreak = lastSub && (new Date(today).getTime() - new Date(lastSub).getTime()) / (1000 * 60 * 60 * 24) <= 7
+    const isStreak = lastSub &&
+      (new Date(today).getTime() - new Date(lastSub).getTime()) / (1000 * 60 * 60 * 24) <= 7
     const streak_new = isStreak ? (contributor.streak || 0) + 1 : 1
     const streak_xp = streak_new >= 4 ? 200 : streak_new >= 2 ? 50 : 0
 
@@ -102,8 +115,9 @@ xp_bonus: 0 for score 1-7, 100 for score 8, 200 for score 9, 300 for score 10`
       tech_stack: tech_stack || [],
       ai_score,
       ai_feedback,
+      ai_review,
       xp_earned: total_xp,
-      status: "reviewed",
+      status: "pending",
     })
 
     await supabase.from("contributors").update({
@@ -125,13 +139,8 @@ xp_bonus: 0 for score 1-7, 100 for score 8, 200 for score 9, 300 for score 10`
       contributor_name: contributor.name,
       ai_score,
       ai_feedback,
-      xp_breakdown: {
-        base: base_xp,
-        deploy: deploy_xp,
-        quality: quality_xp,
-        streak: streak_xp,
-        total: total_xp,
-      },
+      ai_review,
+      xp_breakdown: { base: base_xp, deploy: deploy_xp, quality: quality_xp, streak: streak_xp, total: total_xp },
       new_total_xp,
       new_rank,
       rank_up,
