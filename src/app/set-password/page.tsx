@@ -170,7 +170,7 @@ function SetPasswordContent() {
             </p>
             <p className="text-xs text-gray-500">
               Or go to login and use{" "}
-              <Link href="/login" className="text-purple-400 hover:text-purple-300">
+              <Link href="/login?magic=true" className="text-purple-400 hover:text-purple-300">
                 &ldquo;email me a login link instead&rdquo;
               </Link>
             </p>

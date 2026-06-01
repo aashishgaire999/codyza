@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import { CodyzaLogo } from "@/components/shared/codyza-logo"
@@ -15,6 +15,13 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(true)
   const [magicMode, setMagicMode] = useState(false)
   const [magicLinkSent, setMagicLinkSent] = useState(false)
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get("magic") === "true") setMagicMode(true)
+    }
+  }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
