@@ -1,6 +1,28 @@
+"use client"
+import { useEffect, useState } from "react"
+import { createClient } from "@/lib/supabase"
+import { useRouter } from "next/navigation"
 import { MemberNavbar } from "@/components/member/member-navbar"
 
 export default function MemberLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
+  const [auth, setAuth] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    ;(async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.replace("/login"); return }
+      setAuth(true)
+    })()
+  }, [router])
+
+  if (!auth) return (
+    <div className="min-h-screen flex items-center justify-center" style={{background:"linear-gradient(135deg,#0f0c1a,#130d24,#0c1220)"}}>
+      <div className="w-6 h-6 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"/>
+    </div>
+  )
+
   return (
     <div className="relative min-h-screen" style={{background:"linear-gradient(135deg,#0f0c1a 0%,#130d24 50%,#0c1220 100%)"}}>
       <div className="fixed inset-0 pointer-events-none" style={{zIndex:0}}>
