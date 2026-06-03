@@ -135,9 +135,43 @@ export default function AdminDashboard() {
   const updateSubStatus = async (id: string, status: "approved"|"rejected") => {
     const supabase = createClient()
     await supabase.from("submissions").update({ status }).eq("id", id)
-    // Fire notification to contributor
-    const { data: sub } = await supabase.from("submissions").select("codyza_id, project_name").eq("id", id).single()
+
+    // Get submission details
+    const { data: sub } = await supabase
+      .from("submissions")
+      .select("codyza_id, project_name, xp_earned")
+      .eq("id", id)
+      .single()
+
     if (sub) {
+      // Award XP to contributor when approved
+      if (status === "approved" && sub.xp_earned > 0) {
+        const { data: contrib } = await supabase
+          .from("contributors")
+          .select("xp")
+          .eq("codyza_id", sub.codyza_id)
+          .single()
+
+        if (contrib) {
+          const newXP = (contrib.xp || 0) + sub.xp_earned
+          // Calculate new rank
+          const RANKS = [
+            { name: "Apprentice", minXP: 0 },
+            { name: "Associate Engineer", minXP: 500 },
+            { name: "Software Engineer", minXP: 1500 },
+            { name: "Senior Engineer", minXP: 3500 },
+            { name: "Staff Engineer", minXP: 7000 },
+            { name: "Principal Engineer", minXP: 12000 },
+            { name: "Distinguished Engineer", minXP: 20000 },
+            { name: "Codyza Fellow", minXP: 35000 },
+          ]
+          let newRank = "Apprentice"
+          for (const r of RANKS) { if (newXP >= r.minXP) newRank = r.name }
+          await supabase.from("contributors").update({ xp: newXP, rank: newRank }).eq("codyza_id", sub.codyza_id)
+        }
+      }
+
+      // Fire notification
       await fetch("/api/notifications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -145,9 +179,9 @@ export default function AdminDashboard() {
           codyza_id: sub.codyza_id,
           type: status === "approved" ? "submission_approved" : "submission_rejected",
           message: status === "approved"
-            ? `🎉 Your project "${sub.project_name}" was approved!`
+            ? `Your project "${sub.project_name}" was approved! +${sub.xp_earned} XP added.`
             : `Your project "${sub.project_name}" was not approved this time.`,
-          link: "/member",
+          link: "/member/projects",
         }),
       })
     }

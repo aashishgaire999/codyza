@@ -37,11 +37,24 @@ const RANK_CONFIG: Record<string, { color: string; gradient: string }> = {
   "Codyza Fellow": { color: "text-yellow-400", gradient: "from-yellow-600 to-yellow-400" },
 }
 
+const RANK_XP: { name: string; minXP: number }[] = [
+  { name: "Apprentice", minXP: 0 },
+  { name: "Associate Engineer", minXP: 500 },
+  { name: "Software Engineer", minXP: 1500 },
+  { name: "Senior Engineer", minXP: 3500 },
+  { name: "Staff Engineer", minXP: 7000 },
+  { name: "Principal Engineer", minXP: 12000 },
+  { name: "Distinguished Engineer", minXP: 20000 },
+  { name: "Codyza Fellow", minXP: 35000 },
+]
+
 export default function MemberDashboard() {
   const router = useRouter()
   const [contributor, setContributor] = useState<Contributor | null>(null)
   const [submissions, setSubmissions] = useState<Submission[]>([])
   const [crewFeed, setCrewFeed] = useState<any[]>([])
+  const [myGroups, setMyGroups] = useState<any[]>([])
+  const [openBounties, setOpenBounties] = useState<any[]>([])
   const [reactions, setReactions] = useState<Record<string,Record<string,string[]>>>({})
   const [loading, setLoading] = useState(true)
 
@@ -78,6 +91,16 @@ export default function MemberDashboard() {
       .limit(5)
 
     setContributor(contrib)
+
+    // Load groups and bounties
+    const [groupsRes, bountiesRes] = await Promise.all([
+      fetch("/api/groups").then(r => r.json()),
+      fetch("/api/bounties").then(r => r.json()),
+    ])
+    const allGroups = Array.isArray(groupsRes) ? groupsRes : []
+    setMyGroups(allGroups.filter((g: any) => g.members?.some((m: any) => m.codyza_id === contrib.codyza_id)))
+    setOpenBounties((Array.isArray(bountiesRes) ? bountiesRes : []).filter((b: any) => b.status === "open").slice(0, 3))
+
     setSubmissions(subs || [])
 
     const { data: feedData } = await supabase
@@ -237,9 +260,85 @@ export default function MemberDashboard() {
           </div>
         </div>
 
+        {/* XP Progress Bar */}
+        {(() => {
+          const currentIdx = RANK_XP.findIndex(r => r.name === contributor.rank)
+          const next = RANK_XP[currentIdx + 1]
+          const current = RANK_XP[currentIdx]
+          const progress = next ? Math.min(100, Math.round(((contributor.xp - current.minXP) / (next.minXP - current.minXP)) * 100)) : 100
+          return (
+            <div className="mb-6 bg-white/[0.03] border border-white/[0.07] rounded-xl px-5 py-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-gray-500 font-mono uppercase tracking-wider">XP to next rank</span>
+                <span className="text-xs font-mono" style={{color:"#8b5cf6"}}>{next ? `${contributor.xp.toLocaleString()} / ${next.minXP.toLocaleString()} XP → ${next.name}` : "MAX RANK"}</span>
+              </div>
+              <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
+                <div className="h-full rounded-full transition-all" style={{width:`${progress}%`,background:"linear-gradient(90deg,#8b5cf6,#06b6d4)",boxShadow:"0 0 8px rgba(139,92,246,0.5)"}}/>
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* My Groups */}
+        {myGroups.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-bold text-white">Your Groups</h2>
+              <Link href="/member/groups" className="text-xs text-purple-400 hover:text-purple-300">View all →</Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {myGroups.slice(0,2).map((g: any) => (
+                <div key={g.id} className="bg-white/[0.03] border border-purple-500/20 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-semibold text-white text-sm">{g.name}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400">{g.status}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {(g.members||[]).slice(0,4).map((m: any, i: number) => (
+                      <div key={m.codyza_id} className="w-6 h-6 rounded-full flex items-center justify-center text-[8px] font-bold text-white" style={{background:`linear-gradient(135deg,#8b5cf6,#3b82f6)`,marginLeft:i>0?"-4px":"0",zIndex:10-i,border:"1.5px solid #050508"}}>
+                        {m.name?.charAt(0).toUpperCase()}
+                      </div>
+                    ))}
+                    <span className="text-xs text-gray-500 ml-1">{g.members?.length} members</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Open Bounties */}
+        {openBounties.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-bold text-white">Open Bounties</h2>
+              <Link href="/member/bounties" className="text-xs text-yellow-400 hover:text-yellow-300">View all →</Link>
+            </div>
+            <div className="space-y-2">
+              {openBounties.map((b: any) => (
+                <div key={b.id} className="bg-white/[0.03] border border-yellow-500/15 rounded-xl px-4 py-3 flex items-center justify-between">
+                  <div>
+                    <span className="text-sm font-medium text-white">{b.title}</span>
+                    {b.tech_tags?.length > 0 && (
+                      <div className="flex gap-1.5 mt-1">
+                        {b.tech_tags.slice(0,3).map((t: string) => (
+                          <span key={t} className="px-1.5 py-0.5 rounded text-[10px] bg-white/[0.04] border border-white/[0.07] text-gray-400">{t}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <Link href="/member/bounties" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-xs font-bold hover:bg-yellow-500/20 transition-colors">
+                    <Zap className="w-3 h-3" />+{b.xp_reward} XP
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <Link href="/member/submit" className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-purple-500/50 transition-all group">
+          <Link href="/member/projects" className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-purple-500/50 transition-all group">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-colors">
                 <FileText className="w-6 h-6 text-purple-400" />
