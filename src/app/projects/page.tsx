@@ -2,6 +2,7 @@ import { Metadata } from "next"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase"
 import { Globe, GitBranch, Zap, Search } from "lucide-react"
+import { SmartNavbar } from "@/components/shared/smart-navbar"
 
 export const metadata: Metadata = {
   title: "Projects | Codyza",
@@ -35,19 +36,7 @@ export default async function ProjectsPage() {
   return (
     <div className="min-h-screen bg-[#050508] text-white">
 
-      {/* Navbar */}
-      <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#050508]/90 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-xs font-black">C</div>
-            <span className="font-bold text-base tracking-tight">Codyza</span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <Link href="/leaderboard" className="text-sm text-gray-400 hover:text-white transition-colors">Leaderboard</Link>
-            <Link href="/apply" className="px-4 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-sm font-semibold transition-colors">Apply</Link>
-          </div>
-        </div>
-      </nav>
+      <SmartNavbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
 
