@@ -74,9 +74,21 @@ export default function AdminDashboard() {
   const [accessCode, setAccessCode] = useState("")
   const [verifying, setVerifying] = useState(false)
   const [error, setError] = useState("")
-  const [activeTab, setActiveTab] = useState<"overview"|"contributors"|"submissions"|"applications">("overview")
+  const [activeTab, setActiveTab] = useState<"overview"|"contributors"|"submissions"|"applications"|"groups"|"bounties">("overview")
   const [contributors, setContributors] = useState<Contributor[]>([])
   const [submissions, setSubmissions] = useState<Submission[]>([])
+  const [groups, setGroups] = useState<any[]>([])
+  const [bounties, setBounties] = useState<any[]>([])
+  const [allContribs, setAllContribs] = useState<any[]>([])
+  const [newGroupName, setNewGroupName] = useState("")
+  const [newGroupDesc, setNewGroupDesc] = useState("")
+  const [selectedMembers, setSelectedMembers] = useState<{id:string,role:string}[]>([])
+  const [creatingGroup, setCreatingGroup] = useState(false)
+  const [newBountyTitle, setNewBountyTitle] = useState("")
+  const [newBountyDesc, setNewBountyDesc] = useState("")
+  const [newBountyXP, setNewBountyXP] = useState(100)
+  const [newBountyTags, setNewBountyTags] = useState("")
+  const [creatingBounty, setCreatingBounty] = useState(false)
   const [applications, setApplications] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [editingContributor, setEditingContributor] = useState<Contributor | null>(null)
@@ -97,7 +109,14 @@ export default function AdminDashboard() {
     const { data: contribData } = await supabase.from("contributors").select("*").order("xp", { ascending: false })
     const { data: subData } = await supabase.from("submissions").select("*").order("submitted_at", { ascending: false })
     setContributors(contribData || [])
+    setAllContribs(contribData || [])
     setSubmissions(subData || [])
+    const [gr, bo] = await Promise.all([
+      fetch("/api/groups").then(r => r.json()),
+      fetch("/api/bounties").then(r => r.json()),
+    ])
+    setGroups(Array.isArray(gr) ? gr : [])
+    setBounties(Array.isArray(bo) ? bo : [])
     setLoading(false)
     loadApplications()
   }
@@ -236,10 +255,10 @@ export default function AdminDashboard() {
 
         {/* Tabs */}
         <div className="flex gap-1 mb-6 border-b border-white/10 pb-0">
-          {(["overview","contributors","submissions","applications"] as const).map(tab => (
+          {(["overview","contributors","submissions","applications","groups","bounties"] as const).map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}
               className={`px-4 py-2 font-semibold transition-colors capitalize text-sm ${activeTab === tab ? "text-purple-400 border-b-2 border-purple-400" : "text-gray-400 hover:text-white"}`}>
-              {tab === "submissions" ? `Submissions (${pendingCount})` : tab === "applications" ? `Applications (${pendingApps})` : tab === "contributors" ? `Contributors (${contributors.length})` : "Overview"}
+              {tab === "submissions" ? `Submissions (${pendingCount})` : tab === "applications" ? `Applications (${pendingApps})` : tab === "contributors" ? `Contributors (${contributors.length})` : tab === "groups" ? `Groups (${groups.length})` : tab === "bounties" ? `Bounties (${bounties.length})` : "Overview"}
             </button>
           ))}
         </div>
@@ -415,6 +434,128 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
+
+        {activeTab === "groups" && !loading && (
+          <div className="mt-0">
+            <div className="mb-5 p-5 bg-white/[0.03] border border-white/[0.08] rounded-xl">
+              <h3 className="font-bold text-white mb-4 text-sm">Create New Group</h3>
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                <div>
+                  <label className="block text-xs font-mono uppercase tracking-wider text-zinc-500 mb-1">Group Name *</label>
+                  <input value={newGroupName} onChange={e => setNewGroupName(e.target.value)} placeholder="e.g. Team Alpha" className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none"/>
+                </div>
+                <div>
+                  <label className="block text-xs font-mono uppercase tracking-wider text-zinc-500 mb-1">Description</label>
+                  <input value={newGroupDesc} onChange={e => setNewGroupDesc(e.target.value)} placeholder="What will this group build?" className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none"/>
+                </div>
+              </div>
+              <div className="mb-3">
+                <label className="block text-xs font-mono uppercase tracking-wider text-zinc-500 mb-2">Add Members</label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {allContribs.map((c: any) => {
+                    const isSel = selectedMembers.some((m: any) => m.id === c.codyza_id)
+                    return (
+                      <button key={c.codyza_id} type="button"
+                        onClick={() => isSel ? setSelectedMembers((p: any) => p.filter((m: any) => m.id !== c.codyza_id)) : setSelectedMembers((p: any) => [...p, {id: c.codyza_id, role: "member"}])}
+                        className={`px-3 py-1 rounded-lg text-xs transition-colors ${isSel ? "bg-purple-500/25 border border-purple-500/50 text-purple-300" : "bg-white/[0.04] border border-white/[0.08] text-gray-500 hover:border-white/20"}`}>
+                        {c.name}
+                      </button>
+                    )
+                  })}
+                </div>
+                {selectedMembers.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {selectedMembers.map((m: any) => {
+                      const c = allContribs.find((x: any) => x.codyza_id === m.id)
+                      return (
+                        <div key={m.id} className="flex items-center gap-2 px-2 py-1 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+                          <span className="text-xs text-purple-300">{c?.name}</span>
+                          <select value={m.role} onChange={e => setSelectedMembers((p: any) => p.map((sm: any) => sm.id === m.id ? {...sm, role: e.target.value} : sm))} className="text-xs bg-transparent text-purple-400 border-none outline-none">
+                            {["member","pm","frontend","backend","design","devops","ai"].map(r => <option key={r} value={r} className="bg-[#0a0a14]">{r}</option>)}
+                          </select>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+              <button disabled={creatingGroup || !newGroupName}
+                onClick={async () => {
+                  setCreatingGroup(true)
+                  const adm = contributors.find((c: any) => c.is_admin)
+                  await fetch("/api/groups", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:newGroupName,description:newGroupDesc,member_ids:selectedMembers.map((m:any)=>m.id),roles:selectedMembers.map((m:any)=>m.role),created_by:adm?.codyza_id})})
+                  setNewGroupName(""); setNewGroupDesc(""); setSelectedMembers([])
+                  const r = await fetch("/api/groups"); setGroups(await r.json()); setCreatingGroup(false)
+                }}
+                className="px-5 py-2 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50">
+                {creatingGroup ? "Creating..." : "Create Group"}
+              </button>
+            </div>
+            <div className="space-y-3">
+              {groups.length === 0 ? <p className="text-gray-500 text-sm text-center py-8">No groups yet.</p> : groups.map((g: any) => (
+                <div key={g.id} className="p-4 bg-white/[0.03] border border-white/[0.07] rounded-xl">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3"><span className="font-semibold text-white text-sm">{g.name}</span><span className="px-2 py-0.5 rounded-full text-xs bg-white/[0.05] border border-white/[0.08] text-gray-400">{g.status}</span></div>
+                    <span className="text-xs text-gray-500">{g.members?.length || 0} members</span>
+                  </div>
+                  {g.description && <p className="text-xs text-gray-500 mb-2">{g.description}</p>}
+                  <div className="flex flex-wrap gap-1.5">{(g.members||[]).map((m:any) => (<span key={m.codyza_id} className="px-2 py-0.5 text-[10px] rounded bg-white/[0.04] border border-white/[0.07] text-gray-400">{m.name} · <span className="text-purple-400">{m.role}</span></span>))}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "bounties" && !loading && (
+          <div className="mt-0">
+            <div className="mb-5 p-5 bg-white/[0.03] border border-white/[0.08] rounded-xl">
+              <h3 className="font-bold text-white mb-4 text-sm">Post New Bounty</h3>
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                <div>
+                  <label className="block text-xs font-mono uppercase tracking-wider text-zinc-500 mb-1">Title *</label>
+                  <input value={newBountyTitle} onChange={e => setNewBountyTitle(e.target.value)} placeholder="e.g. Add GitHub activity chart" className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none"/>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-xs font-mono uppercase tracking-wider text-zinc-500 mb-1">XP Reward</label>
+                    <input type="number" value={newBountyXP} onChange={e => setNewBountyXP(Number(e.target.value))} className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none"/>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-mono uppercase tracking-wider text-zinc-500 mb-1">Tech Tags</label>
+                    <input value={newBountyTags} onChange={e => setNewBountyTags(e.target.value)} placeholder="React, CSS" className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none"/>
+                  </div>
+                </div>
+              </div>
+              <div className="mb-3">
+                <label className="block text-xs font-mono uppercase tracking-wider text-zinc-500 mb-1">Description *</label>
+                <textarea value={newBountyDesc} onChange={e => setNewBountyDesc(e.target.value)} placeholder="What needs to be built? Be specific." rows={3} className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none resize-none"/>
+              </div>
+              <button disabled={creatingBounty || !newBountyTitle || !newBountyDesc}
+                onClick={async () => {
+                  setCreatingBounty(true)
+                  const adm = contributors.find((c: any) => c.is_admin)
+                  await fetch("/api/bounties", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:newBountyTitle,description:newBountyDesc,xp_reward:newBountyXP,tech_tags:newBountyTags.split(",").map((t:string)=>t.trim()).filter(Boolean),posted_by:adm?.codyza_id})})
+                  setNewBountyTitle(""); setNewBountyDesc(""); setNewBountyXP(100); setNewBountyTags("")
+                  const r = await fetch("/api/bounties"); setBounties(await r.json()); setCreatingBounty(false)
+                }}
+                className="px-5 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50">
+                {creatingBounty ? "Posting..." : "Post Bounty"}
+              </button>
+            </div>
+            <div className="space-y-3">
+              {bounties.length === 0 ? <p className="text-gray-500 text-sm text-center py-8">No bounties yet.</p> : bounties.map((b: any) => (
+                <div key={b.id} className="p-4 bg-white/[0.03] border border-white/[0.07] rounded-xl">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-semibold text-white text-sm">{b.title}</span>
+                    <div className="flex items-center gap-3"><span className="text-sm font-bold text-yellow-400">+{b.xp_reward} XP</span><span className={`px-2 py-0.5 rounded-full text-xs ${b.status==="open"?"bg-green-500/10 text-green-400":"bg-yellow-500/10 text-yellow-400"}`}>{b.status}</span></div>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-1">{b.description}</p>
+                  <span className="text-xs text-gray-600">By {b.poster_name}{b.claimer_name?` · Claimed by ${b.claimer_name}`:""}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
       {editingContributor && (
         <EditModal contributor={editingContributor} onClose={() => setEditingContributor(null)} onSave={saveContributor} saving={savingEdit}/>

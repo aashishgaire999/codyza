@@ -51,6 +51,12 @@ export function MemberNavbar() {
             <Link href="/member/projects" className="rounded-lg px-4 py-2 text-sm text-gray-400 transition-colors hover:bg-white/5 hover:text-white">
               Projects
             </Link>
+            <Link href="/member/groups" className="rounded-lg px-4 py-2 text-sm text-gray-400 transition-colors hover:bg-white/5 hover:text-white">
+              Groups
+            </Link>
+            <Link href="/member/bounties" className="rounded-lg px-4 py-2 text-sm text-gray-400 transition-colors hover:bg-white/5 hover:text-white">
+              Bounties
+            </Link>
             <Link href="/leaderboard" className="rounded-lg px-4 py-2 text-sm text-gray-400 transition-colors hover:bg-white/5 hover:text-white">
               Leaderboard
             </Link>
