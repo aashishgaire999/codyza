@@ -155,8 +155,8 @@ export default function MemberDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* PROFILE ID CARD */}
-        <div className="mb-8 profile-card-glow">
-          <div className="profile-card-inner">
+        <div className="mb-8" style={{borderRadius:16,padding:"1.5px",background:"linear-gradient(135deg,#8b5cf6,#3b82f6,#06b6d4)",boxShadow:"0 0 32px rgba(139,92,246,0.15)"}}>
+          <div style={{borderRadius:"14.5px",background:"linear-gradient(135deg,#0a0a14,#050508)",padding:"20px 24px"}}>
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-4">
                 {/* Avatar */}
@@ -310,19 +310,27 @@ export default function MemberDashboard() {
                       {/* Reactions */}
                       {item.id && (
                         <div style={{ display:"flex", gap:5, marginTop:8, flexWrap:"wrap" }}>
-                          {["🔥","⚡","🚀","💜","👏"].map(emoji => {
-                            const reacters = reactions[item.id]?.[emoji] || []
+                          {[
+                            {key:"fire",label:"🔥",color:"#f97316"},
+                            {key:"zap",label:"⚡",color:"#f59e0b"},
+                            {key:"rocket",label:"🚀",color:"#3b82f6"},
+                            {key:"heart",label:"💜",color:"#8b5cf6"},
+                            {key:"clap",label:"👏",color:"#22c55e"},
+                          ].map(({key,label,color}) => {
+                            const reacters = reactions[item.id]?.[label] || []
                             const reacted = reacters.includes(contributor?.codyza_id || "")
                             return (
-                              <button key={emoji} onClick={() => toggleReaction(item.id, emoji)}
+                              <button key={key} onClick={() => toggleReaction(item.id, label)}
                                 style={{
-                                  padding:"3px 8px", borderRadius:8, fontSize:12, cursor:"pointer",
-                                  background: reacted ? "rgba(139,92,246,0.2)" : "rgba(255,255,255,0.04)",
-                                  border: reacted ? "1px solid rgba(139,92,246,0.4)" : "1px solid rgba(255,255,255,0.08)",
-                                  transition:"all 0.15s", display:"flex", alignItems:"center", gap:4
+                                  padding:"3px 10px", borderRadius:8, fontSize:11, cursor:"pointer",
+                                  background: reacted ? `${color}22` : "rgba(255,255,255,0.03)",
+                                  border: reacted ? `1px solid ${color}50` : "1px solid rgba(255,255,255,0.07)",
+                                  transition:"all 0.15s", display:"flex", alignItems:"center", gap:5,
+                                  color: reacted ? color : "rgba(255,255,255,0.4)",
+                                  fontWeight: reacted ? 700 : 400,
                                 }}>
-                                {emoji}
-                                {reacters.length > 0 && <span style={{ fontSize:10, color: reacted ? "#a78bfa" : "rgba(255,255,255,0.4)", fontWeight:600 }}>{reacters.length}</span>}
+                                <span style={{fontSize:13}}>{label}</span>
+                                {reacters.length > 0 && <span style={{fontSize:10,fontWeight:700,color:reacted?color:"rgba(255,255,255,0.3)"}}>{reacters.length}</span>}
                               </button>
                             )
                           })}
@@ -336,70 +344,10 @@ export default function MemberDashboard() {
           )}
         </div>
 
-        {/* Recent Submissions */}
-        <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-          <h2 className="text-xl font-bold mb-4">Recent Submissions</h2>
-          {submissions.length === 0 ? (
-            <p className="text-gray-400 text-center py-8">No submissions yet. Submit your first project to get started!</p>
-          ) : (
-            <div className="space-y-3">
-              {submissions.map((sub) => (
-                <div key={sub.id} className="flex items-center justify-between py-3 border-b border-white/10 last:border-0">
-                  <div>
-                    <p className="font-semibold">{sub.project_name}</p>
-                    <p className="text-sm text-gray-400">{new Date(sub.submitted_at).toLocaleDateString()}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded-lg text-sm font-bold">
-                      +{sub.xp_earned} XP
-                    </span>
-                    <span className={`px-3 py-1 rounded-lg text-sm ${
-                      sub.status === "pending" ? "bg-yellow-500/20 text-yellow-400" :
-                      sub.status === "approved" ? "bg-green-500/20 text-green-400" :
-                      "bg-red-500/20 text-red-400"
-                    }`}>
-                      {sub.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+
       </div>
 
-      <style jsx>{`
-        .profile-card-glow {
-          position: relative;
-          border-radius: 16px;
-          padding: 1.5px;
-          overflow: hidden;
-          isolation: isolate;
-        }
-        .profile-card-glow::before {
-          content: "";
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          width: 200%;
-          height: 200%;
-          background: conic-gradient(from 0deg, #8b5cf6, #3b82f6, #06b6d4, #22c55e, #8b5cf6);
-          transform: translate(-50%, -50%) rotate(0deg);
-          animation: spin-profile 8s linear infinite;
-          z-index: -1;
-        }
-        .profile-card-inner {
-          position: relative;
-          border-radius: 14.5px;
-          background: linear-gradient(135deg, #0a0a14 0%, #050508 100%);
-          padding: 20px 24px;
-          z-index: 1;
-        }
-        @keyframes spin-profile {
-          from { transform: translate(-50%, -50%) rotate(0deg); }
-          to { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-      `}</style>
+
     </>
   )
 }
