@@ -3,7 +3,7 @@ import Link from "next/link"
 import { createServerSupabase } from "@/lib/supabase-server"
 import { notFound } from "next/navigation"
 import { ArrowLeft, GitBranch, Globe, Zap, Flame, Trophy, Calendar, ExternalLink } from "lucide-react"
-import { Navbar } from "@/components/landing/navbar"
+import { SmartNavbar } from "@/components/shared/smart-navbar"
 
 interface Props {
   params: Promise<{ id: string }>
@@ -75,7 +75,7 @@ export default async function ContributorProfile({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-[#050508] text-white">
-      <Navbar />
+      <SmartNavbar />
 
       <div className="max-w-3xl mx-auto px-4 py-10">
         <Link href="/leaderboard" className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-8 text-sm">
