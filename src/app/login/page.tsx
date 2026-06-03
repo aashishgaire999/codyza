@@ -33,14 +33,14 @@ export default function LoginPage() {
     if (magicMode) {
       // Magic link flow — send email with one-time login link
       const { error } = await supabase.auth.signInWithOtp({
-        email,
+        email: email.toLowerCase().trim(),
         options: {
           shouldCreateUser: false,
           emailRedirectTo: `${window.location.origin}/set-password`,
         },
       })
       if (error) {
-        setError(error.message)
+        setError(error.message.includes("Signups not allowed") ? "This email isn't registered. Check the address or contact team@codyza.com." : error.message)
         setLoading(false)
         return
       }
@@ -51,12 +51,12 @@ export default function LoginPage() {
 
     // Password flow
     const { error } = await supabase.auth.signInWithPassword({
-      email,
+      email: email.toLowerCase().trim(),
       password,
     })
 
     if (error) {
-      setError(error.message)
+      setError(error.message.includes("Signups not allowed") ? "This email isn't registered. Check the address or contact team@codyza.com." : error.message)
       setLoading(false)
     } else {
       router.push("/member")
