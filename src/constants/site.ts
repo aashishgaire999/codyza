@@ -28,4 +28,8 @@ export const SOCIAL_LINKS = {
   developer: "https://github.com/aashishgaire999",
 } as const
 
-export const NAV_LINKS: { label: string; href: string }[] = []
+export const NAV_LINKS: { label: string; href: string }[] = [
+  { label: "Projects", href: "/projects" },
+  { label: "Leaderboard", href: "/leaderboard" },
+  { label: "Team", href: "/#team" },
+]

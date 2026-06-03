@@ -93,13 +93,21 @@ export default function HomePage() {
           <p className="mx-auto mt-4 max-w-xl text-base text-zinc-400">
             Applications take ~3 minutes. We review every one within 48 hours.
           </p>
-          <Link
-            href="/apply"
-            className="group mt-8 inline-flex items-center gap-2 rounded-md bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6] px-6 py-3 text-sm font-medium text-white transition-opacity hover:opacity-90"
-          >
-            Apply to join
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </Link>
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              href="/apply"
+              className="group inline-flex items-center gap-2 rounded-md bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6] px-6 py-3 text-sm font-medium text-white transition-opacity hover:opacity-90"
+            >
+              Apply to join
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+            <Link
+              href="/projects"
+              className="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.03] px-6 py-3 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/[0.06] hover:text-white"
+            >
+              See what we're building →
+            </Link>
+          </div>
         </div>
       </section>
       <Footer />

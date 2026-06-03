@@ -12,6 +12,12 @@ interface Submission {
   status: string
 }
 
+interface Stats {
+  total: number
+  members: number
+  live: number
+}
+
 const STATUS_CONFIG: Record<string, { label: string; color: string; pulse: boolean }> = {
   approved: { label: "LIVE", color: "#22c55e", pulse: true },
   pending: { label: "IN REVIEW", color: "#f59e0b", pulse: false },
@@ -21,6 +27,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; pulse: boole
 export function CurrentlyShippingSection() {
   const [cards, setCards] = useState<Submission[]>([])
   const [contribMap, setContribMap] = useState<Map<string, string>>(new Map())
+  const [stats, setStats] = useState<Stats>({ total: 0, members: 0, live: 0 })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -34,9 +41,17 @@ export function CurrentlyShippingSection() {
           .order("submitted_at", { ascending: false })
           .limit(3),
         supabase.from("contributors").select("codyza_id, name"),
+        supabase.from("submissions").select("*", { count: "exact", head: true }).eq("status", "approved"),
+        supabase.from("contributors").select("*", { count: "exact", head: true }),
       ])
       setCards(subs || [])
       setContribMap(new Map((contribs || []).map((c: { codyza_id: string; name: string }) => [c.codyza_id, c.name])))
+      const liveCount = (subs || []).filter((s: Submission) => s.status === "approved").length
+      setStats({
+        total: (subs || []).length,
+        members: 0,
+        live: liveCount,
+      })
       setLoading(false)
     }
     load()
