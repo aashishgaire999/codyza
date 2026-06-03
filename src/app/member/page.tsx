@@ -227,7 +227,7 @@ export default function MemberDashboard() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-purple-900/20 to-purple-600/20 border border-purple-500/30 rounded-xl p-6">
+          <div className="bg-white/[0.03] border border-white/[0.07] rounded-xl p-6 hover:border-purple-500/20 transition-colors">
             <div className="flex items-center gap-3 mb-2">
               <Trophy className="w-5 h-5 text-purple-400" />
               <span className="text-gray-400 text-sm">Your Rank</span>
@@ -235,7 +235,7 @@ export default function MemberDashboard() {
             <p className={`text-2xl font-bold ${rankConfig.color}`}>{contributor.rank}</p>
           </div>
 
-          <div className="bg-gradient-to-br from-yellow-900/20 to-yellow-600/20 border border-yellow-500/30 rounded-xl p-6">
+          <div className="bg-white/[0.03] border border-white/[0.07] rounded-xl p-6 hover:border-yellow-500/20 transition-colors">
             <div className="flex items-center gap-3 mb-2">
               <Zap className="w-5 h-5 text-yellow-400" />
               <span className="text-gray-400 text-sm">Total XP</span>
@@ -243,7 +243,7 @@ export default function MemberDashboard() {
             <p className="text-2xl font-bold text-yellow-400">{contributor.xp.toLocaleString()}</p>
           </div>
 
-          <div className="bg-gradient-to-br from-orange-900/20 to-orange-600/20 border border-orange-500/30 rounded-xl p-6">
+          <div className="bg-white/[0.03] border border-white/[0.07] rounded-xl p-6 hover:border-orange-500/20 transition-colors">
             <div className="flex items-center gap-3 mb-2">
               <Target className="w-5 h-5 text-orange-400" />
               <span className="text-gray-400 text-sm">Streak</span>
@@ -251,7 +251,7 @@ export default function MemberDashboard() {
             <p className="text-2xl font-bold text-orange-400">{contributor.streak} weeks</p>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-900/20 to-blue-600/20 border border-blue-500/30 rounded-xl p-6">
+          <div className="bg-white/[0.03] border border-white/[0.07] rounded-xl p-6 hover:border-blue-500/20 transition-colors">
             <div className="flex items-center gap-3 mb-2">
               <FileText className="w-5 h-5 text-blue-400" />
               <span className="text-gray-400 text-sm">Projects</span>
@@ -338,7 +338,7 @@ export default function MemberDashboard() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <Link href="/member/projects" className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-purple-500/50 transition-all group">
+          <Link href="/member/projects" className="bg-white/[0.03] border border-white/[0.07] rounded-xl p-6 hover:border-purple-500/30 transition-all group">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-colors">
                 <FileText className="w-6 h-6 text-purple-400" />
@@ -350,7 +350,7 @@ export default function MemberDashboard() {
             </div>
           </Link>
 
-          <Link href={`/contributor/${contributor.codyza_id.toLowerCase()}`} className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-blue-500/50 transition-all group">
+          <Link href={`/contributor/${contributor.codyza_id.toLowerCase()}`} className="bg-white/[0.03] border border-white/[0.07] rounded-xl p-6 hover:border-blue-500/30 transition-all group">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-blue-500/20 rounded-lg group-hover:bg-blue-500/30 transition-colors">
                 <Award className="w-6 h-6 text-blue-400" />

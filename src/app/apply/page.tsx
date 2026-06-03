@@ -4,11 +4,13 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { CodyzaLogo } from "@/components/shared/codyza-logo"
 import { ApplySection } from "@/components/landing/apply-section"
+import { SmartNavbar } from "@/components/shared/smart-navbar"
 import { SITE_CONFIG } from "@/constants/site"
 
 export default function ApplyPage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#050508]">
+      <SmartNavbar />
 
       {/* AMBIENT GLOW ORBS — dim, brand-tying */}
       <div
