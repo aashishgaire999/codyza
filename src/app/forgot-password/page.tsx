@@ -4,6 +4,7 @@ import { useState } from "react"
 import { createClient } from "@/lib/supabase"
 import Link from "next/link"
 import { CodyzaLogo } from "@/components/shared/codyza-logo"
+import { SmartNavbar } from "@/components/shared/smart-navbar"
 import { CheckCircle } from "lucide-react"
 
 export default function ForgotPasswordPage() {
