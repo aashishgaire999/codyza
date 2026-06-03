@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Bell } from "lucide-react"
+import { Bell, CheckCircle, XCircle, Trophy, Flame, Users, Zap, Megaphone, Star } from "lucide-react"
 import Link from "next/link"
 
 interface Notification {
@@ -13,14 +13,25 @@ interface Notification {
   created_at: string
 }
 
-const TYPE_ICONS: Record<string, string> = {
-  submission_approved: "✅",
-  submission_rejected: "❌",
-  rank_up: "🏆",
-  streak_milestone: "🔥",
-  new_member: "👋",
-  reaction: "💜",
-  default: "🔔",
+function NotifIcon({ type }: { type: string }) {
+  const configs: Record<string, { icon: React.ReactNode; color: string; bg: string }> = {
+    submission_approved: { icon: <CheckCircle size={13} />, color: "#22c55e", bg: "rgba(34,197,94,0.15)" },
+    submission_rejected: { icon: <XCircle size={13} />, color: "#ef4444", bg: "rgba(239,68,68,0.15)" },
+    rank_up:             { icon: <Trophy size={13} />,       color: "#f59e0b", bg: "rgba(245,158,11,0.15)" },
+    streak_milestone:    { icon: <Flame size={13} />,        color: "#f97316", bg: "rgba(249,115,22,0.15)" },
+    new_member:          { icon: <Users size={13} />,        color: "#06b6d4", bg: "rgba(6,182,212,0.15)" },
+    xp:                  { icon: <Zap size={13} />,          color: "#f59e0b", bg: "rgba(245,158,11,0.15)" },
+    group:               { icon: <Users size={13} />,        color: "#8b5cf6", bg: "rgba(139,92,246,0.15)" },
+    bounty:              { icon: <Star size={13} />,         color: "#f59e0b", bg: "rgba(245,158,11,0.15)" },
+    announcement:        { icon: <Megaphone size={13} />,    color: "#a78bfa", bg: "rgba(167,139,250,0.15)" },
+    default:             { icon: <Bell size={13} />,         color: "#94a3b8", bg: "rgba(148,163,184,0.12)" },
+  }
+  const cfg = configs[type] || configs.default
+  return (
+    <div style={{ width: 28, height: 28, borderRadius: 8, background: cfg.bg, border: `1px solid ${cfg.color}30`, display: "flex", alignItems: "center", justifyContent: "center", color: cfg.color, flexShrink: 0 }}>
+      {cfg.icon}
+    </div>
+  )
 }
 
 export function NotificationBell({ codyzaId }: { codyzaId: string }) {
@@ -144,9 +155,7 @@ export function NotificationBell({ codyzaId }: { codyzaId: string }) {
                 }}
                 className="hover:bg-white/[0.03]"
               >
-                <span style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }}>
-                  {TYPE_ICONS[n.type] || TYPE_ICONS.default}
-                </span>
+                <NotifIcon type={n.type} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontSize: 12, color: n.read ? "rgba(255,255,255,0.6)" : "#f8fafc", lineHeight: 1.5 }}>
                     {n.message}
