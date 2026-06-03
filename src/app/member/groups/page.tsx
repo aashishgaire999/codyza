@@ -146,13 +146,13 @@ export default function GroupsPage() {
                         <div className="flex items-center gap-2 flex-shrink-0">
                           {group.live_url && group.status === "live" && (
                             <a href={group.live_url} target="_blank" rel="noopener noreferrer"
-                              className="p-2 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20 transition-colors">
+                              className="p-2 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20 transition-colors">
                               <Globe className="w-3.5 h-3.5" />
                             </a>
                           )}
                           {group.github_url && (
                             <a href={group.github_url} target="_blank" rel="noopener noreferrer"
-                              className="p-2 rounded-lg bg-white/[0.05] border border-white/[0.08] text-gray-400 hover:text-white transition-colors">
+                              className="p-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-gray-400 hover:text-white transition-colors">
                               <GitBranch className="w-3.5 h-3.5" />
                             </a>
                           )}
@@ -166,13 +166,13 @@ export default function GroupsPage() {
                             {(group.members || []).slice(0, 5).map((m: any, i: number) => (
                               <div key={m.codyza_id}
                                 style={{ background: getAvatarBg(m.codyza_id), marginLeft: i > 0 ? "-8px" : "0", zIndex: 10 - i }}
-                                className="w-7 h-7 rounded-full border-2 border-[#050508] flex items-center justify-center text-[9px] font-bold text-white relative"
+                                className="w-7 h-7 rounded-full border-2 border-[#0f0c1a] flex items-center justify-center text-[9px] font-bold text-white relative"
                                 title={`${m.name} · ${m.role}`}>
                                 {getInitials(m.name || m.codyza_id)}
                               </div>
                             ))}
                             {group.members?.length > 5 && (
-                              <div className="w-7 h-7 rounded-full border-2 border-[#050508] bg-white/10 flex items-center justify-center text-[9px] text-gray-400" style={{ marginLeft: "-8px" }}>
+                              <div className="w-7 h-7 rounded-full border-2 border-[#0f0c1a] bg-white/10 flex items-center justify-center text-[9px] text-gray-400" style={{ marginLeft: "-8px" }}>
                                 +{group.members.length - 5}
                               </div>
                             )}
@@ -216,7 +216,7 @@ export default function GroupsPage() {
                 { icon: CheckCircle, color: "#22c55e", text: "Admin approves final submission — all members get XP" },
               ].map(({ icon: Icon, color, text }, i) => (
                 <div key={i} className="flex items-start gap-3">
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${color}18`, border: `1px solid ${color}30` }}>
+                  <div className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${color}18`, border: `1px solid ${color}30` }}>
                     <Icon className="w-3.5 h-3.5" style={{ color }} />
                   </div>
                   <p className="text-xs text-gray-400 leading-relaxed">{text}</p>

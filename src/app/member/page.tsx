@@ -151,7 +151,7 @@ export default function MemberDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#050508] text-white flex items-center justify-center">
+      <div className="min-h-screen bg-background text-white flex items-center justify-center">
         <div className="text-gray-400">Loading...</div>
       </div>
     )
@@ -159,7 +159,7 @@ export default function MemberDashboard() {
 
   if (!contributor) {
     return (
-      <div className="min-h-screen bg-[#050508] text-white flex items-center justify-center">
+      <div className="min-h-screen bg-background text-white flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-400 mb-4">No contributor profile found</p>
           <button onClick={handleLogout} className="text-gray-400 hover:text-white">

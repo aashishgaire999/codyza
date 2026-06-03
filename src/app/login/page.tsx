@@ -66,7 +66,7 @@ export default function LoginPage() {
 
   if (magicLinkSent) {
     return (
-      <div className="min-h-screen bg-[#050508] text-white flex items-center justify-center p-4">
+      <div className="min-h-screen text-white flex items-center justify-center p-4" style={{background:"linear-gradient(135deg,#0f0c1a 0%,#130d24 50%,#0c1220 100%)"}}>
         <div className="max-w-md w-full rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
           <CodyzaLogo size={56} withGlow />
           <h1 className="mt-4 text-2xl font-bold">Check your inbox</h1>
@@ -95,7 +95,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050508] text-white flex items-center justify-center p-4">
+    <div className="min-h-screen text-white flex items-center justify-center p-4" style={{background:"linear-gradient(135deg,#0f0c1a 0%,#130d24 50%,#0c1220 100%)"}}>
       <div className="max-w-md w-full bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm">
         <div className="flex flex-col items-center mb-8">
           <CodyzaLogo size={60} withGlow />
@@ -153,7 +153,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+            className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg font-semibold hover:opacity-90 hover:-translate-y-0.5 transition-all disabled:opacity-50"
           >
             {loading
               ? (magicMode ? "Sending link..." : "Signing in...")

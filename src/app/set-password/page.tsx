@@ -154,7 +154,7 @@ function SetPasswordContent() {
               <button
                 onClick={handleRequestNewLink}
                 disabled={requesting || !requestEmail}
-                className="w-full rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-3 text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="w-full rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-3 text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
               >
                 {requesting ? "Sending..." : "Request new invitation →"}
               </button>
@@ -238,7 +238,7 @@ function SetPasswordContent() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-3 font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="w-full rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-3 font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             {submitting ? "Setting password..." : "Set password & log in"}
           </button>

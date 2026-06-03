@@ -70,7 +70,7 @@ export default async function ContributorProfile({ params }: Props) {
   const profileUrl = `codyza.com/contributor/${contributor.codyza_id.toLowerCase()}`
 
   return (
-    <div className="min-h-screen bg-[#050508] text-white" style={{ overflow: "hidden" }}>
+    <div className="min-h-screen text-white" style={{background:"linear-gradient(135deg,#0f0c1a 0%,#130d24 50%,#0c1220 100%)",overflow:"hidden"}}>
       <SmartNavbar />
 
       {/* Background animation */}

@@ -34,7 +34,7 @@ export default async function ProjectsPage() {
   const allTech = Array.from(new Set(projects.flatMap(p => p.tech_stack || []))).sort()
 
   return (
-    <div className="min-h-screen bg-[#050508] text-white">
+    <div className="min-h-screen text-white" style={{background:"linear-gradient(135deg,#0f0c1a 0%,#130d24 50%,#0c1220 100%)"}}>
 
       <SmartNavbar />
 
@@ -122,7 +122,7 @@ export default async function ProjectsPage() {
                           </span>
                         ))}
                         {project.tech_stack.length > 5 && (
-                          <span className="px-2 py-0.5 rounded-md text-xs bg-white/5 border border-white/10 text-gray-500">
+                          <span className="px-2 py-0.5 rounded-md text-xs border border-white/[0.08] text-gray-500" style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(12px)"}}>
                             +{project.tech_stack.length - 5}
                           </span>
                         )}

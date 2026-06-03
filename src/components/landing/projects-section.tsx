@@ -88,7 +88,7 @@ export function ProjectsSection() {
   return (
     <section
       id="team"
-      className="relative overflow-hidden border-t border-white/[0.05] bg-[#050508] py-20"
+      className="relative overflow-hidden border-t border-white/[0.05] bg-transparent py-20"
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.12),transparent_40%)]" />
 

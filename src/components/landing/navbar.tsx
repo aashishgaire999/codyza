@@ -57,7 +57,7 @@ export function Navbar() {
       )}
     >
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:h-20 md:px-8">
-        <a href="#" className="group flex items-center gap-3" aria-label="Codyza home">
+        <a href="/" className="group flex items-center gap-3" aria-label="Codyza home">
           <CodyzaLogo size={36} withGlow={false} />
           <span className="font-[family-name:var(--font-heading)] text-lg font-bold tracking-tight sm:text-xl">
             {SITE_CONFIG.name}

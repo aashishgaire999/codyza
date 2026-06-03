@@ -6,7 +6,7 @@ import { SmartNavbar } from "@/components/shared/smart-navbar"
 
 export default function ApplyPage() {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#050508]">
+    <main className="relative min-h-screen overflow-hidden" style={{background:"linear-gradient(135deg,#0f0c1a 0%,#130d24 50%,#0c1220 100%)"}}>
       <SmartNavbar />
 
       {/* AMBIENT GLOW ORBS — dim, brand-tying */}
@@ -34,7 +34,7 @@ export default function ApplyPage() {
         <ApplySection />
       </div>
 
-      <footer className="relative z-10 border-t border-white/[0.05] bg-black/40 px-6 py-3 md:px-10">
+      <footer className="relative z-10 border-t border-white/[0.05] bg-transparent px-6 py-3 md:px-10">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-y-1 font-mono text-[10px] uppercase tracking-widest text-zinc-500">
           <div className="flex items-center gap-1.5">
             <span className="relative flex h-1.5 w-1.5">

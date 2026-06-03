@@ -60,7 +60,7 @@ export function CurrentlyShippingSection() {
   const placeholders = Math.max(0, 3 - cards.length)
 
   return (
-    <section className="relative scroll-mt-32 border-t border-white/[0.04] bg-[#050508] py-20">
+    <section className="relative scroll-mt-32 border-t border-white/[0.04] bg-transparent py-20">
       <div className="mx-auto max-w-7xl px-6 md:px-8">
 
         {/* HEADER */}

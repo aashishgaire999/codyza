@@ -127,7 +127,7 @@ export default function BountiesPage() {
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-3 flex-shrink-0">
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
                           <Zap className="w-3.5 h-3.5 text-yellow-400" />
                           <span className="text-sm font-bold text-yellow-400">+{bounty.xp_reward} XP</span>
                         </div>
@@ -135,7 +135,7 @@ export default function BountiesPage() {
                           <button
                             onClick={() => claimBounty(bounty.id)}
                             disabled={claiming === bounty.id}
-                            className="px-4 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+                            className="px-4 py-2 text-xs font-semibold rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:opacity-90 transition-opacity disabled:opacity-50"
                           >
                             {claiming === bounty.id ? "Claiming..." : "Claim bounty"}
                           </button>
@@ -173,11 +173,11 @@ export default function BountiesPage() {
             </div>
             <div className="mt-4 pt-4 border-t border-white/[0.06]">
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3 text-center">
+                <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-3 text-center">
                   <div className="text-lg font-bold text-green-400">{counts.open}</div>
                   <div className="text-[10px] text-gray-500">Open</div>
                 </div>
-                <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3 text-center">
+                <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-3 text-center">
                   <div className="text-lg font-bold text-yellow-400">{counts.claimed}</div>
                   <div className="text-[10px] text-gray-500">Claimed</div>
                 </div>

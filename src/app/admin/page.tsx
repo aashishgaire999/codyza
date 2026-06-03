@@ -38,23 +38,23 @@ function EditModal({ contributor, onClose, onSave, saving }: { contributor: Cont
           {[["Name","text",name,setName],["Email","email",email,setEmail],["GitHub","text",github,setGithub],["Role","text",role,setRole],["Level","text",level,setLevel]].map(([label,type,val,setter]: any) => (
             <div key={label}>
               <label className="mb-1 block text-xs font-mono uppercase tracking-wider text-zinc-500">{label}</label>
-              <input type={type} value={val} onChange={e => setter(e.target.value)} className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none"/>
+              <input type={type} value={val} onChange={e => setter(e.target.value)} className="w-full glass-input rounded-xl px-3 py-2 text-sm text-white focus:outline-none"/>
             </div>
           ))}
           <div>
             <label className="mb-1 block text-xs font-mono uppercase tracking-wider text-zinc-500">Rank</label>
-            <select value={rank} onChange={e => setRank(e.target.value)} className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none">
+            <select value={rank} onChange={e => setRank(e.target.value)} className="w-full glass-input rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
               {RANKS.map(r => <option key={r} value={r} className="bg-[#0a0a14]">{r}</option>)}
             </select>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1 block text-xs font-mono uppercase tracking-wider text-zinc-500">XP</label>
-              <input type="number" value={xp} onChange={e => setXp(Number(e.target.value))} className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none"/>
+              <input type="number" value={xp} onChange={e => setXp(Number(e.target.value))} className="w-full glass-input rounded-xl px-3 py-2 text-sm text-white focus:outline-none"/>
             </div>
             <div>
               <label className="mb-1 block text-xs font-mono uppercase tracking-wider text-zinc-500">Streak</label>
-              <input type="number" value={streak} onChange={e => setStreak(Number(e.target.value))} className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none"/>
+              <input type="number" value={streak} onChange={e => setStreak(Number(e.target.value))} className="w-full glass-input rounded-xl px-3 py-2 text-sm text-white focus:outline-none"/>
             </div>
           </div>
         </div>
@@ -232,7 +232,7 @@ export default function AdminDashboard() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#050508] text-white flex items-center justify-center p-4">
+      <div className="min-h-screen bg-transparent text-white flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm">
           <div className="flex items-center gap-3 mb-6">
             <Shield className="w-8 h-8 text-purple-500" />
@@ -258,7 +258,7 @@ export default function AdminDashboard() {
   const pendingApps = applications.filter(a => a.status === "pending").length
 
   return (
-    <div className="min-h-screen bg-[#050508] text-white">
+    <div className="min-h-screen bg-transparent text-white">
       <MemberNavbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6 flex items-center gap-3">
@@ -476,11 +476,11 @@ export default function AdminDashboard() {
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div>
                   <label className="block text-xs font-mono uppercase tracking-wider text-zinc-500 mb-1">Group Name *</label>
-                  <input value={newGroupName} onChange={e => setNewGroupName(e.target.value)} placeholder="e.g. Team Alpha" className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none"/>
+                  <input value={newGroupName} onChange={e => setNewGroupName(e.target.value)} placeholder="e.g. Team Alpha" className="w-full glass-input rounded-xl px-3 py-2 text-sm text-white focus:outline-none"/>
                 </div>
                 <div>
                   <label className="block text-xs font-mono uppercase tracking-wider text-zinc-500 mb-1">Description</label>
-                  <input value={newGroupDesc} onChange={e => setNewGroupDesc(e.target.value)} placeholder="What will this group build?" className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none"/>
+                  <input value={newGroupDesc} onChange={e => setNewGroupDesc(e.target.value)} placeholder="What will this group build?" className="w-full glass-input rounded-xl px-3 py-2 text-sm text-white focus:outline-none"/>
                 </div>
               </div>
               <div className="mb-3">
@@ -547,16 +547,16 @@ export default function AdminDashboard() {
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div>
                   <label className="block text-xs font-mono uppercase tracking-wider text-zinc-500 mb-1">Title *</label>
-                  <input value={newBountyTitle} onChange={e => setNewBountyTitle(e.target.value)} placeholder="e.g. Add GitHub activity chart" className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none"/>
+                  <input value={newBountyTitle} onChange={e => setNewBountyTitle(e.target.value)} placeholder="e.g. Add GitHub activity chart" className="w-full glass-input rounded-xl px-3 py-2 text-sm text-white focus:outline-none"/>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block text-xs font-mono uppercase tracking-wider text-zinc-500 mb-1">XP Reward</label>
-                    <input type="number" value={newBountyXP} onChange={e => setNewBountyXP(Number(e.target.value))} className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none"/>
+                    <input type="number" value={newBountyXP} onChange={e => setNewBountyXP(Number(e.target.value))} className="w-full glass-input rounded-xl px-3 py-2 text-sm text-white focus:outline-none"/>
                   </div>
                   <div>
                     <label className="block text-xs font-mono uppercase tracking-wider text-zinc-500 mb-1">Tech Tags</label>
-                    <input value={newBountyTags} onChange={e => setNewBountyTags(e.target.value)} placeholder="React, CSS" className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none"/>
+                    <input value={newBountyTags} onChange={e => setNewBountyTags(e.target.value)} placeholder="React, CSS" className="w-full glass-input rounded-xl px-3 py-2 text-sm text-white focus:outline-none"/>
                   </div>
                 </div>
               </div>

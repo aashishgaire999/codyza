@@ -187,7 +187,7 @@ export default function OnboardingPage() {
             <button
               type="submit"
               disabled={submitting || name.trim().length < 2}
-              className="w-full rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-3 font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-3 font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {submitting ? "Setting up your profile..." : "Complete setup →"}
             </button>

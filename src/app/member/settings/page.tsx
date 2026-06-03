@@ -68,7 +68,7 @@ export default function SettingsPage() {
   }
 
   if (loading) return (
-    <div className="min-h-screen bg-[#050508] text-white flex items-center justify-center">
+    <div className="min-h-screen bg-background text-white flex items-center justify-center">
       <div className="text-gray-400">Loading...</div>
     </div>
   )

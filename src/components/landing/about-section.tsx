@@ -7,7 +7,7 @@ import { TerminalAnimation } from "@/components/effects/terminal-animation"
 
 export function AboutSection() {
   return (
-    <section id="about" className="relative scroll-mt-32 border-t border-white/[0.04] bg-[#050508] py-20">
+    <section id="about" className="relative scroll-mt-32 border-t border-white/[0.04] bg-transparent py-20">
       <div className="mx-auto max-w-7xl px-6 md:px-8">
         <motion.div
           initial={{ opacity: 1, y: 0 }}

@@ -99,7 +99,7 @@ export default async function LeaderboardPage() {
   const contributors = await getLeaderboard();
 
   return (
-    <div className="min-h-screen bg-[#050508] text-white">
+    <div className="min-h-screen text-white" style={{background:"linear-gradient(135deg,#0f0c1a 0%,#130d24 50%,#0c1220 100%)"}}>
       <SmartNavbar />
 
       {/* Hero Section */}
@@ -119,7 +119,7 @@ export default async function LeaderboardPage() {
             <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl" />
             <div className="relative">
               <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 bg-purple-500/20 rounded-lg">
+                <div className="p-2 bg-purple-500/20 rounded-xl">
                   <Zap className="w-5 h-5 text-purple-400" />
                 </div>
                 <span className="text-gray-400 text-sm font-medium">Active Contributors</span>
@@ -132,7 +132,7 @@ export default async function LeaderboardPage() {
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl" />
             <div className="relative">
               <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 bg-blue-500/20 rounded-lg">
+                <div className="p-2 bg-blue-500/20 rounded-xl">
                   <TrendingUp className="w-5 h-5 text-blue-400" />
                 </div>
                 <span className="text-gray-400 text-sm font-medium">Total Experience</span>
@@ -147,7 +147,7 @@ export default async function LeaderboardPage() {
             <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl" />
             <div className="relative">
               <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 bg-amber-500/20 rounded-lg">
+                <div className="p-2 bg-amber-500/20 rounded-xl">
                   <Crown className="w-5 h-5 text-amber-400" />
                 </div>
                 <span className="text-gray-400 text-sm font-medium">Highest Rank</span>

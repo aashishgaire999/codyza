@@ -121,7 +121,7 @@ export function Footer() {
   }, [])
 
   return (
-    <footer className="relative border-t border-white/[0.06] bg-[#050508]">
+    <footer className="relative border-t border-white/[0.06] bg-transparent">
       <div className="mx-auto max-w-7xl px-6 py-8 md:px-8 md:py-10">
 
         {/* TOP ROW: Wordmark left + Heartbeat right */}
