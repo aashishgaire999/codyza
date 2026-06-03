@@ -55,7 +55,10 @@ export default function ProjectsPage() {
   async function loadData() {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user?.email) return
+    if (!user?.email) {
+      window.location.href = "/login"
+      return
+    }
     const [{ data: contrib }, { data: subs }, { data: contribs }] = await Promise.all([
       supabase.from("contributors").select("*").eq("email", user.email).maybeSingle(),
       supabase.from("submissions").select("*").order("submitted_at", { ascending: false }),

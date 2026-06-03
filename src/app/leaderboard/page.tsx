@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { MemberNavbar } from "@/components/member/member-navbar";
+import { Navbar } from "@/components/landing/navbar";
 import { createClient } from "@/lib/supabase";
 import { ArrowLeft, Trophy, TrendingUp, Zap, Crown, Award, Star } from "lucide-react";
 
@@ -100,7 +100,7 @@ export default async function LeaderboardPage() {
 
   return (
     <div className="min-h-screen bg-[#050508] text-white">
-      <MemberNavbar />
+      <Navbar />
 
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
