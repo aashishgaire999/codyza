@@ -3,6 +3,7 @@ import Link from "next/link"
 import { createServerSupabase } from "@/lib/supabase-server"
 import { notFound } from "next/navigation"
 import { ArrowLeft, GitBranch, Globe, Zap, Flame, Trophy, Calendar, ExternalLink } from "lucide-react"
+import { Navbar } from "@/components/landing/navbar"
 
 interface Props {
   params: Promise<{ id: string }>
@@ -74,19 +75,7 @@ export default async function ContributorProfile({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-[#050508] text-white">
-      <nav className="sticky top-0 z-50 border-b border-white/10 bg-black/40 backdrop-blur-xl">
-        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-xs font-black text-white">C</div>
-            <span className="font-bold text-sm">Codyza</span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <Link href="/leaderboard" className="text-sm text-gray-400 hover:text-white transition-colors">Leaderboard</Link>
-            <Link href="/projects" className="text-sm text-gray-400 hover:text-white transition-colors">Projects</Link>
-            <Link href="/member" className="text-sm px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white transition-colors">Dashboard</Link>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       <div className="max-w-3xl mx-auto px-4 py-10">
         <Link href="/leaderboard" className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-8 text-sm">
