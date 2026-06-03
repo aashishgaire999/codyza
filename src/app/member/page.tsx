@@ -178,8 +178,8 @@ export default function MemberDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* PROFILE ID CARD */}
-        <div className="mb-8" style={{borderRadius:16,padding:"1.5px",background:"linear-gradient(135deg,#8b5cf6,#3b82f6,#06b6d4)",boxShadow:"0 0 32px rgba(139,92,246,0.15)"}}>
-          <div style={{borderRadius:"14.5px",background:"rgba(255,255,255,0.04)",backdropFilter:"blur(20px)",padding:"20px 24px"}}>
+        <div className="mb-8" style={{borderRadius:16,padding:"1.5px",background:"linear-gradient(135deg,rgba(139,92,246,0.6),rgba(59,130,246,0.4),rgba(6,182,212,0.3))",boxShadow:"0 0 40px rgba(139,92,246,0.12)"}}>
+          <div style={{borderRadius:"14.5px",background:"rgba(15,12,26,0.85)",backdropFilter:"blur(24px)",padding:"20px 24px"}}>
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-4">
                 {/* Avatar */}
