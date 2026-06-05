@@ -115,8 +115,13 @@ export default async function ContributorProfile({ params }: Props) {
                   border:`2px solid ${rankCfg.border}`,
                   boxShadow:`0 0 24px ${rankCfg.color}25`,
                   display:"flex", alignItems:"center", justifyContent:"center",
-                  fontSize:24, fontWeight:900,
-                }}>{initials}</div>
+                  fontSize:24, fontWeight:900, overflow:"hidden",
+                }}>
+                  {contributor.avatar_url
+                    ? <img src={contributor.avatar_url + "?v=1"} alt={contributor.name} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                    : initials
+                  }
+                </div>
                 <div>
                   <h1 style={{ fontSize:26, fontWeight:900, letterSpacing:"-0.5px", marginBottom:4 }}>{contributor.name}</h1>
                   <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:20, fontWeight:700, letterSpacing:3, marginBottom:8 }}>
