@@ -5,7 +5,6 @@ import { createClient } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Trophy, Zap, Target, Calendar, Award, FileText, Settings } from "lucide-react"
-import { AvatarUpload } from "@/components/member/avatar-upload"
 
 interface Contributor {
   codyza_id: string
@@ -185,15 +184,15 @@ export default function MemberDashboard() {
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-4">
                 {/* Avatar */}
-                <AvatarUpload
-                  codyzaId={contributor.codyza_id}
-                  currentUrl={contributor.avatar_url || ""}
-                  name={contributor.name}
-                  onUpload={async (url) => {
-                    setContributor((prev: any) => prev ? { ...prev, avatar_url: url } : prev)
-                  }}
-                  size={64}
-                />
+                {/* Avatar — display only, edit in settings */}
+                <div style={{width:64,height:64,borderRadius:"50%",overflow:"hidden",border:"2px solid rgba(139,92,246,0.3)",flexShrink:0}}>
+                  {contributor.avatar_url
+                    ? <img src={contributor.avatar_url + "?v=1"} alt={contributor.name} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                    : <div style={{width:"100%",height:"100%",background:"linear-gradient(135deg,#8b5cf6,#3b82f6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,fontWeight:800,color:"white"}}>
+                        {contributor.name.split(" ").map((p:string)=>p[0]).slice(0,2).join("").toUpperCase()}
+                      </div>
+                  }
+                </div>
                 {/* Identity */}
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
