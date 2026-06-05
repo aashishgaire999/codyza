@@ -49,6 +49,22 @@ interface Contributor {
 }
 
 export function ProjectsSection() {
+  const [avatarMap, setAvatarMap] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    async function loadAvatars() {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from("contributors")
+        .select("name, avatar_url")
+      if (data) {
+        const map: Record<string, string> = {}
+        data.forEach((c: any) => { if (c.avatar_url) map[c.name] = c.avatar_url })
+        setAvatarMap(map)
+      }
+    }
+    loadAvatars()
+  }, [])
   const [contributors, setContributors] = useState<Contributor[]>([])
   const [isLoggedIn, setIsLoggedIn] = useState(false)
 
@@ -122,7 +138,10 @@ export function ProjectsSection() {
                     background: `linear-gradient(135deg, ${member.color}, #111827)`,
                   }}
                 >
-                  {member.initials}
+                  {avatarMap[member.name]
+                    ? <img src={avatarMap[member.name]} alt={member.name} style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:"50%"}}/>
+                    : member.initials
+                  }
                 </div>
                 <h4 className="font-[family-name:var(--font-heading)] text-xl font-semibold text-white">
                   {member.name}
@@ -151,7 +170,10 @@ export function ProjectsSection() {
                     background: `linear-gradient(135deg, ${member.color}, #111827)`,
                   }}
                 >
-                  {member.initials}
+                  {avatarMap[member.name]
+                    ? <img src={avatarMap[member.name]} alt={member.name} style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:"50%"}}/>
+                    : member.initials
+                  }
                 </div>
                 <h4 className="font-[family-name:var(--font-heading)] text-xl font-semibold text-white">
                   {member.name}
