@@ -134,9 +134,11 @@ export function ProjectsSection() {
             >
               <div className="team-card-inner">
                 <div
-                  className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full font-mono text-lg font-semibold text-white"
+                  className="mx-auto mb-5 flex h-24 w-24 items-center justify-center rounded-full font-mono text-xl font-semibold text-white overflow-hidden"
                   style={{
-                    background: `linear-gradient(135deg, ${member.color}, #111827)`,
+                    background: `linear-gradient(135deg, ${member.color}cc, #0f0c1a)`,
+                    border: `2px solid ${member.color}44`,
+                    boxShadow: `0 0 20px ${member.color}22`,
                   }}
                 >
                   {avatarMap[member.name]
@@ -166,9 +168,11 @@ export function ProjectsSection() {
             >
               <div className="team-card-inner">
                 <div
-                  className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full font-mono text-lg font-semibold text-white"
+                  className="mx-auto mb-5 flex h-24 w-24 items-center justify-center rounded-full font-mono text-xl font-semibold text-white overflow-hidden"
                   style={{
-                    background: `linear-gradient(135deg, ${member.color}, #111827)`,
+                    background: `linear-gradient(135deg, ${member.color}cc, #0f0c1a)`,
+                    border: `2px solid ${member.color}44`,
+                    boxShadow: `0 0 20px ${member.color}22`,
                   }}
                 >
                   {avatarMap[member.name]
@@ -262,39 +266,29 @@ export function ProjectsSection() {
       <style jsx>{`
         .team-card-glow {
           position: relative;
-          border-radius: 16px;
-          padding: 1.5px;
+          border-radius: 20px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.08);
+          backdrop-filter: blur(12px);
+          transition: border-color 0.3s, transform 0.3s;
           overflow: hidden;
-          isolation: isolate;
+        }
+        .team-card-glow:hover {
+          border-color: rgba(139,92,246,0.3);
+          transform: translateY(-3px);
         }
         .team-card-glow::before {
           content: "";
           position: absolute;
-          top: 50%;
-          left: 50%;
-          width: 200%;
-          height: 200%;
-          background: conic-gradient(
-            from 0deg,
-            #8b5cf6,
-            #3b82f6,
-            #06b6d4,
-            #22c55e,
-            #f59e0b,
-            #8b5cf6
-          );
-          transform: translate(-50%, -50%) rotate(0deg);
-          animation: spin-conic 5s linear infinite;
-          z-index: -1;
+          top: 0; left: 0; right: 0;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(139,92,246,0.4), rgba(103,232,249,0.3), transparent);
         }
         .team-card-inner {
           position: relative;
-          border-radius: 14.5px;
-          background: #0a0a14;
-          padding: 28px 24px;
+          padding: 28px 20px;
           text-align: center;
           height: 100%;
-          z-index: 1;
         }
         @keyframes spin-conic {
           from {
@@ -317,8 +311,8 @@ export function ProjectsSection() {
           animation: marquee 30s linear infinite;
         }
         @keyframes marquee {
-          from { transform: translateX(0); }
-          to { transform: translateX(-50%); }
+          from { transform: translateX(-50%); }
+          to { transform: translateX(0); }
         }
       `}</style>
 
