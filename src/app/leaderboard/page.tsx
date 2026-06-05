@@ -115,7 +115,7 @@ export default async function LeaderboardPage() {
 
         {/* Stats Bar */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <div className="relative overflow-hidden bg-gradient-to-br from-purple-900/20 to-purple-600/10 border border-purple-500/20 rounded-2xl p-6 backdrop-blur-sm">
+          <div className="relative overflow-hidden rounded-2xl p-6 backdrop-blur-sm" style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(139,92,246,0.15)"}}>
             <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl" />
             <div className="relative">
               <div className="flex items-center gap-3 mb-3">
@@ -128,7 +128,7 @@ export default async function LeaderboardPage() {
             </div>
           </div>
 
-          <div className="relative overflow-hidden bg-gradient-to-br from-blue-900/20 to-blue-600/10 border border-blue-500/20 rounded-2xl p-6 backdrop-blur-sm">
+          <div className="relative overflow-hidden rounded-2xl p-6 backdrop-blur-sm" style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(59,130,246,0.15)"}}>
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl" />
             <div className="relative">
               <div className="flex items-center gap-3 mb-3">
@@ -143,7 +143,7 @@ export default async function LeaderboardPage() {
             </div>
           </div>
 
-          <div className="relative overflow-hidden bg-gradient-to-br from-amber-900/20 to-amber-600/10 border border-amber-500/20 rounded-2xl p-6 backdrop-blur-sm">
+          <div className="relative overflow-hidden rounded-2xl p-6 backdrop-blur-sm" style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(245,158,11,0.15)"}}>
             <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl" />
             <div className="relative">
               <div className="flex items-center gap-3 mb-3">
@@ -170,13 +170,13 @@ export default async function LeaderboardPage() {
                 href={`/contributor/${contributor.codyza_id.toLowerCase()}`}
                 className={`block group relative overflow-hidden rounded-2xl border ${
                   isTopThree 
-                    ? "border-yellow-500/30 bg-gradient-to-r from-yellow-900/10 to-amber-900/5" 
+                    ? "border-yellow-500/20" style={{background:"rgba(245,158,11,0.05)"}} 
                     : "border-white/10 bg-white/5"
                 } backdrop-blur-sm hover:border-purple-500/50 transition-all duration-300`}
               >
                 {/* Top 3 Highlight Glow */}
                 {isTopThree && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/5 via-amber-500/5 to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl" style={{background:"rgba(139,92,246,0.04)"}} />
                 )}
 
                 <div className="relative p-6">
@@ -185,11 +185,11 @@ export default async function LeaderboardPage() {
                     <div className="flex-shrink-0">
                       <div className={`w-16 h-16 rounded-xl flex items-center justify-center text-2xl font-bold ${
                         position === 1 
-                          ? "bg-gradient-to-br from-yellow-500 to-amber-600 text-white shadow-lg shadow-yellow-500/50" 
+                          ? "text-white shadow-lg" style={{background:"linear-gradient(135deg,#f59e0b,#d97706)"}} 
                           : position === 2
-                          ? "bg-gradient-to-br from-gray-300 to-gray-500 text-white shadow-lg shadow-gray-500/50"
+                          ? "text-white shadow-lg" style={{background:"linear-gradient(135deg,#9ca3af,#6b7280)"}}
                           : position === 3
-                          ? "bg-gradient-to-br from-amber-600 to-orange-700 text-white shadow-lg shadow-amber-600/50"
+                          ? "text-white shadow-lg" style={{background:"linear-gradient(135deg,#d97706,#c2410c)"}}
                           : "bg-white/10 text-gray-400"
                       }`}>
                         {position}
@@ -199,7 +199,7 @@ export default async function LeaderboardPage() {
                     {/* Contributor Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-4 mb-2">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-xl font-bold flex-shrink-0">
+                        <div className="w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold flex-shrink-0" style={{background:"linear-gradient(135deg,rgba(139,92,246,0.4),rgba(59,130,246,0.4))",border:"1px solid rgba(139,92,246,0.2)"}}>
                           {contributor.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
