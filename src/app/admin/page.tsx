@@ -208,7 +208,8 @@ export default function AdminDashboard() {
   const deleteContributor = async (id: string) => {
     if (!confirm("Delete this contributor and all their submissions?")) return
     const supabase = createClient()
-    await supabase.from("contributors").delete().eq("id", id)
+    await supabase.from("contributors").delete().eq("codyza_id", id)
+    await supabase.from("submissions").delete().eq("codyza_id", id)
     loadData()
   }
 
@@ -339,7 +340,7 @@ export default function AdminDashboard() {
                     <td className="py-3 px-4">
                       <div className="flex gap-2">
                         <button onClick={() => setEditingContributor(c)} className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors"><FileText className="w-3.5 h-3.5"/></button>
-                        <button onClick={() => deleteContributor(c.id)} className="p-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"><Trash2 className="w-3.5 h-3.5"/></button>
+                        <button onClick={() => deleteContributor(c.codyza_id)} className="p-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"><Trash2 className="w-3.5 h-3.5"/></button>
                       </div>
                     </td>
                   </tr>
