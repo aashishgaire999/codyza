@@ -75,7 +75,7 @@ export function ProjectsSection() {
       const [{ data }, { data: userData }] = await Promise.all([
         supabase
           .from("contributors")
-          .select("codyza_id, name, email")
+          .select("codyza_id, name, email, avatar_url")
           .eq("is_admin", false)
           .not("codyza_id", "in", "(CZX-0001,CZX-0002,CZX-0003,CZX-0004,CZX-0005)"),
         supabase.auth.getUser(),
