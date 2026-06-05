@@ -140,7 +140,7 @@ export function ProjectsSection() {
                   }}
                 >
                   {avatarMap[member.name]
-                    ? <img src={avatarMap[member.name]} alt={member.name} style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:"50%"}}/>
+                    ? <img src={avatarMap[member.name] + "?v=2"} alt={member.name} style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:"50%"}}/>
                     : member.initials
                   }
                 </div>
@@ -172,7 +172,7 @@ export function ProjectsSection() {
                   }}
                 >
                   {avatarMap[member.name]
-                    ? <img src={avatarMap[member.name]} alt={member.name} style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:"50%"}}/>
+                    ? <img src={avatarMap[member.name] + "?v=2"} alt={member.name} style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:"50%"}}/>
                     : member.initials
                   }
                 </div>

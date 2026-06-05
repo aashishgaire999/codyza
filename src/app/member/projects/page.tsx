@@ -215,7 +215,7 @@ export default function ProjectsPage() {
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded-full flex-shrink-0 overflow-hidden" style={{border:"1px solid rgba(139,92,246,0.2)"}}>
                           {project.member_avatar
-                            ? <img src={project.member_avatar} alt={project.member_name} className="w-full h-full object-cover"/>
+                            ? <img src={project.member_avatar + "?v=1"} alt={project.member_name} className="w-full h-full object-cover"/>
                             : <div className="w-full h-full flex items-center justify-center text-[9px] font-bold text-white" style={{background:getAvatarColor(project.codyza_id)}}>{getInitials(project.member_name)}</div>
                           }
                         </div>
