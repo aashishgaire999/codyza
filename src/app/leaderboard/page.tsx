@@ -180,15 +180,8 @@ export default async function LeaderboardPage() {
                   <div className="flex items-center gap-6">
                     {/* Position Number */}
                     <div className="flex-shrink-0">
-                      <div className={`w-16 h-16 rounded-xl flex items-center justify-center text-2xl font-bold ${
-                        position === 1 
-                          ? "text-white shadow-lg" style={{background:"linear-gradient(135deg,#f59e0b,#d97706)"}} 
-                          : position === 2
-                          ? "text-white shadow-lg" style={{background:"linear-gradient(135deg,#9ca3af,#6b7280)"}}
-                          : position === 3
-                          ? "text-white shadow-lg" style={{background:"linear-gradient(135deg,#d97706,#c2410c)"}}
-                          : "bg-white/10 text-gray-400"
-                      }`}>
+                      <div className="w-16 h-16 rounded-xl flex items-center justify-center text-2xl font-bold text-white shadow-lg"
+                        style={{background:position===1?"linear-gradient(135deg,#f59e0b,#d97706)":position===2?"linear-gradient(135deg,#9ca3af,#6b7280)":position===3?"linear-gradient(135deg,#d97706,#c2410c)":"rgba(255,255,255,0.1)",color:position>3?"#9ca3af":"white"}}>
                         {position}
                       </div>
                     </div>
