@@ -46,6 +46,7 @@ interface Contributor {
   codyza_id: string
   name: string
   email: string
+  avatar_url?: string
 }
 
 export function ProjectsSection() {
