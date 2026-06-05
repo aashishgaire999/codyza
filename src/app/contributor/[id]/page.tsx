@@ -118,7 +118,7 @@ export default async function ContributorProfile({ params }: Props) {
                   fontSize:30, fontWeight:900, overflow:"hidden",
                 }}>
                   {contributor.avatar_url
-                    ? <img src={contributor.avatar_url + "?v=1"} alt={contributor.name} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                    ? <img src={contributor.avatar_url } alt={contributor.name} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
                     : initials
                   }
                 </div>
