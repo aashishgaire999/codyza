@@ -17,6 +17,7 @@ interface Contributor {
   rank: string;
   streak: number;
   role: string;
+  avatar_url?: string;
 }
 
 // Professional rank badges with gradient designs
@@ -83,7 +84,7 @@ async function getLeaderboard(): Promise<Contributor[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("contributors")
-    .select("codyza_id, name, github, xp, rank, streak, role")
+    .select("codyza_id, name, github, xp, rank, streak, role, avatar_url")
     .order("xp", { ascending: false })
     .limit(100);
 
@@ -189,8 +190,11 @@ export default async function LeaderboardPage() {
                     {/* Contributor Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-4 mb-2">
-                        <div className="w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold flex-shrink-0" style={{background:"linear-gradient(135deg,rgba(139,92,246,0.4),rgba(59,130,246,0.4))",border:"1px solid rgba(139,92,246,0.2)"}}>
-                          {contributor.name.charAt(0).toUpperCase()}
+                        <div className="w-12 h-12 rounded-full flex-shrink-0 overflow-hidden" style={{border:"2px solid rgba(139,92,246,0.2)"}}>
+                          {contributor.avatar_url
+                            ? <img src={contributor.avatar_url} alt={contributor.name} className="w-full h-full object-cover"/>
+                            : <div className="w-full h-full flex items-center justify-center text-xl font-bold text-white" style={{background:"linear-gradient(135deg,#8b5cf6,#3b82f6)"}}>{contributor.name.charAt(0).toUpperCase()}</div>
+                          }
                         </div>
                         <div className="min-w-0">
                           <h3 className="text-lg font-bold truncate group-hover:text-purple-400 transition-colors">

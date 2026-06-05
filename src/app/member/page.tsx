@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Trophy, Zap, Target, Calendar, Award, FileText, Settings } from "lucide-react"
+import { AvatarUpload } from "@/components/member/avatar-upload"
 
 interface Contributor {
   codyza_id: string
@@ -16,6 +17,7 @@ interface Contributor {
   is_admin: boolean
   skills?: string[]
   bio?: string
+  avatar_url?: string
 }
 
 interface Submission {
@@ -183,12 +185,15 @@ export default function MemberDashboard() {
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-4">
                 {/* Avatar */}
-                <div
-                  className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full font-mono text-lg font-bold text-white"
-                  style={{ background: `linear-gradient(135deg, ${rankConfig.gradient?.split(" ")[1] ?? "#8b5cf6"}, #111827)` }}
-                >
-                  {contributor.name.split(" ").map((p: string) => p[0]).slice(0, 2).join("").toUpperCase()}
-                </div>
+                <AvatarUpload
+                  codyzaId={contributor.codyza_id}
+                  currentUrl={contributor.avatar_url || ""}
+                  name={contributor.name}
+                  onUpload={async (url) => {
+                    setContributor((prev: any) => prev ? { ...prev, avatar_url: url } : prev)
+                  }}
+                  size={64}
+                />
                 {/* Identity */}
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">

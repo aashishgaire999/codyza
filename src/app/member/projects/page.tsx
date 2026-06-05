@@ -62,11 +62,12 @@ export default function ProjectsPage() {
     const [{ data: contrib }, { data: subs }, { data: contribs }] = await Promise.all([
       supabase.from("contributors").select("*").eq("email", user.email).maybeSingle(),
       supabase.from("submissions").select("*").order("submitted_at", { ascending: false }),
-      supabase.from("contributors").select("codyza_id, name"),
+      supabase.from("contributors").select("codyza_id, name, avatar_url"),
     ])
     setContributor(contrib)
     const nameMap = new Map((contribs || []).map((c: any) => [c.codyza_id, c.name]))
-    const enriched = (subs || []).map((s: any) => ({ ...s, member_name: nameMap.get(s.codyza_id) || s.codyza_id }))
+    const avatarMap = new Map((contribs || []).map((c: any) => [c.codyza_id, c.avatar_url]))
+    const enriched = (subs || []).map((s: any) => ({ ...s, member_name: nameMap.get(s.codyza_id) || s.codyza_id, member_avatar: avatarMap.get(s.codyza_id) || "" }))
     setProjects(enriched)
     setLoading(false)
   }
@@ -212,8 +213,11 @@ export default function ProjectsPage() {
                     )}
                     <div className="px-4 py-3 flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0" style={{ background: getAvatarColor(project.codyza_id) }}>
-                          {getInitials(project.member_name)}
+                        <div className="w-6 h-6 rounded-full flex-shrink-0 overflow-hidden" style={{border:"1px solid rgba(139,92,246,0.2)"}}>
+                          {project.member_avatar
+                            ? <img src={project.member_avatar} alt={project.member_name} className="w-full h-full object-cover"/>
+                            : <div className="w-full h-full flex items-center justify-center text-[9px] font-bold text-white" style={{background:getAvatarColor(project.codyza_id)}}>{getInitials(project.member_name)}</div>
+                          }
                         </div>
                         <span className="text-xs text-gray-400 truncate max-w-[100px]">{project.member_name}</span>
                         {isOwn && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400">you</span>}

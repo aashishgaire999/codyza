@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Save, Check } from "lucide-react"
+import { AvatarUpload } from "@/components/member/avatar-upload"
 
 const SKILL_OPTIONS = [
   "React","Next.js","TypeScript","JavaScript","Python","Node.js",
@@ -27,6 +28,7 @@ export default function SettingsPage() {
   const [role, setRole] = useState("")
   const [bio, setBio] = useState("")
   const [skills, setSkills] = useState<string[]>([])
+  const [avatarUrl, setAvatarUrl] = useState<string>("")
 
   useEffect(() => { loadUser() }, [])
 
@@ -42,6 +44,7 @@ export default function SettingsPage() {
       setRole(data.role || "")
       setBio(data.bio || "")
       setSkills(data.skills || [])
+      setAvatarUrl(data.avatar_url || "")
     }
     setLoading(false)
   }
