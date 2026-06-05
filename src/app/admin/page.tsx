@@ -4,7 +4,7 @@ import { useState } from "react"
 import { createClient } from "@/lib/supabase"
 import { Shield, Users, FileText, TrendingUp, CheckCircle, XCircle, Trash2 } from "lucide-react"
 import Link from "next/link"
-import { MemberNavbar } from "@/components/member/member-navbar"
+
 
 interface Contributor {
   id: string; codyza_id: string; name: string; email: string; github: string
@@ -70,7 +70,10 @@ function EditModal({ contributor, onClose, onSave, saving }: { contributor: Cont
 }
 
 export default function AdminDashboard() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    if (typeof window !== "undefined") return sessionStorage.getItem("admin_auth") === "true"
+    return false
+  })
   const [accessCode, setAccessCode] = useState("")
   const [verifying, setVerifying] = useState(false)
   const [error, setError] = useState("")
@@ -126,7 +129,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch("/api/admin/verify", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ accessCode }) })
       const data = await res.json()
-      if (data.valid) { setIsAuthenticated(true); loadData() }
+      if (data.valid) { setIsAuthenticated(true); sessionStorage.setItem("admin_auth", "true"); loadData() }
       else setError("Invalid access code")
     } catch { setError("Network error. Please try again.") }
     finally { setVerifying(false) }
@@ -260,7 +263,18 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-transparent text-white">
-      <MemberNavbar />
+      <nav style={{background:"rgba(15,12,26,0.8)",backdropFilter:"blur(12px)",borderBottom:"1px solid rgba(255,255,255,0.06)",padding:"0 24px",height:56,display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:50}}>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <a href="/" style={{display:"flex",alignItems:"center",gap:8,textDecoration:"none"}}>
+            <img src="/codyza-logo.png" alt="Codyza" style={{width:28,height:28,borderRadius:6}} onError={(e)=>{(e.target as HTMLImageElement).style.display="none"}}/>
+            <span style={{fontWeight:800,fontSize:15,color:"#f8fafc"}}>Codyza</span>
+          </a>
+          <span style={{fontSize:11,color:"rgba(255,255,255,0.3)",marginLeft:4}}>Admin</span>
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <a href="/member" style={{fontSize:13,color:"rgba(255,255,255,0.5)",textDecoration:"none",padding:"6px 12px",borderRadius:8,border:"1px solid rgba(255,255,255,0.08)"}}>← Member Hub</a>
+        </div>
+      </nav>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6 flex items-center gap-3">
           <Shield className="h-6 w-6 text-purple-500" />
