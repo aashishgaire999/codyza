@@ -168,11 +168,8 @@ export default async function LeaderboardPage() {
               <Link
                 key={contributor.codyza_id}
                 href={`/contributor/${contributor.codyza_id.toLowerCase()}`}
-                className={`block group relative overflow-hidden rounded-2xl border ${
-                  isTopThree 
-                    ? "border-yellow-500/20" style={{background:"rgba(245,158,11,0.05)"}} 
-                    : "border-white/10 bg-white/5"
-                } backdrop-blur-sm hover:border-purple-500/50 transition-all duration-300`}
+                className="block group relative overflow-hidden rounded-2xl backdrop-blur-sm hover:border-purple-500/50 transition-all duration-300"
+                style={{background:isTopThree?"rgba(245,158,11,0.05)":"rgba(255,255,255,0.02)",border:isTopThree?"1px solid rgba(245,158,11,0.2)":"1px solid rgba(255,255,255,0.06)"}}
               >
                 {/* Top 3 Highlight Glow */}
                 {isTopThree && (
