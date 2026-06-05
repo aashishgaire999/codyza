@@ -23,8 +23,8 @@ export async function POST(req: Request) {
     }
 
     // Validate file size (2MB max)
-    if (file.size > 2 * 1024 * 1024) {
-      return NextResponse.json({ error: "Image must be under 2MB" }, { status: 400 })
+    if (file.size > 5 * 1024 * 1024) {
+      return NextResponse.json({ error: "Image must be under 5MB" }, { status: 400 })
     }
 
     const ext = file.type.split("/")[1]
