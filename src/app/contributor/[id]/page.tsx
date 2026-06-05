@@ -98,7 +98,7 @@ export default async function ContributorProfile({ params }: Props) {
 
       <div className="relative max-w-3xl mx-auto px-4 py-10" style={{ zIndex: 1 }}>
         <Link href="/leaderboard" className="inline-flex items-center gap-2 text-gray-500 hover:text-white transition-colors mb-8 text-sm">
-          <ArrowLeft className="w-4 h-4" /> Back to Leaderboard
+          <ArrowLeft className="w-4 h-4" /> Back
         </Link>
 
         {/* PROFILE CARD */}
