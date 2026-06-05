@@ -199,8 +199,11 @@ export function ProjectsSection() {
               {marqueeList.map((c, i) => {
                 const pillInner = (
                   <>
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[#8b5cf6] to-[#3b82f6] font-mono text-[10px] font-semibold text-white">
-                      {getInitials(c.name)}
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full overflow-hidden bg-gradient-to-br from-[#8b5cf6] to-[#3b82f6] font-mono text-[10px] font-semibold text-white">
+                      {c.avatar_url
+                        ? <img src={c.avatar_url + "?v=1"} alt={c.name} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                        : getInitials(c.name)
+                      }
                     </div>
                     <span className="text-sm text-zinc-300">{c.name}</span>
                   </>
