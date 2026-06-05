@@ -75,7 +75,8 @@ export function ProjectsSection() {
         supabase
           .from("contributors")
           .select("codyza_id, name, email")
-          .eq("is_admin", false),
+          .eq("is_admin", false)
+          .not("codyza_id", "in", "(CZX-0001,CZX-0002,CZX-0003,CZX-0004,CZX-0005)"),
         supabase.auth.getUser(),
       ])
       setContributors(data || [])
