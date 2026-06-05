@@ -93,6 +93,18 @@ export default function SettingsPage() {
         <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"20px 22px" }}>
           <h2 className="text-sm font-mono uppercase tracking-wider text-gray-400 mb-5">Basic Info</h2>
           <div className="space-y-4">
+            {/* Avatar Upload */}
+            <div className="flex justify-center pb-4">
+              {contributor && (
+                <AvatarUpload
+                  codyzaId={contributor.codyza_id}
+                  currentUrl={avatarUrl}
+                  name={contributor.name}
+                  onUpload={(url) => setAvatarUrl(url)}
+                  size={88}
+                />
+              )}
+            </div>
             <div>
               <label className="block text-xs font-mono uppercase tracking-wider text-gray-500 mb-2">Display Name</label>
               <input type="text" value={name} onChange={e => setName(e.target.value)}
