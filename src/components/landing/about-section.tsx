@@ -39,7 +39,7 @@ export function AboutSection() {
               Tutorials end. Courses finish. Bootcamps cost money. And after all of it, you&rsquo;re often still on your own &mdash; wondering if anyone will ever see what you build.
             </p>
             <p className="text-base leading-relaxed text-zinc-400">
-              Codyza is the crew that gathers around your first real project. We do standups together. We review code together. We deploy together. Free to join, and a place worth staying.
+              Codyza is the crew that gathers around your first real project. We build together. We review code together. We deploy together. Free to join, and a place worth staying.
             </p>
             <div className="space-y-3 pt-4">
               <div className="flex items-start gap-3">
