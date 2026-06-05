@@ -110,12 +110,12 @@ export default async function ContributorProfile({ params }: Props) {
               <div className="flex items-center gap-5">
                 {/* Avatar */}
                 <div style={{
-                  width:76, height:76, borderRadius:"50%", flexShrink:0,
+                  width:100, height:100, borderRadius:"50%", flexShrink:0,
                   background:`linear-gradient(135deg, ${rankCfg.color}30, #111827)`,
                   border:`2px solid ${rankCfg.border}`,
                   boxShadow:`0 0 24px ${rankCfg.color}25`,
                   display:"flex", alignItems:"center", justifyContent:"center",
-                  fontSize:24, fontWeight:900, overflow:"hidden",
+                  fontSize:30, fontWeight:900, overflow:"hidden",
                 }}>
                   {contributor.avatar_url
                     ? <img src={contributor.avatar_url + "?v=1"} alt={contributor.name} style={{width:"100%",height:"100%",objectFit:"cover"}}/>

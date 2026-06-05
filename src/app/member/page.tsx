@@ -185,10 +185,10 @@ export default function MemberDashboard() {
               <div className="flex items-center gap-4">
                 {/* Avatar */}
                 {/* Avatar — display only, edit in settings */}
-                <div style={{width:64,height:64,borderRadius:"50%",overflow:"hidden",border:"2px solid rgba(139,92,246,0.3)",flexShrink:0}}>
+                <div style={{width:88,height:88,borderRadius:"50%",overflow:"hidden",border:"2px solid rgba(139,92,246,0.3)",flexShrink:0}}>
                   {contributor.avatar_url
                     ? <img src={contributor.avatar_url + "?v=1"} alt={contributor.name} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
-                    : <div style={{width:"100%",height:"100%",background:"linear-gradient(135deg,#8b5cf6,#3b82f6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,fontWeight:800,color:"white"}}>
+                    : <div style={{width:"100%",height:"100%",background:"linear-gradient(135deg,#8b5cf6,#3b82f6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,fontWeight:800,color:"white"}}>
                         {contributor.name.split(" ").map((p:string)=>p[0]).slice(0,2).join("").toUpperCase()}
                       </div>
                   }

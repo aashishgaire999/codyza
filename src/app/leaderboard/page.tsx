@@ -190,10 +190,10 @@ export default async function LeaderboardPage() {
                     {/* Contributor Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-4 mb-2">
-                        <div className="w-12 h-12 rounded-full flex-shrink-0 overflow-hidden" style={{border:"2px solid rgba(139,92,246,0.2)"}}>
+                        <div className="w-14 h-14 rounded-full flex-shrink-0 overflow-hidden" style={{border:"2px solid rgba(139,92,246,0.2)"}}>
                           {contributor.avatar_url
                             ? <img src={contributor.avatar_url + "?v=" + contributor.codyza_id} alt={contributor.name} className="w-full h-full object-cover"/>
-                            : <div className="w-full h-full flex items-center justify-center text-xl font-bold text-white" style={{background:"linear-gradient(135deg,#8b5cf6,#3b82f6)"}}>{contributor.name.charAt(0).toUpperCase()}</div>
+                            : <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-white" style={{background:"linear-gradient(135deg,#8b5cf6,#3b82f6)"}}>{contributor.name.charAt(0).toUpperCase()}</div>
                           }
                         </div>
                         <div className="min-w-0">
