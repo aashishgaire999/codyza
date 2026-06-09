@@ -121,13 +121,13 @@ export default function OnboardingPage() {
   }
 
   if (loading) return (
-    <div className="flex min-h-screen items-center justify-center text-white" className="bg-background">
+    <div className="flex min-h-screen items-center justify-center text-white bg-background">
       <div className="text-gray-400">Loading...</div>
     </div>
   )
 
   if (success) return (
-    <div className="flex min-h-screen items-center justify-center p-4 text-white" className="bg-background">
+    <div className="flex min-h-screen items-center justify-center p-4 text-white bg-background">
       <div className="w-full max-w-md rounded-2xl p-8 text-center" style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",backdropFilter:"blur(24px)"}}>
         <CheckCircle className="mx-auto mb-4 h-16 w-16 text-green-500" />
         <h1 className="mb-2 text-2xl font-bold">You're in.</h1>
@@ -137,7 +137,7 @@ export default function OnboardingPage() {
   )
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 text-white" className="bg-background">
+    <div className="flex min-h-screen items-center justify-center p-4 text-white bg-background">
 
       {/* Crop Modal */}
       {showCropper && cropSrc && (
