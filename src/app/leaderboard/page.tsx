@@ -1,6 +1,8 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { SmartNavbar } from "@/components/shared/smart-navbar";
+import { SmartNavbar } from "@/components/shared/smart-navbar"
+import { ParticleField } from "@/components/effects/particle-field"
+import { GlowOrb } from "@/components/effects/glow-orb";
 import { createClient } from "@/lib/supabase";
 import { ArrowLeft, Trophy, TrendingUp, Zap, Crown, Award, Star } from "lucide-react";
 
@@ -100,8 +102,11 @@ export default async function LeaderboardPage() {
   const contributors = await getLeaderboard();
 
   return (
-    <div className="min-h-screen text-white" style={{background:"linear-gradient(135deg,#0f0c1a 0%,#130d24 50%,#0c1220 100%)"}}>
+    <div className="min-h-screen text-white bg-background">
       <SmartNavbar />
+      <ParticleField />
+      <GlowOrb color="purple" size={700} className="-top-40 -left-20" duration={20} />
+      <GlowOrb color="cyan" size={500} className="bottom-0 right-0" duration={16} />
 
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

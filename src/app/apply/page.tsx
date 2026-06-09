@@ -3,11 +3,16 @@
 import Link from "next/link"
 import { ApplySection } from "@/components/landing/apply-section"
 import { SmartNavbar } from "@/components/shared/smart-navbar"
+import { ParticleField } from "@/components/effects/particle-field"
+import { GlowOrb } from "@/components/effects/glow-orb"
 
 export default function ApplyPage() {
   return (
     <main className="relative min-h-screen overflow-hidden" style={{background:"linear-gradient(135deg,#0f0c1a 0%,#130d24 50%,#0c1220 100%)"}}>
       <SmartNavbar />
+      <ParticleField />
+      <GlowOrb color="purple" size={700} className="-top-40 -left-20" duration={18} />
+      <GlowOrb color="blue" size={500} className="bottom-0 -right-20" duration={20} />
 
       {/* AMBIENT GLOW ORBS — dim, brand-tying */}
       <div

@@ -3,6 +3,8 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase"
 import { Globe, GitBranch, Zap, Search } from "lucide-react"
 import { SmartNavbar } from "@/components/shared/smart-navbar"
+import { ParticleField } from "@/components/effects/particle-field"
+import { GlowOrb } from "@/components/effects/glow-orb"
 
 export const metadata: Metadata = {
   title: "Projects | Codyza",
@@ -37,6 +39,9 @@ export default async function ProjectsPage() {
     <div className="min-h-screen text-white" style={{background:"linear-gradient(135deg,#0f0c1a 0%,#130d24 50%,#0c1220 100%)"}}>
 
       <SmartNavbar />
+      <ParticleField />
+      <GlowOrb color="purple" size={800} className="-top-40 -left-40" duration={18} />
+      <GlowOrb color="blue" size={600} className="top-1/2 -right-40" duration={22} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
 

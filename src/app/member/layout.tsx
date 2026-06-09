@@ -18,17 +18,17 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
   }, [router])
 
   if (!auth) return (
-    <div className="min-h-screen flex items-center justify-center" style={{background:"linear-gradient(135deg,#0f0c1a,#130d24,#0c1220)"}}>
-      <div className="w-6 h-6 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"/>
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="w-5 h-5 rounded-full border-2 border-[#7c3aed] border-t-transparent animate-spin"/>
     </div>
   )
 
   return (
-    <div className="relative min-h-screen" style={{background:"linear-gradient(135deg,#0f0c1a 0%,#130d24 50%,#0c1220 100%)"}}>
+    <div className="relative min-h-screen bg-background">
       <div className="fixed inset-0 pointer-events-none" style={{zIndex:0}}>
-        <div style={{position:"absolute",top:"-15%",left:"-10%",width:600,height:600,borderRadius:"50%",background:"radial-gradient(circle,rgba(139,92,246,0.15) 0%,transparent 65%)",animation:"aurora-pulse 14s ease-in-out infinite"}}/>
-        <div style={{position:"absolute",top:"40%",right:"-10%",width:500,height:500,borderRadius:"50%",background:"radial-gradient(circle,rgba(59,130,246,0.1) 0%,transparent 65%)",animation:"aurora-pulse 18s ease-in-out infinite 2s"}}/>
-        <div style={{position:"absolute",bottom:"-10%",left:"30%",width:400,height:400,borderRadius:"50%",background:"radial-gradient(circle,rgba(103,232,249,0.08) 0%,transparent 65%)",animation:"aurora-pulse 12s ease-in-out infinite 4s"}}/>
+        <div style={{position:"absolute",top:"-15%",left:"-10%",width:700,height:700,borderRadius:"50%",background:"radial-gradient(circle,rgba(124,58,237,0.08) 0%,transparent 65%)",animation:"aurora-pulse 18s ease-in-out infinite"}}/>
+        <div style={{position:"absolute",top:"40%",right:"-10%",width:600,height:600,borderRadius:"50%",background:"radial-gradient(circle,rgba(37,99,235,0.06) 0%,transparent 65%)",animation:"aurora-pulse 22s ease-in-out infinite 2s"}}/>
+        <div style={{position:"absolute",bottom:"-10%",left:"30%",width:500,height:500,borderRadius:"50%",background:"radial-gradient(circle,rgba(6,182,212,0.05) 0%,transparent 65%)",animation:"aurora-pulse 16s ease-in-out infinite 4s"}}/>
         <div className="absolute inset-0 grid-overlay"/>
       </div>
       <div className="relative" style={{zIndex:1}}>

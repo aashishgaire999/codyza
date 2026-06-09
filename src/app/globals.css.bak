@@ -1,0 +1,239 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================
+   CODYZA DESIGN TOKENS
+   ============================================ */
+@theme inline {
+  /* Brand palette */
+  --color-codyza-bg: #0f0c1a;
+  --color-codyza-bg-secondary: #130d24;
+  --color-codyza-bg-card: rgba(255,255,255,0.04);
+  --color-codyza-purple: #8b5cf6;
+  --color-codyza-blue: #3b82f6;
+  --color-codyza-cyan: #06b6d4;
+  --color-codyza-green: #22c55e;
+
+  /* Fonts */
+  --font-display: var(--font-space-mono);
+  --font-heading: var(--font-syne);
+  --font-mono: var(--font-jetbrains-mono);
+  --font-sans: var(--font-jetbrains-mono);
+
+  /* Shadcn semantic tokens */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+/* ============================================
+   DARK MODE (default for Codyza)
+   ============================================ */
+:root {
+  --background: #0f0c1a;
+  --foreground: #fafafa;
+  --card: #160e2a;
+  --card-foreground: #fafafa;
+  --popover: #0a0a12;
+  --popover-foreground: #fafafa;
+  --primary: #8b5cf6;
+  --primary-foreground: #fafafa;
+  --secondary: #1a1030;
+  --secondary-foreground: #fafafa;
+  --muted: #120d22;
+  --muted-foreground: #a1a1aa;
+  --accent: #1a1a24;
+  --accent-foreground: #fafafa;
+  --destructive: #ef4444;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: #8b5cf6;
+  --radius: 0.75rem;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-mono);
+  font-feature-settings: "rlig" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection {
+  background-color: rgba(139, 92, 246, 0.3);
+  color: #fafafa;
+}
+
+/* ============================================
+   GLOBAL COMPONENT UPGRADES — Direction 3
+   ============================================ */
+
+/* Inputs */
+input, textarea, select {
+  border-radius: 10px !important;
+}
+
+/* Buttons */
+button:not([class*="rounded"]) {
+  border-radius: 10px !important;
+}
+
+/* Glass input style */
+.glass-input {
+  background: rgba(255,255,255,0.04) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: 10px !important;
+  backdrop-filter: blur(12px) !important;
+  color: #f8fafc !important;
+  transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+.glass-input:focus {
+  border-color: rgba(139,92,246,0.5) !important;
+  box-shadow: 0 0 0 3px rgba(139,92,246,0.12) !important;
+  outline: none !important;
+}
+.glass-input::placeholder {
+  color: rgba(255,255,255,0.2) !important;
+}
+
+/* Glass card */
+.glass-panel {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #050508;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.5);
+}
+
+/* ============================================
+   ANIMATIONS & EFFECTS
+   ============================================ */
+@keyframes aurora-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1) translate(0, 0); }
+  33% { opacity: 0.8; transform: scale(1.08) translate(20px, -20px); }
+  66% { opacity: 0.5; transform: scale(0.95) translate(-15px, 15px); }
+}
+
+@keyframes orb-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -30px) scale(1.05); }
+  66% { transform: translate(-20px, 20px) scale(0.95); }
+}
+
+@keyframes grid-pulse {
+  0%, 100% { opacity: 0.05; }
+  50% { opacity: 0.15; }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.grid-overlay {
+  background-image:
+    linear-gradient(rgba(139, 92, 246, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 92, 246, 0.05) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: grid-pulse 8s ease-in-out infinite;
+}
+
+.text-gradient-aurora {
+  background: linear-gradient(135deg, #a78bfa 0%, #67e8f9 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-gradient-codyza {
+  background: linear-gradient(
+    135deg,
+    #8b5cf6 0%,
+    #3b82f6 35%,
+    #06b6d4 70%,
+    #22c55e 100%
+  );
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-shift 6s ease-in-out infinite;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+}
+
+.glass-card-purple {
+  background: rgba(139, 92, 246, 0.06);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  border-radius: 16px;
+}
+
+.glass-card-cyan {
+  background: rgba(103, 232, 249, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(103, 232, 249, 0.12);
+  border-radius: 16px;
+}
+
+.aurora-bg {
+  background: linear-gradient(135deg, #0f0c1a 0%, #130d24 50%, #0c1220 100%);
+}
+
+.glow-purple { box-shadow: 0 0 80px rgba(139, 92, 246, 0.4); }
+.glow-blue { box-shadow: 0 0 80px rgba(59, 130, 246, 0.4); }
+.glow-cyan { box-shadow: 0 0 80px rgba(6, 182, 212, 0.4); }

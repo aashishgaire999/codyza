@@ -12,12 +12,13 @@ import { CurrentlyShippingSection } from "@/components/landing/currently-shippin
 import { ProjectsSection } from "@/components/landing/projects-section"
 import { Footer } from "@/components/landing/footer"
 import { GlowOrb } from "@/components/effects/glow-orb"
+import { ParticleField } from "@/components/effects/particle-field"
+import { FloatingCode } from "@/components/effects/floating-code"
 import { SITE_CONFIG } from "@/constants/site"
 
 export default function HomePage() {
   const router = useRouter()
 
-  // Auto-redirect to /set-password if Supabase magic link landed here with auth tokens in the hash
   useEffect(() => {
     if (typeof window === "undefined") return
     const hash = window.location.hash
@@ -31,85 +32,146 @@ export default function HomePage() {
   }, [router])
 
   return (
-    <main className="relative min-h-screen overflow-hidden" style={{background:"linear-gradient(135deg,#0f0c1a 0%,#130d24 50%,#0c1220 100%)"}}>
+    <main className="relative min-h-screen overflow-hidden bg-background">
       <Navbar />
-      <section className="relative overflow-hidden" style={{background:"transparent"}}>
+
+      {/* HERO */}
+      <section className="relative overflow-hidden">
         <div className="absolute inset-0 grid-overlay" aria-hidden />
-        <GlowOrb color="purple" size={700} className="-top-40 -left-40" duration={14} />
-        <GlowOrb color="blue" size={600} className="top-1/3 -right-32" duration={16} />
-        <GlowOrb color="cyan" size={500} className="bottom-0 left-1/3" duration={12} />
-        <div className="relative z-10 flex min-h-[80vh] flex-col items-center justify-center px-6 pt-24 pb-12 text-center">
-          <motion.div initial={{ opacity: 1, y: 0 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }} className="mb-6 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs" style={{background:"rgba(139,92,246,0.08)",border:"1px solid rgba(139,92,246,0.25)",backdropFilter:"blur(12px)"}}>
+        <ParticleField />
+        <FloatingCode />
+        <GlowOrb color="purple" size={900} className="-top-60 -left-60" duration={18} />
+        <GlowOrb color="blue" size={700} className="top-1/2 -right-48" duration={22} />
+        <GlowOrb color="cyan" size={600} className="bottom-0 left-1/4" duration={16} />
+
+        <div className="relative z-10 flex min-h-[90vh] flex-col items-center justify-center px-6 pt-28 pb-20 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mb-8 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs"
+            style={{
+              background: "rgba(124,58,237,0.06)",
+              border: "1px solid rgba(124,58,237,0.18)",
+              backdropFilter: "blur(8px)",
+            }}
+          >
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#22c55e] opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-[#22c55e]" />
             </span>
             <span className="font-mono uppercase tracking-widest text-zinc-400">Now Onboarding Founding Contributors</span>
           </motion.div>
-          <motion.h1 initial={{ opacity: 1, y: 0 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.15 }} className="mb-6 max-w-5xl font-[family-name:var(--font-heading)] text-4xl font-bold leading-[1.05] tracking-tight md:text-6xl lg:text-7xl">
+
+          <motion.h1
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.18 }}
+            className="mb-6 max-w-5xl font-[family-name:var(--font-heading)]"
+            style={{
+              fontSize: "clamp(3rem, 8vw, 7rem)",
+              fontWeight: 700,
+              letterSpacing: "-0.03em",
+              lineHeight: 1.05,
+            }}
+          >
             Building alone
             <br />
             <span className="text-gradient-aurora">gets lonely.</span>
           </motion.h1>
-          <motion.p initial={{ opacity: 1, y: 0 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.2 }} className="mb-10 max-w-2xl text-base text-zinc-400 md:text-lg">
+
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.26 }}
+            className="mb-14 max-w-xl text-lg leading-relaxed"
+            style={{ color: "rgba(255,255,255,0.45)" }}
+          >
             Codyza is a community of devs, designers, and dreamers shipping real projects together. Not a bootcamp. Not another chat server. Free to join, built to last.
           </motion.p>
 
-          {/* SIGNATURE: Live shipping terminal */}
           <motion.div
-            initial={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, delay: 0.25 }}
+            transition={{ duration: 0.5, delay: 0.32 }}
             className="w-full max-w-2xl"
           >
             <TerminalAnimation />
           </motion.div>
         </div>
       </section>
+
       <AboutSection />
       <CurrentlyShippingSection />
       <ProjectsSection />
+
       {/* JOIN CTA */}
-      <section id="apply" className="relative scroll-mt-32 border-t border-white/[0.04] py-20" style={{background:"transparent"}}>
+      <section
+        id="apply"
+        className="relative scroll-mt-32 py-36"
+        style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
+      >
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
           style={{
-            background:
-              "radial-gradient(ellipse at center, rgba(139,92,246,0.10) 0%, transparent 60%)",
+            background: "radial-gradient(ellipse at center, rgba(124,58,237,0.08) 0%, transparent 65%)",
           }}
         />
         <div className="relative mx-auto max-w-3xl px-6 text-center md:px-8">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-mono uppercase tracking-widest" style={{background:"rgba(139,92,246,0.08)",border:"1px solid rgba(139,92,246,0.2)",backdropFilter:"blur(12px)",color:"#a78bfa"}}>
+          <div
+            className="mb-6 inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-mono uppercase tracking-widest"
+            style={{
+              background: "rgba(124,58,237,0.06)",
+              border: "1px solid rgba(124,58,237,0.15)",
+              backdropFilter: "blur(8px)",
+              color: "#a78bfa",
+            }}
+          >
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#22c55e] opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-[#22c55e]" />
             </span>
             Now onboarding
           </div>
-          <h2 className="font-[family-name:var(--font-heading)] text-4xl font-bold tracking-tight text-white md:text-5xl">
-            Ready to join <span className="text-gradient-aurora">the crew?</span>
+
+          <h2
+            className="font-[family-name:var(--font-heading)] font-bold tracking-tight text-white"
+            style={{
+              fontSize: "clamp(2rem, 5vw, 4rem)",
+              letterSpacing: "-0.025em",
+              lineHeight: 1.1,
+            }}
+          >
+            Ready to join{" "}
+            <span className="text-gradient-aurora">the crew?</span>
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-base text-zinc-400">
+
+          <p
+            className="mx-auto mt-5 max-w-md text-base leading-relaxed"
+            style={{ color: "rgba(255,255,255,0.4)" }}
+          >
             Applications take ~3 minutes. We review every one within 48 hours.
           </p>
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href="/apply"
-              className="group inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-white transition-all hover:opacity-90 hover:-translate-y-0.5" style={{background:"linear-gradient(135deg,#7c3aed,#2563eb)",boxShadow:"0 8px 32px rgba(124,58,237,0.35)"}}
+              className="btn-primary group inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold text-white"
             >
               Apply to join
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <Link
               href="/projects"
-              className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-medium transition-all hover:-translate-y-0.5" style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.7)",backdropFilter:"blur(12px)"}}
+              className="btn-ghost inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-medium"
             >
-              See what we're building →
+              See what we&apos;re building →
             </Link>
           </div>
         </div>
       </section>
+
       <Footer />
     </main>
   )

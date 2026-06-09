@@ -180,7 +180,7 @@ export default function MemberDashboard() {
 
         {/* PROFILE ID CARD */}
         <div className="mb-8" style={{borderRadius:16,padding:"1.5px",background:"linear-gradient(135deg,rgba(139,92,246,0.6),rgba(59,130,246,0.4),rgba(6,182,212,0.3))",boxShadow:"0 0 40px rgba(139,92,246,0.12)"}}>
-          <div style={{borderRadius:"14.5px",background:"rgba(15,12,26,0.85)",backdropFilter:"blur(24px)",padding:"20px 24px"}}>
+          <div style={{borderRadius:"14.5px",background:"rgba(5,5,8,0.9)",backdropFilter:"blur(24px)",padding:"20px 24px"}}>
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-4">
                 {/* Avatar */}

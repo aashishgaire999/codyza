@@ -11,10 +11,10 @@ interface GlowOrbProps {
 }
 
 const COLOR_MAP = {
-  purple: "rgba(139, 92, 246, 0.4)",
-  blue: "rgba(59, 130, 246, 0.4)",
-  cyan: "rgba(6, 182, 212, 0.4)",
-  green: "rgba(34, 197, 94, 0.4)",
+  purple: "rgba(124, 58, 237, 0.12)",
+  blue:   "rgba(37, 99, 235, 0.10)",
+  cyan:   "rgba(6, 182, 212, 0.08)",
+  green:  "rgba(34, 197, 94, 0.08)",
 }
 
 export function GlowOrb({
@@ -31,12 +31,12 @@ export function GlowOrb({
         width: size,
         height: size,
         background: `radial-gradient(circle, ${COLOR_MAP[color]} 0%, transparent 70%)`,
-        filter: "blur(80px)",
+        filter: "blur(120px)",
       }}
       animate={{
         x: [0, 40, -30, 0],
         y: [0, -30, 40, 0],
-        scale: [1, 1.1, 0.95, 1],
+        scale: [1, 1.06, 0.96, 1],
       }}
       transition={{
         duration,

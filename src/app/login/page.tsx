@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import { CodyzaLogo } from "@/components/shared/codyza-logo"
+import { ParticleField } from "@/components/effects/particle-field"
+import { GlowOrb } from "@/components/effects/glow-orb"
 import Link from "next/link"
 
 export default function LoginPage() {
