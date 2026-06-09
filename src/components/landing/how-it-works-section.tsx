@@ -16,7 +16,7 @@ const STEPS = [
 
 export function HowItWorksSection() {
   return (
-    <section id="how" className="relative scroll-mt-32 border-t border-white/[0.04] bg-[#050508] py-32">
+    <section id="how" className="relative scroll-mt-32 border-t border-white/[0.04] bg-background py-32">
       <div className="mx-auto max-w-6xl px-6 md:px-8">
         <motion.div initial={{ opacity: 1, y: 0 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.1 }} transition={{ duration: 0.35 }} className="mb-20 text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[10px] font-mono uppercase tracking-widest text-zinc-400">

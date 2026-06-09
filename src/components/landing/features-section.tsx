@@ -135,7 +135,7 @@ export function FeaturesSection() {
   return (
     <section
       id="features"
-      className="relative scroll-mt-32 border-t border-white/[0.04] bg-[#050508] py-32"
+      className="relative scroll-mt-32 border-t border-white/[0.04] bg-background py-32"
     >
       <div className="mx-auto max-w-7xl px-6 md:px-8">
         <motion.div

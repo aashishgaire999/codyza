@@ -276,7 +276,7 @@ export function ApplySection() {
   return (
     <section
       id="apply"
-      className="relative scroll-mt-32 border-t border-white/[0.04] bg-[#050508] py-20"
+      className="relative scroll-mt-32 border-t border-white/[0.04] bg-background py-20"
     >
       <div className="mx-auto max-w-6xl px-6 md:px-8">
 

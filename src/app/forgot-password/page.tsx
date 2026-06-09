@@ -34,7 +34,7 @@ export default function ForgotPasswordPage() {
 
   if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#050508] p-4 text-white">
+      <div className="flex min-h-screen items-center justify-center bg-background p-4 text-white">
         <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
           <CheckCircle className="mx-auto mb-4 h-16 w-16 text-green-500" />
           <h1 className="mb-2 text-2xl font-bold">Check your email</h1>
@@ -53,7 +53,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#050508] p-4 text-white">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4 text-white">
       <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-8">
         <div className="mb-8 flex flex-col items-center">
           <CodyzaLogo size={56} withGlow />

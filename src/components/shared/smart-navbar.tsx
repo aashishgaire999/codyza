@@ -17,7 +17,7 @@ export function SmartNavbar() {
   }, [])
 
   if (loggedIn === null) return (
-    <div className="h-16 border-b border-white/[0.06] bg-[#050508]/70 backdrop-blur-xl sticky top-0 z-50" />
+    <div className="h-16 border-b border-white/[0.06] bg-background/70 backdrop-blur-xl sticky top-0 z-50" />
   )
   return loggedIn ? <MemberNavbar /> : <Navbar />
 }

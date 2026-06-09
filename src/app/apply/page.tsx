@@ -8,7 +8,7 @@ import { GlowOrb } from "@/components/effects/glow-orb"
 
 export default function ApplyPage() {
   return (
-    <main className="relative min-h-screen overflow-hidden" style={{background:"linear-gradient(135deg,#0f0c1a 0%,#130d24 50%,#0c1220 100%)"}}>
+    <main className="relative min-h-screen overflow-hidden" className="bg-background">
       <SmartNavbar />
       <ParticleField />
       <GlowOrb color="purple" size={700} className="-top-40 -left-20" duration={18} />

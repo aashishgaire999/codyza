@@ -122,7 +122,7 @@ function SetPasswordContent() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#050508] text-white">
+      <div className="flex min-h-screen items-center justify-center bg-background text-white">
         <div className="text-gray-400">Verifying your invite link...</div>
       </div>
     )
@@ -130,7 +130,7 @@ function SetPasswordContent() {
 
   if (error && !sessionReady) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#050508] p-4 text-white">
+      <div className="flex min-h-screen items-center justify-center bg-background p-4 text-white">
         <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
           <AlertCircle className="mx-auto mb-4 h-12 w-12 text-red-500" />
           <h1 className="mb-2 text-xl font-bold">Link expired or invalid</h1>
@@ -182,7 +182,7 @@ function SetPasswordContent() {
 
   if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#050508] p-4 text-white">
+      <div className="flex min-h-screen items-center justify-center bg-background p-4 text-white">
         <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
           <CheckCircle className="mx-auto mb-4 h-16 w-16 text-green-500" />
           <h1 className="mb-2 text-2xl font-bold">Password set!</h1>
@@ -193,7 +193,7 @@ function SetPasswordContent() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#050508] p-4 text-white">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4 text-white">
       <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-8">
         <div className="mb-8 flex flex-col items-center">
           <CodyzaLogo size={56} withGlow />
@@ -258,7 +258,7 @@ function SetPasswordContent() {
 export default function SetPasswordPage() {
   return (
     <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-[#050508] text-white">
+      <div className="flex min-h-screen items-center justify-center bg-background text-white">
         <div className="text-gray-400">Loading...</div>
       </div>
     }>
