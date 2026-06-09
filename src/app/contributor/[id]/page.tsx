@@ -4,7 +4,7 @@ import { createServerSupabase } from "@/lib/supabase-server"
 import { notFound } from "next/navigation"
 import { ArrowLeft, GitBranch, Globe, Zap, Flame, Trophy, Calendar, Copy } from "lucide-react"
 import { SmartNavbar } from "@/components/shared/smart-navbar"
-import { ParticleField } from "@/components/effects/particle-field"
+import { GalaxyBackground } from "@/components/effects/galaxy-background"
 
 interface Props { params: Promise<{ id: string }> }
 
@@ -72,9 +72,9 @@ export default async function ContributorProfile({ params }: Props) {
 
   return (
     <div className="min-h-screen text-white" style={{background:"linear-gradient(135deg,#0f0c1a 0%,#130d24 50%,#0c1220 100%)",overflow:"hidden"}}>
+      <GalaxyBackground />
       <SmartNavbar />
-      <ParticleField />
-
+      
       {/* Background animation */}
       <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
         <div style={{

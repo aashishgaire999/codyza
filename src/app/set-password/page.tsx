@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { CodyzaLogo } from "@/components/shared/codyza-logo"
 import Link from "next/link"
 import { CheckCircle, AlertCircle } from "lucide-react"
+import { GalaxyBackground } from "@/components/effects/galaxy-background"
 
 function SetPasswordContent() {
   const router = useRouter()
@@ -123,6 +124,7 @@ function SetPasswordContent() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-white">
+      <GalaxyBackground />
         <div className="text-gray-400">Verifying your invite link...</div>
       </div>
     )

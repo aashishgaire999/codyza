@@ -4,9 +4,8 @@ import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import { CodyzaLogo } from "@/components/shared/codyza-logo"
-import { ParticleField } from "@/components/effects/particle-field"
-import { GlowOrb } from "@/components/effects/glow-orb"
 import Link from "next/link"
+import { GalaxyBackground } from "@/components/effects/galaxy-background"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -69,6 +68,7 @@ export default function LoginPage() {
   if (magicLinkSent) {
     return (
       <div className="min-h-screen text-white flex items-center justify-center p-4" style={{background:"linear-gradient(135deg,#0f0c1a 0%,#130d24 50%,#0c1220 100%)"}}>
+      <GalaxyBackground />
         <div className="max-w-md w-full rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
           <CodyzaLogo size={56} withGlow />
           <h1 className="mt-4 text-2xl font-bold">Check your inbox</h1>

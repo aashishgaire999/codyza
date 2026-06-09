@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
@@ -11,13 +11,19 @@ import { AboutSection } from "@/components/landing/about-section"
 import { CurrentlyShippingSection } from "@/components/landing/currently-shipping-section"
 import { ProjectsSection } from "@/components/landing/projects-section"
 import { Footer } from "@/components/landing/footer"
-import { GlowOrb } from "@/components/effects/glow-orb"
-import { ParticleField } from "@/components/effects/particle-field"
 import { FloatingCode } from "@/components/effects/floating-code"
+import { GalaxyBackground } from "@/components/effects/galaxy-background"
 import { SITE_CONFIG } from "@/constants/site"
 
 export default function HomePage() {
   const router = useRouter()
+  const [scrollY, setScrollY] = useState(0)
+
+  useEffect(() => {
+    const onScroll = () => setScrollY(window.scrollY)
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -33,16 +39,13 @@ export default function HomePage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-background">
+      <GalaxyBackground scrollY={scrollY} />
       <Navbar />
 
       {/* HERO */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 grid-overlay" aria-hidden />
-        <ParticleField />
         <FloatingCode />
-        <GlowOrb color="purple" size={900} className="-top-60 -left-60" duration={18} />
-        <GlowOrb color="blue" size={700} className="top-1/2 -right-48" duration={22} />
-        <GlowOrb color="cyan" size={600} className="bottom-0 left-1/4" duration={16} />
 
         <div className="relative z-10 flex min-h-[90vh] flex-col items-center justify-center px-6 pt-28 pb-20 text-center">
           <motion.div

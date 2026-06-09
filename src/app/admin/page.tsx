@@ -4,6 +4,7 @@ import { useState } from "react"
 import { createClient } from "@/lib/supabase"
 import { Shield, Users, FileText, TrendingUp, CheckCircle, XCircle, Trash2 } from "lucide-react"
 import Link from "next/link"
+import { GalaxyBackground } from "@/components/effects/galaxy-background"
 
 
 interface Contributor {
@@ -237,6 +238,7 @@ export default function AdminDashboard() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-background text-white flex items-center justify-center p-4">
+      <GalaxyBackground />
         <div className="max-w-md w-full bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm">
           <div className="flex items-center gap-3 mb-6">
             <Shield className="w-8 h-8 text-purple-500" />

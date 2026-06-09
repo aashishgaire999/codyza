@@ -6,6 +6,7 @@ import Link from "next/link"
 import { CodyzaLogo } from "@/components/shared/codyza-logo"
 import { SmartNavbar } from "@/components/shared/smart-navbar"
 import { CheckCircle } from "lucide-react"
+import { GalaxyBackground } from "@/components/effects/galaxy-background"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
@@ -35,6 +36,7 @@ export default function ForgotPasswordPage() {
   if (success) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4 text-white">
+      <GalaxyBackground />
         <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
           <CheckCircle className="mx-auto mb-4 h-16 w-16 text-green-500" />
           <h1 className="mb-2 text-2xl font-bold">Check your email</h1>

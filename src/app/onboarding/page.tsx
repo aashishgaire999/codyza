@@ -7,6 +7,7 @@ import { CodyzaLogo } from "@/components/shared/codyza-logo"
 import { CheckCircle, AlertCircle, Camera, X, Check } from "lucide-react"
 import Link from "next/link"
 import Cropper from "react-easy-crop"
+import { GalaxyBackground } from "@/components/effects/galaxy-background"
 
 async function getCroppedImg(imageSrc: string, croppedAreaPixels: any): Promise<Blob> {
   const image = new Image()
@@ -122,6 +123,7 @@ export default function OnboardingPage() {
 
   if (loading) return (
     <div className="flex min-h-screen items-center justify-center text-white bg-background">
+      <GalaxyBackground />
       <div className="text-gray-400">Loading...</div>
     </div>
   )
