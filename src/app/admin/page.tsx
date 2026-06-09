@@ -236,7 +236,7 @@ export default function AdminDashboard() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-transparent text-white flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background text-white flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm">
           <div className="flex items-center gap-3 mb-6">
             <Shield className="w-8 h-8 text-purple-500" />
@@ -262,7 +262,7 @@ export default function AdminDashboard() {
   const pendingApps = applications.filter(a => a.status === "pending").length
 
   return (
-    <div className="min-h-screen bg-transparent text-white">
+    <div className="min-h-screen bg-background text-white">
       <nav style={{background:"rgba(15,12,26,0.8)",backdropFilter:"blur(12px)",borderBottom:"1px solid rgba(255,255,255,0.06)",padding:"0 24px",height:56,display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:50}}>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <a href="/" style={{display:"flex",alignItems:"center",gap:8,textDecoration:"none"}}>
