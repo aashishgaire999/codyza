@@ -1,13 +1,16 @@
 "use client"
+
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import { MemberNavbar } from "@/components/member/member-navbar"
-import { GalaxyBackground } from "@/components/effects/galaxy-background"
+import { useScrollReveal } from "@/hooks/use-scroll-reveal"
+import { SiteShell } from "@/components/shared/site-shell"
 
 export default function MemberLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const [auth, setAuth] = useState<boolean | null>(null)
+  useScrollReveal()
 
   useEffect(() => {
     ;(async () => {
@@ -18,19 +21,18 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
     })()
   }, [router])
 
-  if (!auth) return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="w-5 h-5 rounded-full border-2 border-[#7c3aed] border-t-transparent animate-spin"/>
-    </div>
-  )
+  if (!auth) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+      </div>
+    )
+  }
 
   return (
-    <div className="relative min-h-screen bg-background">
-      <GalaxyBackground />
-      <div className="relative" style={{zIndex:1}}>
-        <MemberNavbar />
-        {children}
-      </div>
-    </div>
+    <SiteShell showProgress={false}>
+      <MemberNavbar />
+      <main className="mx-auto max-w-7xl px-6 py-10 md:px-8">{children}</main>
+    </SiteShell>
   )
 }

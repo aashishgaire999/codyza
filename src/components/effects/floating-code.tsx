@@ -3,18 +3,14 @@
 import { useEffect, useRef } from "react"
 
 const CODE_LINES = [
-  "const xp = await supabase.from(\"xp\").select()",
+  "function deploy() { return codyza.ship() }",
+  "def review_code(pr): return ai.score(pr)",
+  ".hero { background: linear-gradient(...) }",
+  "const xp = await supabase.from('xp').select()",
   "export async function reviewCode(input: string)",
-  "if (rank >= THRESHOLDS.SENIOR) promote()",
-  "router.push(\"/member/dashboard\")",
-  "const { data } = useContributor(czxId)",
   "await gemini.generateContent(prompt)",
-  "setRank(calculateRank(totalXP))",
-  "supabase.auth.signInWithOtp({ email })",
   "type Contributor = { czxId: string; xp: number }",
-  "const score = await aiReview(githubUrl)",
-  "await supabase.from(\"notifications\").insert(n)",
-  "export const RANK_XP = [0,500,1500,3000]",
+  "router.push('/member/dashboard')",
 ]
 
 const COLORS = ["#a78bfa", "#67e8f9", "#86efac", "#93c5fd"]
@@ -55,9 +51,9 @@ export function FloatingCode() {
         const elapsed = (ts - start + delay) % (duration + 3000)
         let opacity = 0
         if (elapsed < 1500) {
-          opacity = (elapsed / 1500) * 0.12
+          opacity = (elapsed / 1500) * 0.18
         } else if (elapsed < duration) {
-          opacity = 0.12 - ((elapsed - 1500) / (duration - 1500)) * 0.12
+          opacity = 0.18 - ((elapsed - 1500) / (duration - 1500)) * 0.18
         }
         const translateY = -(elapsed / duration) * 80
         el.style.opacity = String(opacity)

@@ -1,0 +1,86 @@
+/* Sofi-exact landing — light canvas, ink black, Instrument Serif display */
+
+.sofi-landing {
+  --sofi-canvas: #f7f7f7;
+  --sofi-ink: #000000;
+  --sofi-muted: rgba(0, 0, 0, 0.45);
+  --sofi-sage: #5e7359;
+  background: var(--sofi-canvas);
+  color: var(--sofi-ink);
+  font-family: var(--font-inter);
+}
+
+.sofi-display {
+  font-family: var(--font-instrument);
+  font-weight: 500;
+  font-size: clamp(3.5rem, 16vw, 13.75rem);
+  letter-spacing: -0.035em;
+  line-height: 0.9;
+  text-transform: lowercase;
+}
+
+.sofi-display-section {
+  font-family: var(--font-instrument);
+  font-weight: 500;
+  font-size: clamp(2rem, 8vw, 5.5rem);
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  text-transform: lowercase;
+}
+
+.sofi-micro {
+  font-family: var(--font-jetbrains-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+  color: var(--sofi-muted);
+}
+
+.sofi-body {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--sofi-muted);
+}
+
+.sofi-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--sofi-ink);
+  padding: 0.625rem 1.25rem;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: lowercase;
+  transition: background 0.2s, color 0.2s;
+}
+
+.sofi-pill:hover {
+  background: var(--sofi-ink);
+  color: var(--sofi-canvas);
+}
+
+.sofi-pill-fill {
+  background: var(--sofi-ink);
+  color: var(--sofi-canvas);
+}
+
+.sofi-pill-fill:hover {
+  opacity: 0.88;
+}
+
+.sofi-edge-bar {
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.sofi-scroll-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--sofi-ink);
+  transform-origin: left;
+  z-index: 90;
+  mix-blend-mode: difference;
+}

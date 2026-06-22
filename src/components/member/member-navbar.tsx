@@ -2,85 +2,92 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase"
 import { CodyzaLogo } from "@/components/shared/codyza-logo"
-import { LogOut, Zap } from "lucide-react"
-import { NotificationBell } from "@/components/member/notification-bell"
+import { ThemeToggle } from "@/components/shared/theme-toggle"
+import { LogOut } from "lucide-react"
+import { useRouter, usePathname } from "next/navigation"
+import { cn } from "@/lib/utils"
+
+const LINKS = [
+  { href: "/member", label: "Home" },
+  { href: "/member/projects", label: "Projects" },
+  { href: "/member/groups", label: "Groups" },
+  { href: "/member/bounties", label: "Bounties" },
+  { href: "/member/settings", label: "Settings" },
+]
 
 export function MemberNavbar() {
   const router = useRouter()
+  const pathname = usePathname()
   const [isAdmin, setIsAdmin] = useState(false)
   const [codyzaId, setCodyzaId] = useState("")
 
   useEffect(() => {
-    checkAdmin()
+    ;(async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user?.email) return
+      const { data } = await supabase
+        .from("contributors")
+        .select("is_admin, codyza_id")
+        .eq("email", user.email)
+        .maybeSingle()
+      setIsAdmin(!!data?.is_admin)
+      setCodyzaId(data?.codyza_id || "")
+    })()
   }, [])
 
-  const checkAdmin = async () => {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user?.email) return
-    const { data } = await supabase
-      .from("contributors")
-      .select("is_admin, codyza_id")
-      .eq("email", user.email)
-      .maybeSingle()
-    setIsAdmin(!!data?.is_admin)
-    setCodyzaId(data?.codyza_id || "")
-  }
-
-  const handleLogout = async () => {
+  const logout = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push("/login")
   }
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-white/10 bg-black/40 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2">
-            <CodyzaLogo size={32} withGlow={false} />
-            <span className="text-lg font-bold">Member Portal</span>
-          </Link>
-          <div className="hidden items-center gap-1 md:flex">
-            <Link href="/member" className="rounded-lg px-4 py-2 text-sm text-gray-400 transition-colors hover:bg-white/5 hover:text-white">
-              Hub
+    <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl">
+      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-6 md:px-8">
+        <Link href="/member" className="flex shrink-0 items-center gap-2">
+          <CodyzaLogo size={28} withGlow={false} />
+          <span className="hidden font-mono text-[10px] uppercase tracking-widest text-muted-foreground sm:inline">
+            {codyzaId || "member"}
+          </span>
+        </Link>
+
+        <div className="hidden items-center gap-1 md:flex">
+          {LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={cn(
+                "rounded-full px-3 py-1.5 text-sm transition-colors",
+                pathname === link.href
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {link.label}
             </Link>
-            <Link href="/member/projects" className="rounded-lg px-4 py-2 text-sm text-gray-400 transition-colors hover:bg-white/5 hover:text-white">
-              Projects
-            </Link>
-            <Link href="/member/groups" className="rounded-lg px-4 py-2 text-sm text-gray-400 transition-colors hover:bg-white/5 hover:text-white">
-              Groups
-            </Link>
-            <Link href="/member/bounties" className="rounded-lg px-4 py-2 text-sm text-gray-400 transition-colors hover:bg-white/5 hover:text-white">
-              Bounties
-            </Link>
-            <Link href="/leaderboard" className="rounded-lg px-4 py-2 text-sm text-gray-400 transition-colors hover:bg-white/5 hover:text-white">
-              Leaderboard
-            </Link>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {codyzaId && <NotificationBell codyzaId={codyzaId} />}
+          ))}
           {isAdmin && (
-            <>
-              <Link href="/admin"
-                className="inline-flex items-center gap-1.5 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs font-medium text-purple-300 transition-colors hover:bg-purple-500/20">
-                <Zap className="h-3 w-3" />
-                Admin
-              </Link>
-              <span className="hidden h-4 w-px bg-white/10 sm:block" />
-            </>
+            <Link href="/admin" className="rounded-full px-3 py-1.5 text-sm text-accent hover:opacity-80">
+              Admin
+            </Link>
           )}
-          <button onClick={handleLogout}
-            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-400 transition-colors hover:text-white">
+        </div>
+
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            type="button"
+            onClick={logout}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground"
+            aria-label="Log out"
+          >
             <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline">Sign Out</span>
           </button>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </header>
   )
 }

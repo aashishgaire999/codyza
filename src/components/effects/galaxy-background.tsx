@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 
 interface Star {
   x: number; y: number; z: number
@@ -21,10 +21,42 @@ const STAR_COLORS = [
   "200,210,255", "255,240,200", "180,180,255",
 ]
 
-const BRAND_COLORS = [
-  "167,139,250", "103,232,249", "34,197,94",
-  "124,58,237", "37,99,235",
-]
+export type GalaxyVariant = "default" | "exploration" | "command" | "deep"
+
+const VARIANT_NEBULA: Record<GalaxyVariant, { core: string; arm: string; wash: string[] }> = {
+  default: {
+    core: "rgba(140,100,255,0.13)",
+    arm: "rgba(6,182,212,0.06)",
+    wash: [
+      "radial-gradient(ellipse at 20% 50%, rgba(124,58,237,0.08) 0%, transparent 50%)",
+      "radial-gradient(ellipse at 80% 20%, rgba(37,99,235,0.06) 0%, transparent 50%)",
+      "radial-gradient(ellipse at 60% 80%, rgba(6,182,212,0.05) 0%, transparent 50%)",
+    ],
+  },
+  exploration: {
+    core: "rgba(6,182,212,0.11)",
+    arm: "rgba(37,99,235,0.07)",
+    wash: [
+      "radial-gradient(ellipse at 15% 40%, rgba(6,182,212,0.09) 0%, transparent 50%)",
+      "radial-gradient(ellipse at 85% 25%, rgba(37,99,235,0.07) 0%, transparent 50%)",
+    ],
+  },
+  command: {
+    core: "rgba(251,191,36,0.08)",
+    arm: "rgba(124,58,237,0.08)",
+    wash: [
+      "radial-gradient(ellipse at 50% 30%, rgba(251,191,36,0.06) 0%, transparent 45%)",
+      "radial-gradient(ellipse at 70% 70%, rgba(124,58,237,0.07) 0%, transparent 50%)",
+    ],
+  },
+  deep: {
+    core: "rgba(80,60,180,0.10)",
+    arm: "rgba(30,20,100,0.05)",
+    wash: [
+      "radial-gradient(ellipse at 40% 50%, rgba(80,60,180,0.07) 0%, transparent 55%)",
+    ],
+  },
+}
 
 function isLowEnd(): boolean {
   if (typeof window === "undefined") return false
@@ -35,12 +67,19 @@ function isLowEnd(): boolean {
   return false
 }
 
-export function GalaxyBackground({ scrollY = 0 }: { scrollY?: number }) {
+export function GalaxyBackground({
+  scrollY = 0,
+  variant = "default",
+}: {
+  scrollY?: number
+  variant?: GalaxyVariant
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const starsRef = useRef<Star[]>([])
   const shootingStarsRef = useRef<ShootingStar[]>([])
   const animRef = useRef<number>(0)
   const liteMode = useRef(false)
+  const nebula = VARIANT_NEBULA[variant]
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -157,16 +196,16 @@ export function GalaxyBackground({ scrollY = 0 }: { scrollY?: number }) {
 
       // Nebula glow — galaxy core
       const grd = ctx.createRadialGradient(W * 0.5, H * 0.38, 0, W * 0.5, H * 0.38, W * 0.35)
-      grd.addColorStop(0, "rgba(140,100,255,0.13)")
+      grd.addColorStop(0, nebula.core)
       grd.addColorStop(0.3, "rgba(80,60,200,0.07)")
       grd.addColorStop(0.6, "rgba(30,20,100,0.04)")
       grd.addColorStop(1, "rgba(0,0,0,0)")
       ctx.fillStyle = grd
       ctx.fillRect(0, 0, W, H)
 
-      // Second nebula arm — cyan tint
+      // Second nebula arm
       const grd2 = ctx.createRadialGradient(W * 0.65, H * 0.3, 0, W * 0.65, H * 0.3, W * 0.2)
-      grd2.addColorStop(0, "rgba(6,182,212,0.06)")
+      grd2.addColorStop(0, nebula.arm)
       grd2.addColorStop(1, "rgba(0,0,0,0)")
       ctx.fillStyle = grd2
       ctx.fillRect(0, 0, W, H)
@@ -241,7 +280,7 @@ export function GalaxyBackground({ scrollY = 0 }: { scrollY?: number }) {
       cancelAnimationFrame(animRef.current)
       window.removeEventListener("resize", resize)
     }
-  }, [])
+  }, [variant])
 
   // Scroll-based opacity — galaxy fades as user scrolls
   const galaxyOpacity = Math.max(0, 1 - scrollY / 600)
@@ -264,11 +303,7 @@ export function GalaxyBackground({ scrollY = 0 }: { scrollY?: number }) {
         className="absolute inset-0"
         style={{
           opacity: starsOpacity * 0.6,
-          background: [
-            "radial-gradient(ellipse at 20% 50%, rgba(124,58,237,0.08) 0%, transparent 50%)",
-            "radial-gradient(ellipse at 80% 20%, rgba(37,99,235,0.06) 0%, transparent 50%)",
-            "radial-gradient(ellipse at 60% 80%, rgba(6,182,212,0.05) 0%, transparent 50%)",
-          ].join(","),
+          background: nebula.wash.join(","),
         }}
       />
     </div>

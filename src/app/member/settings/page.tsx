@@ -71,29 +71,31 @@ export default function SettingsPage() {
   }
 
   if (loading) return (
-    <div className="min-h-screen bg-background text-white flex items-center justify-center">
-      <div className="text-gray-400">Loading...</div>
+    <div className="flex items-center justify-center py-24">
+      <div className="text-muted-foreground">Loading...</div>
     </div>
   )
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10">
-      <Link href="/member" className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-8 text-sm">
-        <ArrowLeft className="w-4 h-4" /> Back to Hub
+    <div className="mx-auto max-w-2xl">
+      <Link href="/member" className="btn-ghost mb-8 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm text-muted-foreground">
+        <ArrowLeft className="h-4 w-4" /> Back to Hub
       </Link>
 
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-1">Profile Settings</h1>
-        <p className="text-gray-400 text-sm">{contributor?.codyza_id} · {contributor?.email}</p>
+      <div className="mb-10 max-w-2xl">
+        <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
+          member · settings
+        </p>
+        <h1 className="headline-section font-[family-name:var(--font-heading)] lowercase text-foreground">
+          profile <span className="text-accent">settings</span>
+        </h1>
+        <p className="mt-4 text-muted-foreground">{contributor?.codyza_id} · {contributor?.email}</p>
       </div>
 
       <div className="space-y-6">
-
-        {/* Basic info */}
-        <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"20px 22px" }}>
-          <h2 className="text-sm font-mono uppercase tracking-wider text-gray-400 mb-5">Basic Info</h2>
+        <div className="surface-card p-5 md:p-6">
+          <h2 className="mb-5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Basic Info</h2>
           <div className="space-y-4">
-            {/* Avatar Upload */}
             <div className="flex justify-center pb-4">
               {contributor && (
                 <AvatarUpload
@@ -106,71 +108,71 @@ export default function SettingsPage() {
               )}
             </div>
             <div>
-              <label className="block text-xs font-mono uppercase tracking-wider text-gray-500 mb-2">Display Name</label>
+              <label className="mb-2 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Display Name</label>
               <input type="text" value={name} onChange={e => setName(e.target.value)}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-purple-500 transition-colors"
+                className="glass-input w-full px-4 py-3 text-sm focus:outline-none"
                 placeholder="Your name"/>
             </div>
             <div>
-              <label className="block text-xs font-mono uppercase tracking-wider text-gray-500 mb-2">GitHub Username</label>
+              <label className="mb-2 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">GitHub Username</label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">github.com/</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">github.com/</span>
                 <input type="text" value={github} onChange={e => setGithub(e.target.value)}
-                  className="w-full pl-28 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-purple-500 transition-colors"
+                  className="glass-input w-full py-3 pl-28 pr-4 text-sm focus:outline-none"
                   placeholder="username"/>
               </div>
             </div>
             <div>
-              <label className="block text-xs font-mono uppercase tracking-wider text-gray-500 mb-2">Role / Title</label>
+              <label className="mb-2 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Role / Title</label>
               <input type="text" value={role} onChange={e => setRole(e.target.value)}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-purple-500 transition-colors"
+                className="glass-input w-full px-4 py-3 text-sm focus:outline-none"
                 placeholder="e.g. Full Stack Developer"/>
             </div>
             <div>
-              <label className="block text-xs font-mono uppercase tracking-wider text-gray-500 mb-2">Bio</label>
+              <label className="mb-2 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Bio</label>
               <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-purple-500 transition-colors resize-none"
+                className="glass-input w-full resize-none px-4 py-3 text-sm focus:outline-none"
                 placeholder="A short bio — what you build, what you care about..."/>
             </div>
           </div>
         </div>
 
-        {/* Skill tags */}
-        <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"20px 22px" }}>
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-sm font-mono uppercase tracking-wider text-gray-400">Skills</h2>
-            <span className="text-xs text-gray-500">{skills.length}/12 selected</span>
+        <div className="surface-card p-5 md:p-6">
+          <div className="mb-5 flex items-center justify-between">
+            <h2 className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Skills</h2>
+            <span className="text-xs text-muted-foreground">{skills.length}/12 selected</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {SKILL_OPTIONS.map(skill => (
               <button key={skill} type="button" onClick={() => toggleSkill(skill)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
                   skills.includes(skill)
-                    ? "bg-purple-500/25 border border-purple-500/60 text-purple-300 shadow-[0_0_10px_rgba(139,92,246,0.2)]"
-                    : "bg-white/5 border border-white/10 text-gray-400 hover:border-white/25 hover:text-white"
+                    ? "border border-accent/50 bg-accent/15 text-accent"
+                    : "border border-border bg-muted text-muted-foreground hover:border-accent/30 hover:text-foreground"
                 }`}>
                 {skill}
               </button>
             ))}
           </div>
           {skills.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-white/5">
-              <p className="text-xs text-gray-500 mb-2">Selected:</p>
+            <div className="mt-4 border-t border-border pt-4">
+              <p className="mb-2 text-xs text-muted-foreground">Selected:</p>
               <div className="flex flex-wrap gap-1.5">
                 {skills.map(s => (
-                  <span key={s} className="px-2 py-0.5 rounded text-xs bg-purple-500/15 border border-purple-500/30 text-purple-300">{s}</span>
+                  <span key={s} className="rounded border border-accent/30 bg-accent/10 px-2 py-0.5 text-xs text-accent">{s}</span>
                 ))}
               </div>
             </div>
           )}
         </div>
 
-        {error && <p className="text-red-400 text-sm px-1">{error}</p>}
+        {error && <p className="px-1 text-sm text-destructive">{error}</p>}
 
         <button onClick={handleSave} disabled={saving}
-          className="w-full py-3.5 rounded-xl font-semibold text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-          style={{ background: saved ? "rgba(34,197,94,0.2)" : "linear-gradient(135deg,#7c3aed,#2563eb)", border: saved ? "1px solid rgba(34,197,94,0.4)" : "none", color: saved ? "#22c55e" : "#fff" }}>
-          {saving ? "Saving..." : saved ? <><Check className="w-4 h-4"/> Saved!</> : <><Save className="w-4 h-4"/> Save Changes</>}
+          className={`flex w-full items-center justify-center gap-2 rounded-full py-3.5 text-sm font-semibold transition-all disabled:opacity-50 ${
+            saved ? "border border-success/40 bg-success/15 text-success" : "btn-primary"
+          }`}>
+          {saving ? "Saving..." : saved ? <><Check className="h-4 w-4"/> Saved!</> : <><Save className="h-4 w-4"/> Save Changes</>}
         </button>
       </div>
     </div>

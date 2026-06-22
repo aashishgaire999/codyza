@@ -11,7 +11,7 @@ interface CodyzaLogoProps {
 export function CodyzaLogo({
   size = 80,
   className,
-  withGlow = true,
+  withGlow = false,
   priority = false,
 }: CodyzaLogoProps) {
   return (
@@ -19,11 +19,8 @@ export function CodyzaLogo({
       {withGlow && (
         <div
           aria-hidden
-          className="absolute inset-0 rounded-2xl blur-2xl opacity-60"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(139, 92, 246, 0.6) 0%, rgba(59, 130, 246, 0.4) 50%, transparent 80%)",
-          }}
+          className="absolute inset-0 rounded-2xl opacity-40 blur-xl"
+          style={{ background: "color-mix(in srgb, var(--accent) 50%, transparent)" }}
         />
       )}
       <Image

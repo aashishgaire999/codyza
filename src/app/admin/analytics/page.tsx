@@ -1,8 +1,7 @@
 import { Metadata } from "next"
 import { createClient } from "@supabase/supabase-js"
-import { MemberNavbar } from "@/components/member/member-navbar"
 import Link from "next/link"
-import { TrendingUp, Users, Zap, FileText, CheckCircle, XCircle, Clock } from "lucide-react"
+import { TrendingUp, Users, Zap, FileText, CheckCircle, Clock } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "Analytics | Codyza Admin",
@@ -17,11 +16,14 @@ function createSupabase() {
   )
 }
 
-function CSSBar({ value, max, color }: { value: number; max: number; color: string }) {
+function ProgressBar({ value, max, className }: { value: number; max: number; className?: string }) {
   const pct = max > 0 ? Math.round((value / max) * 100) : 0
   return (
-    <div style={{ height: 6, borderRadius: 3, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-      <div style={{ height: "100%", width: `${pct}%`, borderRadius: 3, background: color, boxShadow: `0 0 8px ${color}60`, transition: "width 0.6s ease" }} />
+    <div className={`h-1.5 overflow-hidden rounded-full bg-muted ${className || ""}`}>
+      <div
+        className="h-full rounded-full bg-accent transition-all duration-500 ease-out"
+        style={{ width: `${pct}%` }}
+      />
     </div>
   )
 }
@@ -43,7 +45,6 @@ export default async function AnalyticsPage() {
   const allSubs = submissions || []
   const allApps = applications || []
 
-  // Stats
   const totalXP = allContribs.reduce((s, c) => s + (c.xp || 0), 0)
   const totalApproved = allSubs.filter(s => s.status === "approved").length
   const totalPending = allSubs.filter(s => s.status === "pending").length
@@ -53,7 +54,6 @@ export default async function AnalyticsPage() {
     : "—"
   const pendingApps = allApps.filter(a => a.status === "pending").length
 
-  // Submissions by day (last 14 days)
   const now = new Date()
   const days14 = Array.from({ length: 14 }, (_, i) => {
     const d = new Date(now)
@@ -66,170 +66,182 @@ export default async function AnalyticsPage() {
   }))
   const maxSubDay = Math.max(...subsByDay.map(d => d.count), 1)
 
-  // Rank distribution
   const rankCounts: Record<string, number> = {}
   allContribs.forEach(c => { rankCounts[c.rank] = (rankCounts[c.rank] || 0) + 1 })
-  const rankColors: Record<string, string> = {
-    "Apprentice": "#94a3b8", "Associate Engineer": "#34d399", "Software Engineer": "#60a5fa",
-    "Senior Engineer": "#a78bfa", "Staff Engineer": "#fbbf24", "Principal Engineer": "#f87171",
-    "Distinguished Engineer": "#22d3ee", "Codyza Fellow": "#fde68a"
-  }
 
-  // Top 5 by XP
   const top5 = allContribs.slice(0, 5)
   const maxXP = top5[0]?.xp || 1
-
-  // Submission status breakdown
   const statusTotal = allSubs.length || 1
-
-  // Recent activity (last 7 subs)
   const recent7 = allSubs.slice(0, 7)
 
   return (
-    <div className="min-h-screen bg-background text-white">
-      <MemberNavbar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-background text-foreground">
+      <nav className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-card/80 px-6 backdrop-blur-md">
+        <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2 no-underline">
+            <img src="/codyza-logo.png" alt="Codyza" className="h-7 w-7 rounded-md" />
+            <span className="font-[family-name:var(--font-heading)] text-sm font-bold">Codyza</span>
+          </Link>
+          <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Admin · Analytics</span>
+        </div>
+        <Link href="/admin" className="btn-ghost rounded-full px-3 py-1.5 text-xs">← Admin</Link>
+      </nav>
 
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold mb-1">Analytics</h1>
-            <p className="text-gray-400 text-sm">Platform overview · updates every 60s</p>
-          </div>
-          <Link href="/admin" className="text-sm text-gray-400 hover:text-white transition-colors">← Admin</Link>
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.35em] text-muted-foreground">platform analytics</p>
+          <h1 className="font-[family-name:var(--font-heading)] text-2xl font-bold lowercase">overview</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Updates every 60s</p>
         </div>
 
-        {/* Top stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
           {[
-            { label: "Total Members", value: allContribs.length, icon: <Users size={16}/>, color: "#a78bfa", bg: "rgba(167,139,250,0.1)", border: "rgba(167,139,250,0.2)" },
-            { label: "Total XP", value: totalXP.toLocaleString(), icon: <Zap size={16}/>, color: "#f59e0b", bg: "rgba(245,158,11,0.1)", border: "rgba(245,158,11,0.2)" },
-            { label: "Projects Shipped", value: totalApproved, icon: <CheckCircle size={16}/>, color: "#22c55e", bg: "rgba(34,197,94,0.1)", border: "rgba(34,197,94,0.2)" },
-            { label: "Avg AI Score", value: avgScore, icon: <TrendingUp size={16}/>, color: "#67e8f9", bg: "rgba(103,232,249,0.1)", border: "rgba(103,232,249,0.2)" },
+            { label: "Total Members", value: allContribs.length, icon: <Users className="h-4 w-4" /> },
+            { label: "Total XP", value: totalXP.toLocaleString(), icon: <Zap className="h-4 w-4" /> },
+            { label: "Projects Shipped", value: totalApproved, icon: <CheckCircle className="h-4 w-4" /> },
+            { label: "Avg AI Score", value: avgScore, icon: <TrendingUp className="h-4 w-4" /> },
           ].map(stat => (
-            <div key={stat.label} style={{ background: stat.bg, border: `1px solid ${stat.border}`, borderRadius: 14, padding: "18px 20px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, color: stat.color }}>{stat.icon}<span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: "1px" }}>{stat.label}</span></div>
-              <p style={{ fontSize: 28, fontWeight: 900, color: stat.color }}>{stat.value}</p>
+            <div key={stat.label} className="dashboard-stat">
+              <div className="mb-2 flex items-center gap-2 text-accent">
+                {stat.icon}
+                <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{stat.label}</span>
+              </div>
+              <p className="font-[family-name:var(--font-heading)] text-2xl font-bold">{stat.value}</p>
             </div>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-
-          {/* Submissions last 14 days */}
-          <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "20px 22px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-              <FileText size={14} style={{ color: "#a78bfa" }}/>
-              <span style={{ fontSize: 13, fontWeight: 700 }}>Submissions — Last 14 Days</span>
+        <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div className="surface-card p-5 md:p-6">
+            <div className="mb-5 flex items-center gap-2">
+              <FileText className="h-4 w-4 text-accent" />
+              <span className="font-[family-name:var(--font-heading)] text-sm font-semibold lowercase">submissions — last 14 days</span>
             </div>
-            <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 80 }}>
+            <div className="flex h-20 items-end gap-1">
               {subsByDay.map(d => {
                 const h = maxSubDay > 0 ? Math.max(4, Math.round((d.count / maxSubDay) * 72)) : 4
                 return (
-                  <div key={d.day} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                    <div style={{ width: "100%", height: h, borderRadius: 3, background: d.count > 0 ? "linear-gradient(180deg,#a78bfa,#7c3aed)" : "rgba(255,255,255,0.06)", boxShadow: d.count > 0 ? "0 0 8px rgba(167,139,250,0.3)" : "none" }}/>
-                    <span style={{ fontSize: 8, color: "rgba(255,255,255,0.25)", fontFamily: "monospace" }}>{d.day}</span>
+                  <div key={d.day} className="flex flex-1 flex-col items-center gap-1">
+                    <div
+                      className={`w-full rounded-sm ${d.count > 0 ? "bg-accent" : "bg-muted"}`}
+                      style={{ height: h }}
+                    />
+                    <span className="font-mono text-[8px] text-muted-foreground">{d.day}</span>
                   </div>
                 )
               })}
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 14, fontSize: 11, color: "rgba(255,255,255,0.3)" }}>
+            <div className="mt-4 flex justify-between text-xs text-muted-foreground">
               <span>{allSubs.length} total submissions</span>
               <span>{totalPending} pending review</span>
             </div>
           </div>
 
-          {/* Submission status breakdown */}
-          <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "20px 22px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-              <TrendingUp size={14} style={{ color: "#67e8f9" }}/>
-              <span style={{ fontSize: 13, fontWeight: 700 }}>Submission Status</span>
+          <div className="surface-card p-5 md:p-6">
+            <div className="mb-5 flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-accent" />
+              <span className="font-[family-name:var(--font-heading)] text-sm font-semibold lowercase">submission status</span>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div className="flex flex-col gap-4">
               {[
-                { label: "Approved", count: totalApproved, color: "#22c55e" },
-                { label: "Pending", count: totalPending, color: "#f59e0b" },
-                { label: "Rejected", count: totalRejected, color: "#f87171" },
+                { label: "Approved", count: totalApproved, className: "text-success" },
+                { label: "Pending", count: totalPending, className: "text-muted-foreground" },
+                { label: "Rejected", count: totalRejected, className: "text-destructive" },
               ].map(s => (
                 <div key={s.label}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5, fontSize: 12 }}>
-                    <span style={{ color: "rgba(255,255,255,0.6)" }}>{s.label}</span>
-                    <span style={{ color: s.color, fontWeight: 700 }}>{s.count} <span style={{ color: "rgba(255,255,255,0.3)", fontWeight: 400 }}>({Math.round((s.count/statusTotal)*100)}%)</span></span>
+                  <div className="mb-1.5 flex justify-between text-xs">
+                    <span className="text-muted-foreground">{s.label}</span>
+                    <span className={`font-semibold ${s.className}`}>
+                      {s.count}{" "}
+                      <span className="font-normal text-muted-foreground">
+                        ({Math.round((s.count / statusTotal) * 100)}%)
+                      </span>
+                    </span>
                   </div>
-                  <CSSBar value={s.count} max={statusTotal} color={s.color} />
+                  <ProgressBar value={s.count} max={statusTotal} />
                 </div>
               ))}
             </div>
-            <div style={{ marginTop: 18, padding: "10px 14px", background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.15)", borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Applications pending</span>
-              <span style={{ fontSize: 16, fontWeight: 800, color: "#f59e0b" }}>{pendingApps}</span>
+            <div className="mt-5 flex items-center justify-between rounded-lg border border-border bg-muted/50 px-4 py-2.5">
+              <span className="text-xs text-muted-foreground">Applications pending</span>
+              <span className="font-[family-name:var(--font-heading)] text-base font-bold text-accent">{pendingApps}</span>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-
-          {/* Top contributors */}
-          <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "20px 22px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-              <Zap size={14} style={{ color: "#f59e0b" }}/>
-              <span style={{ fontSize: 13, fontWeight: 700 }}>Top Contributors by XP</span>
+        <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div className="surface-card p-5 md:p-6">
+            <div className="mb-5 flex items-center gap-2">
+              <Zap className="h-4 w-4 text-accent" />
+              <span className="font-[family-name:var(--font-heading)] text-sm font-semibold lowercase">top contributors by xp</span>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div className="flex flex-col gap-3">
               {top5.map((c, i) => (
                 <div key={c.codyza_id}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "monospace", width: 14 }}>{i+1}</span>
-                      <span style={{ fontSize: 12, fontWeight: 600 }}>{c.name}</span>
-                      <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontFamily: "monospace" }}>{c.codyza_id}</span>
+                  <div className="mb-1.5 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-4 font-mono text-[10px] text-muted-foreground">{i + 1}</span>
+                      <span className="text-sm font-semibold">{c.name}</span>
+                      <span className="font-mono text-[10px] text-muted-foreground">{c.codyza_id}</span>
                     </div>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: "#f59e0b" }}>{c.xp.toLocaleString()}</span>
+                    <span className="text-sm font-bold text-accent">{c.xp.toLocaleString()}</span>
                   </div>
-                  <CSSBar value={c.xp} max={maxXP} color={i === 0 ? "#f59e0b" : i === 1 ? "#94a3b8" : i === 2 ? "#f97316" : "#a78bfa"} />
+                  <ProgressBar value={c.xp} max={maxXP} />
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Rank distribution */}
-          <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "20px 22px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-              <Users size={14} style={{ color: "#a78bfa" }}/>
-              <span style={{ fontSize: 13, fontWeight: 700 }}>Rank Distribution</span>
+          <div className="surface-card p-5 md:p-6">
+            <div className="mb-5 flex items-center gap-2">
+              <Users className="h-4 w-4 text-accent" />
+              <span className="font-[family-name:var(--font-heading)] text-sm font-semibold lowercase">rank distribution</span>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div className="flex flex-col gap-3">
               {Object.entries(rankCounts).map(([rank, count]) => (
                 <div key={rank}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: 11 }}>
-                    <span style={{ color: rankColors[rank] || "#94a3b8" }}>{rank}</span>
-                    <span style={{ color: "rgba(255,255,255,0.5)", fontWeight: 700 }}>{count}</span>
+                  <div className="mb-1 flex justify-between text-xs">
+                    <span className="text-muted-foreground">{rank}</span>
+                    <span className="font-semibold text-foreground">{count}</span>
                   </div>
-                  <CSSBar value={count} max={allContribs.length} color={rankColors[rank] || "#94a3b8"} />
+                  <ProgressBar value={count} max={allContribs.length} />
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Recent activity */}
-        <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "20px 22px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-            <Clock size={14} style={{ color: "#67e8f9" }}/>
-            <span style={{ fontSize: 13, fontWeight: 700 }}>Recent Submissions</span>
+        <div className="surface-card p-5 md:p-6">
+          <div className="mb-4 flex items-center gap-2">
+            <Clock className="h-4 w-4 text-accent" />
+            <span className="font-[family-name:var(--font-heading)] text-sm font-semibold lowercase">recent submissions</span>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div className="flex flex-col gap-2">
             {recent7.map((s, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 12px", borderRadius: 9, background: "rgba(255,255,255,0.02)" }}>
-                <span style={{ fontFamily: "monospace", fontSize: 10, color: "#a78bfa", flexShrink: 0, width: 70 }}>{s.codyza_id}</span>
-                <span style={{ fontSize: 12, fontWeight: 600, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.project_name}</span>
-                <span className={`text-xs px-2 py-0.5 rounded font-semibold ${s.status === "approved" ? "bg-green-500/10 text-green-400" : s.status === "rejected" ? "bg-red-500/10 text-red-400" : "bg-yellow-500/10 text-yellow-400"}`}>{s.status}</span>
-                {s.ai_score && <span style={{ fontSize: 11, fontWeight: 700, color: s.ai_score >= 8 ? "#22c55e" : "#f59e0b", flexShrink: 0 }}>{s.ai_score}/10</span>}
-                <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", fontFamily: "monospace", flexShrink: 0 }}>{new Date(s.created_at).toLocaleDateString()}</span>
+              <div key={i} className="flex items-center gap-3 rounded-lg bg-muted/30 px-3 py-2">
+                <span className="w-[70px] flex-shrink-0 font-mono text-[10px] text-accent">{s.codyza_id}</span>
+                <span className="min-w-0 flex-1 truncate text-sm font-medium">{s.project_name}</span>
+                <span
+                  className={`rounded px-2 py-0.5 text-xs font-semibold ${
+                    s.status === "approved"
+                      ? "bg-success/10 text-success"
+                      : s.status === "rejected"
+                        ? "bg-destructive/10 text-destructive"
+                        : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {s.status}
+                </span>
+                {s.ai_score && (
+                  <span className="flex-shrink-0 text-xs font-bold text-accent">{s.ai_score}/10</span>
+                )}
+                <span className="flex-shrink-0 font-mono text-[10px] text-muted-foreground">
+                  {new Date(s.created_at).toLocaleDateString()}
+                </span>
               </div>
             ))}
           </div>
         </div>
-
       </div>
     </div>
   )

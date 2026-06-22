@@ -12,8 +12,8 @@ export function SlackGateButton({ mode }: { mode: "text" | "icon" }) {
         style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
         className={
           mode === "text"
-            ? "text-sm text-zinc-300 transition-colors hover:text-white"
-            : "flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/[0.02] text-zinc-400 transition-colors hover:bg-white/[0.05] hover:text-white"
+            ? "text-[13px] lowercase text-black/60 transition-colors hover:text-black"
+            : "flex h-7 w-7 items-center justify-center rounded-md border border-black/10 text-black/50 transition-colors hover:text-black"
         }
       >
         {mode === "text" ? "Slack" : (

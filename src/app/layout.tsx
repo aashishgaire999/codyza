@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next"
-import { spaceMono, syne, jetbrainsMono } from "@/lib/fonts"
+import { inter, spaceMono, syne, jetbrainsMono, fraunces, instrumentSerif } from "@/lib/fonts"
 import { SITE_CONFIG } from "@/constants/site"
+import { ThemeProvider } from "@/components/providers/theme-provider"
 import { cn } from "@/lib/utils"
 import "./globals.css"
 
@@ -42,7 +43,10 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#050508",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f7f5f0" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c0c0c" },
+  ],
   width: "device-width",
   initialScale: 1,
 }
@@ -53,16 +57,19 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
-          "min-h-screen bg-background font-mono antialiased",
+          "min-h-screen bg-background font-sans antialiased",
+          inter.variable,
           spaceMono.variable,
           syne.variable,
-          jetbrainsMono.variable
+          jetbrainsMono.variable,
+          fraunces.variable,
+          instrumentSerif.variable
         )}
       >
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   )

@@ -167,7 +167,7 @@ export function AvatarUpload({ codyzaId, currentUrl, name, onUpload, size = 72 }
 
       {/* Avatar circle */}
       <div className="flex flex-col items-center gap-2">
-        <div className="relative cursor-pointer group" onClick={() => !uploading && fileRef.current?.click()} style={{ width: size, height: size }}>
+        <div className="relative cursor-pointer group" onClick={() => fileRef.current?.click()}>
           {preview ? (
             <img src={preview} alt={name} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(139,92,246,0.35)" }}/>
           ) : (

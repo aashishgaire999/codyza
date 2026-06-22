@@ -1,17 +1,26 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { motion, useInView } from "framer-motion"
+import { useInView } from "framer-motion"
 
 interface StatCounterProps {
   value: number
-  label: string
+  label?: string
   suffix?: string
+  prefix?: string
   duration?: number
+  inline?: boolean
 }
 
-export function StatCounter({ value, label, suffix = "", duration = 1.8 }: StatCounterProps) {
-  const ref = useRef<HTMLDivElement>(null)
+export function StatCounter({
+  value,
+  label,
+  suffix = "",
+  prefix = "",
+  duration = 1.8,
+  inline = false,
+}: StatCounterProps) {
+  const ref = useRef<HTMLSpanElement>(null)
   const inView = useInView(ref, { once: true, margin: "-80px" })
   const [display, setDisplay] = useState(0)
 
@@ -30,20 +39,24 @@ export function StatCounter({ value, label, suffix = "", duration = 1.8 }: StatC
     return () => cancelAnimationFrame(frame)
   }, [inView, value, duration])
 
+  if (inline) {
+    return (
+      <span ref={ref}>
+        {prefix}{display.toLocaleString()}{suffix}
+      </span>
+    )
+  }
+
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 20 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6 }}
-      className="text-center"
-    >
-      <div className="font-[family-name:var(--font-heading)] text-5xl font-bold tracking-tight text-white md:text-6xl">
-        {display.toLocaleString()}{suffix}
+    <div ref={ref as React.RefObject<HTMLDivElement>} className="text-center">
+      <div className="font-[family-name:var(--font-heading)] text-5xl font-bold tracking-tight md:text-6xl">
+        {prefix}{display.toLocaleString()}{suffix}
       </div>
-      <div className="mt-2 font-mono text-xs uppercase tracking-widest text-zinc-500">
-        {label}
-      </div>
-    </motion.div>
+      {label && (
+        <div className="mt-2 font-mono text-xs uppercase tracking-widest text-muted-foreground">
+          {label}
+        </div>
+      )}
+    </div>
   )
 }
