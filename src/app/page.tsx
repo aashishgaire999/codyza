@@ -1,29 +1,24 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, ArrowDown } from "lucide-react"
 import { Navbar } from "@/components/landing/navbar"
 import { TerminalAnimation } from "@/components/effects/terminal-animation"
 import { AboutSection } from "@/components/landing/about-section"
 import { CurrentlyShippingSection } from "@/components/landing/currently-shipping-section"
 import { ProjectsSection } from "@/components/landing/projects-section"
 import { Footer } from "@/components/landing/footer"
-import { FloatingCode } from "@/components/effects/floating-code"
-import { GalaxyBackground } from "@/components/effects/galaxy-background"
-import { SITE_CONFIG } from "@/constants/site"
+
+const fadeUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+}
 
 export default function HomePage() {
   const router = useRouter()
-  const [scrollY, setScrollY] = useState(0)
-
-  useEffect(() => {
-    const onScroll = () => setScrollY(window.scrollY)
-    window.addEventListener("scroll", onScroll, { passive: true })
-    return () => window.removeEventListener("scroll", onScroll)
-  }, [])
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -38,68 +33,81 @@ export default function HomePage() {
   }, [router])
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-background">
-      <GalaxyBackground scrollY={scrollY} />
+    <main className="page-cosmic min-h-screen overflow-x-hidden">
       <Navbar />
 
-      {/* HERO */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 grid-overlay" aria-hidden />
-        <FloatingCode />
+      {/* ── HERO ── */}
+      <section className="relative">
+        <div className="absolute inset-0 grid-overlay pointer-events-none" aria-hidden />
 
-        <div className="relative z-10 flex min-h-[90vh] flex-col items-center justify-center px-6 pt-28 pb-20 text-center">
+        <div className="section-shell relative flex min-h-[92vh] flex-col justify-center pt-28 pb-16 md:pt-32 md:pb-24">
+          <div className="grid items-center gap-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-20">
+            {/* Copy */}
+            <div className="mx-auto max-w-3xl text-center lg:mx-0 lg:max-w-none lg:text-left">
+              <motion.div
+                {...fadeUp}
+                transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                className="section-label section-label--accent mb-8 lg:mb-10"
+              >
+                <span className="status-dot" aria-hidden />
+                Now Onboarding Founding Contributors
+              </motion.div>
+
+              <motion.h1
+                {...fadeUp}
+                transition={{ duration: 0.6, delay: 0.06, ease: [0.22, 1, 0.36, 1] }}
+                className="text-display text-white"
+              >
+                Building alone
+                <br />
+                <span className="text-gradient-soft">gets lonely.</span>
+              </motion.h1>
+
+              <motion.p
+                {...fadeUp}
+                transition={{ duration: 0.55, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+                className="text-subhead mx-auto mt-8 max-w-xl lg:mx-0 lg:mb-0"
+              >
+                Codyza is a community of devs, designers, and dreamers shipping real
+                projects together. Not a bootcamp. Not another chat server. Free to join,
+                built to last.
+              </motion.p>
+            </div>
+
+            {/* Terminal showcase */}
+            <motion.div
+              {...fadeUp}
+              transition={{ duration: 0.65, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
+              className="mx-auto w-full max-w-xl lg:max-w-none"
+            >
+              <div className="surface-elevated overflow-hidden p-1">
+                <div className="flex items-center gap-2 border-b border-white/[0.06] px-4 py-3">
+                  <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+                  <span className="ml-2 font-mono text-[10px] uppercase tracking-widest text-white/30">
+                    codyza — terminal
+                  </span>
+                </div>
+                <div className="p-4 md:p-5">
+                  <TerminalAnimation />
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Scroll hint */}
           <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="mb-8 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs"
-            style={{
-              background: "rgba(124,58,237,0.06)",
-              border: "1px solid rgba(124,58,237,0.18)",
-              backdropFilter: "blur(8px)",
-            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8, duration: 0.6 }}
+            className="mt-20 flex justify-center lg:mt-24"
+            aria-hidden
           >
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#22c55e] opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#22c55e]" />
-            </span>
-            <span className="font-mono uppercase tracking-widest text-zinc-400">Now Onboarding Founding Contributors</span>
-          </motion.div>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.18 }}
-            className="mb-6 max-w-5xl font-[family-name:var(--font-heading)]"
-            style={{
-              fontSize: "clamp(3rem, 8vw, 7rem)",
-              fontWeight: 700,
-              letterSpacing: "-0.03em",
-              lineHeight: 1.05,
-            }}
-          >
-            Building alone
-            <br />
-            <span className="text-gradient-aurora">gets lonely.</span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.26 }}
-            className="mb-14 max-w-xl text-lg leading-relaxed"
-            style={{ color: "rgba(255,255,255,0.45)" }}
-          >
-            Codyza is a community of devs, designers, and dreamers shipping real projects together. Not a bootcamp. Not another chat server. Free to join, built to last.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.32 }}
-            className="w-full max-w-2xl"
-          >
-            <TerminalAnimation />
+            <div className="flex flex-col items-center gap-2 text-white/25">
+              <span className="text-eyebrow">Scroll</span>
+              <ArrowDown className="h-4 w-4 animate-bounce" />
+            </div>
           </motion.div>
         </div>
       </section>
@@ -108,69 +116,48 @@ export default function HomePage() {
       <CurrentlyShippingSection />
       <ProjectsSection />
 
-      {/* JOIN CTA */}
-      <section
-        id="apply"
-        className="relative scroll-mt-32 py-36"
-        style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
-      >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background: "radial-gradient(ellipse at center, rgba(124,58,237,0.08) 0%, transparent 65%)",
-          }}
-        />
-        <div className="relative mx-auto max-w-3xl px-6 text-center md:px-8">
-          <div
-            className="mb-6 inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-mono uppercase tracking-widest"
-            style={{
-              background: "rgba(124,58,237,0.06)",
-              border: "1px solid rgba(124,58,237,0.15)",
-              backdropFilter: "blur(8px)",
-              color: "#a78bfa",
-            }}
-          >
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#22c55e] opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#22c55e]" />
-            </span>
-            Now onboarding
-          </div>
+      {/* ── JOIN CTA ── */}
+      <section id="apply" className="section-divider section-padding scroll-mt-32">
+        <div className="section-shell">
+          <div className="relative mx-auto max-w-3xl text-center">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 -top-24 h-64"
+              style={{
+                background:
+                  "radial-gradient(ellipse at center, rgba(139,124,246,0.07) 0%, transparent 70%)",
+              }}
+            />
 
-          <h2
-            className="font-[family-name:var(--font-heading)] font-bold tracking-tight text-white"
-            style={{
-              fontSize: "clamp(2rem, 5vw, 4rem)",
-              letterSpacing: "-0.025em",
-              lineHeight: 1.1,
-            }}
-          >
-            Ready to join{" "}
-            <span className="text-gradient-aurora">the crew?</span>
-          </h2>
+            <div className="section-label section-label--accent mb-8">
+              <span className="status-dot" aria-hidden />
+              Now onboarding
+            </div>
 
-          <p
-            className="mx-auto mt-5 max-w-md text-base leading-relaxed"
-            style={{ color: "rgba(255,255,255,0.4)" }}
-          >
-            Applications take ~3 minutes. We review every one within 48 hours.
-          </p>
+            <h2 className="text-headline text-white">
+              Ready to join{" "}
+              <span className="text-gradient-soft">the crew?</span>
+            </h2>
 
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href="/apply"
-              className="btn-primary group inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold text-white"
-            >
-              Apply to join
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
-            <Link
-              href="/projects"
-              className="btn-ghost inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-medium"
-            >
-              See what we&apos;re building →
-            </Link>
+            <p className="text-subhead mx-auto mt-6 max-w-md">
+              Applications take ~3 minutes. We review every one within 48 hours.
+            </p>
+
+            <div className="mt-12 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Link
+                href="/apply"
+                className="btn-primary group px-8 py-4 text-sm"
+              >
+                Apply to join
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+              <Link
+                href="/projects"
+                className="btn-ghost px-8 py-4 text-sm"
+              >
+                See what we&apos;re building →
+              </Link>
+            </div>
           </div>
         </div>
       </section>
