@@ -1,10 +1,11 @@
 import { Metadata } from "next"
 import { createClient } from "@supabase/supabase-js"
 import Link from "next/link"
+import { CodyzaLogo } from "@/components/shared/codyza-logo"
 import { TrendingUp, Users, Zap, FileText, CheckCircle, Clock } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: "Analytics | Codyza Admin",
+  title: "Analytics — Admin",
 }
 
 export const revalidate = 60
@@ -79,8 +80,7 @@ export default async function AnalyticsPage() {
       <nav className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-card/80 px-6 backdrop-blur-md">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2 no-underline">
-            <img src="/codyza-logo.png" alt="Codyza" className="h-7 w-7 rounded-md" />
-            <span className="font-[family-name:var(--font-heading)] text-sm font-bold">Codyza</span>
+            <CodyzaLogo size={28} variant="full" />
           </Link>
           <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Admin · Analytics</span>
         </div>
@@ -89,7 +89,7 @@ export default async function AnalyticsPage() {
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.35em] text-muted-foreground">platform analytics</p>
+          <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.35em] text-muted-foreground">admin · stats</p>
           <h1 className="font-[family-name:var(--font-heading)] text-2xl font-bold lowercase">overview</h1>
           <p className="mt-1 text-sm text-muted-foreground">Updates every 60s</p>
         </div>

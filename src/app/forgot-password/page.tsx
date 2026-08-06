@@ -27,22 +27,22 @@ export default function ForgotPasswordPage() {
 
   if (success) {
     return (
-      <AuthLayout title="check your email" subtitle={`If an account exists for ${email}, a reset link is on its way.`}>
-        <CheckCircle className="mx-auto mb-4 h-12 w-12 text-success" />
-        <Link href="/login" className="btn-primary mt-4 block rounded-full py-3 text-center text-sm">Back to login</Link>
+      <AuthLayout title="check your email" subtitle={`If ${email} is on file, a reset link is on its way.`}>
+        <CheckCircle className="mx-auto mb-4 h-12 w-12 text-[var(--journal-sage)]" />
+        <Link href="/login" className="journal-btn-primary mt-4 block text-center">back to sign in</Link>
       </AuthLayout>
     )
   }
 
   return (
-    <AuthLayout title="forgot password?" subtitle="We'll email you a reset link.">
+    <AuthLayout title="reset password" subtitle="We'll send a link. No drama.">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="mb-2 block text-sm">Email</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="glass-input w-full px-4 py-3" placeholder="your.email@example.com" />
+          <label className="journal-label mb-2 block">email</label>
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="journal-input" placeholder="you@domain.com" />
         </div>
         {error && <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
-        <button type="submit" disabled={submitting} className="btn-primary w-full rounded-full py-3 text-sm disabled:opacity-50">
+        <button type="submit" disabled={submitting} className="journal-btn-primary disabled:cursor-not-allowed">
           {submitting ? "Sending..." : "Send reset link"}
         </button>
       </form>

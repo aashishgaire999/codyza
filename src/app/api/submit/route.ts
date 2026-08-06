@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { GoogleGenerativeAI } from "@google/generative-ai"
+import { getRankFromXP } from "@/lib/supabase"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,28 +10,14 @@ const supabase = createClient(
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
-const RANK_NAMES = [
-  { name: "Apprentice", minXP: 0 },
-  { name: "Associate Engineer", minXP: 500 },
-  { name: "Software Engineer", minXP: 1500 },
-  { name: "Senior Engineer", minXP: 3500 },
-  { name: "Staff Engineer", minXP: 7000 },
-  { name: "Principal Engineer", minXP: 12000 },
-  { name: "Distinguished Engineer", minXP: 20000 },
-  { name: "Codyza Fellow", minXP: 35000 },
-]
-
 function getRank(xp: number) {
-  for (let i = RANK_NAMES.length - 1; i >= 0; i--) {
-    if (xp >= RANK_NAMES[i].minXP) return RANK_NAMES[i].name
-  }
-  return "Apprentice"
+  return getRankFromXP(xp).name
 }
 
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { codyza_id, project_name, github_url, live_url, description, tech_stack } = body
+    const { codyza_id, project_name, github_url, live_url, description, tech_stack, bounty_id } = body
 
     if (!codyza_id || !project_name || !github_url || !description) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
@@ -118,6 +105,7 @@ Score: 1-4 needs major work, 5-6 decent start, 7-8 solid, 9 excellent, 10 except
       ai_review,
       xp_earned: total_xp,
       status: "pending",
+      bounty_id: bounty_id || null,
     })
 
     await supabase.from("contributors").update({

@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { createClient } from "@/lib/supabase"
+import { createClient, RANKS as RANK_LADDER, getRankFromXP } from "@/lib/supabase"
 import { Shield, Users, FileText, TrendingUp, CheckCircle, XCircle, Trash2 } from "lucide-react"
 import Link from "next/link"
+import { CodyzaLogo } from "@/components/shared/codyza-logo"
 
 
 interface Contributor {
@@ -16,9 +17,9 @@ interface Submission {
   ai_score: number | null; xp_earned: number; status: string; submitted_at: string
 }
 
-const RANKS = ["Apprentice","Associate Engineer","Software Engineer","Senior Engineer","Staff Engineer","Principal Engineer","Distinguished Engineer","Codyza Fellow"]
+const RANKS = RANK_LADDER.map((r) => r.name)
 
-function EditModal({ contributor, onClose, onSave, saving }: { contributor: Contributor; onClose: () => void; onSave: (u: Partial<Contributor>) => void; saving: boolean }) {
+function EditModal({ contributor, onClose, onSave, saving }: { contributor: Contributor; onClose: () => void; onSave: (_u: Partial<Contributor>) => void; saving: boolean }) {
   const [name, setName] = useState(contributor.name)
   const [email, setEmail] = useState(contributor.email)
   const [github, setGithub] = useState(contributor.github || "")
@@ -70,18 +71,16 @@ function EditModal({ contributor, onClose, onSave, saving }: { contributor: Cont
 }
 
 export default function AdminDashboard() {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    if (typeof window !== "undefined") return sessionStorage.getItem("admin_auth") === "true"
-    return false
-  })
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [accessCode, setAccessCode] = useState("")
   const [verifying, setVerifying] = useState(false)
   const [error, setError] = useState("")
-  const [activeTab, setActiveTab] = useState<"overview"|"contributors"|"submissions"|"applications"|"groups"|"bounties">("overview")
+  const [activeTab, setActiveTab] = useState<"overview"|"contributors"|"submissions"|"applications"|"groups"|"bounties"|"sessions">("overview")
   const [contributors, setContributors] = useState<Contributor[]>([])
   const [submissions, setSubmissions] = useState<Submission[]>([])
   const [groups, setGroups] = useState<any[]>([])
   const [bounties, setBounties] = useState<any[]>([])
+  const [workSessions, setWorkSessions] = useState<any[]>([])
   const [allContribs, setAllContribs] = useState<any[]>([])
   const [newGroupName, setNewGroupName] = useState("")
   const [newGroupDesc, setNewGroupDesc] = useState("")
@@ -114,15 +113,26 @@ export default function AdminDashboard() {
     setContributors(contribData || [])
     setAllContribs(contribData || [])
     setSubmissions(subData || [])
-    const [gr, bo] = await Promise.all([
+    const [gr, bo, { data: sessionsData }] = await Promise.all([
       fetch("/api/groups").then(r => r.json()),
       fetch("/api/bounties").then(r => r.json()),
+      supabase.from("work_sessions").select("*").order("started_at", { ascending: false }),
     ])
     setGroups(Array.isArray(gr) ? gr : [])
     setBounties(Array.isArray(bo) ? bo : [])
+    const nameMap = new Map((contribData || []).map((c: any) => [c.codyza_id, c.name]))
+    setWorkSessions((sessionsData || []).map((s: any) => ({ ...s, member_name: nameMap.get(s.codyza_id) || s.codyza_id })))
     setLoading(false)
     loadApplications()
   }
+
+  useEffect(() => {
+    if (sessionStorage.getItem("admin_auth") === "true") {
+      setIsAuthenticated(true)
+      void loadData()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleLogin = async () => {
     setVerifying(true); setError("")
@@ -142,11 +152,16 @@ export default function AdminDashboard() {
     // Get submission details
     const { data: sub } = await supabase
       .from("submissions")
-      .select("codyza_id, project_name, xp_earned")
+      .select("codyza_id, project_name, xp_earned, bounty_id")
       .eq("id", id)
       .single()
 
     if (sub) {
+      // Mark the linked bounty as completed when its submission is approved
+      if (status === "approved" && sub.bounty_id) {
+        await supabase.from("bounties").update({ status: "completed" }).eq("id", sub.bounty_id)
+      }
+
       // Award XP to contributor when approved
       if (status === "approved" && sub.xp_earned > 0) {
         const { data: contrib } = await supabase
@@ -157,19 +172,7 @@ export default function AdminDashboard() {
 
         if (contrib) {
           const newXP = (contrib.xp || 0) + sub.xp_earned
-          // Calculate new rank
-          const RANKS = [
-            { name: "Apprentice", minXP: 0 },
-            { name: "Associate Engineer", minXP: 500 },
-            { name: "Software Engineer", minXP: 1500 },
-            { name: "Senior Engineer", minXP: 3500 },
-            { name: "Staff Engineer", minXP: 7000 },
-            { name: "Principal Engineer", minXP: 12000 },
-            { name: "Distinguished Engineer", minXP: 20000 },
-            { name: "Codyza Fellow", minXP: 35000 },
-          ]
-          let newRank = "Apprentice"
-          for (const r of RANKS) { if (newXP >= r.minXP) newRank = r.name }
+          const newRank = getRankFromXP(newXP).name
           await supabase.from("contributors").update({ xp: newXP, rank: newRank }).eq("codyza_id", sub.codyza_id)
         }
       }
@@ -236,22 +239,22 @@ export default function AdminDashboard() {
 
   if (!isAuthenticated) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background p-4 text-foreground">
+      <div className="flex min-h-screen items-center justify-center bg-background p-4 font-sans text-foreground antialiased">
         <div className="surface-card w-full max-w-md p-8">
           <div className="mb-6 flex items-center gap-3">
             <Shield className="h-8 w-8 text-accent" />
             <h1 className="font-[family-name:var(--font-heading)] text-2xl font-bold lowercase">admin dashboard</h1>
           </div>
-          <p className="mb-6 text-muted-foreground">Enter your access code to continue</p>
+          <p className="mb-6 text-muted-foreground">Admin access code required.</p>
           <input type="password" value={accessCode} onChange={e => setAccessCode(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && handleLogin()} placeholder="Access Code"
+            onKeyDown={e => e.key === "Enter" && handleLogin()} placeholder="Access code"
             className="glass-input mb-4 w-full px-4 py-3"/>
           {error && <p className="mb-4 text-sm text-destructive">{error}</p>}
           <button onClick={handleLogin} disabled={verifying}
             className="btn-primary w-full rounded-full px-4 py-3 text-sm font-medium disabled:opacity-50">
-            {verifying ? "Verifying..." : "Access Dashboard"}
+            {verifying ? "Checking..." : "Continue"}
           </button>
-          <Link href="/" className="mt-4 block text-center text-sm text-muted-foreground transition-colors hover:text-foreground">← Back to Codyza</Link>
+          <Link href="/" className="mt-4 block text-center text-sm text-muted-foreground transition-colors hover:text-foreground">← back home</Link>
         </div>
       </div>
     )
@@ -262,12 +265,11 @@ export default function AdminDashboard() {
   const pendingApps = applications.filter(a => a.status === "pending").length
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background font-sans text-foreground antialiased">
       <nav className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-card/80 px-6 backdrop-blur-md">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2 no-underline">
-            <img src="/codyza-logo.png" alt="Codyza" className="h-7 w-7 rounded-md" onError={(e)=>{(e.target as HTMLImageElement).style.display="none"}}/>
-            <span className="font-[family-name:var(--font-heading)] text-sm font-bold">Codyza</span>
+            <CodyzaLogo size={28} variant="full" />
           </Link>
           <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Admin</span>
         </div>
@@ -300,10 +302,10 @@ export default function AdminDashboard() {
         </div>
 
         <div className="mb-6 flex gap-1 border-b border-border pb-0">
-          {(["overview","contributors","submissions","applications","groups","bounties"] as const).map(tab => (
+          {(["overview","contributors","submissions","applications","groups","bounties","sessions"] as const).map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}
               className={`px-4 py-2 text-sm font-medium capitalize transition-colors ${activeTab === tab ? "border-b-2 border-accent text-accent" : "text-muted-foreground hover:text-foreground"}`}>
-              {tab === "submissions" ? `Submissions (${pendingCount})` : tab === "applications" ? `Applications (${pendingApps})` : tab === "contributors" ? `Contributors (${contributors.length})` : tab === "groups" ? `Groups (${groups.length})` : tab === "bounties" ? `Bounties (${bounties.length})` : "Overview"}
+              {tab === "submissions" ? `Submissions (${pendingCount})` : tab === "applications" ? `Applications (${pendingApps})` : tab === "contributors" ? `Contributors (${contributors.length})` : tab === "groups" ? `Groups (${groups.length})` : tab === "bounties" ? `Bounties (${bounties.length})` : tab === "sessions" ? `Sessions (${workSessions.filter((s:any)=>s.status==="active").length} active)` : "Overview"}
             </button>
           ))}
         </div>
@@ -474,7 +476,6 @@ export default function AdminDashboard() {
             )}
           </div>
         )}
-      </div>
 
         {activeTab === "groups" && !loading && (
           <div className="mt-0">
@@ -597,6 +598,37 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
+
+        {activeTab === "sessions" && !loading && (
+          <div className="mt-0 space-y-3">
+            {workSessions.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">No sessions logged yet.</p>
+            ) : (
+              workSessions.map((s: any) => (
+                <div key={s.id} className="surface-card p-4">
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="text-sm font-semibold">{s.member_name}</span>
+                    {s.status === "active" ? (
+                      <span className="flex items-center gap-1.5 rounded-full bg-success/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-success">
+                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success" /> Active
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-muted px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                        {s.duration_minutes ? `${Math.floor(s.duration_minutes / 60)}h ${s.duration_minutes % 60}m` : "—"}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mb-1 text-xs text-muted-foreground">
+                    Started {new Date(s.started_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                    {s.label ? ` · ${s.label}` : ""}
+                  </p>
+                  {s.summary && <p className="text-xs text-muted-foreground">{s.summary}</p>}
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
 
       {editingContributor && (
         <EditModal contributor={editingContributor} onClose={() => setEditingContributor(null)} onSave={saveContributor} saving={savingEdit}/>

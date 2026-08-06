@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, Suspense, useCallback } from "react"
 import { createClient } from "@/lib/supabase"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
@@ -21,15 +21,24 @@ function SetPasswordContent() {
   const [requesting, setRequesting] = useState(false)
   const [requested, setRequested] = useState(false)
 
-  useEffect(() => {
-    establishSession()
-  }, [])
-
-  const establishSession = async () => {
+  const establishSession = useCallback(async () => {
     const supabase = createClient()
 
+    const code = searchParams.get("code")
     const tokenHash = searchParams.get("token_hash")
     const type = searchParams.get("type")
+
+    if (code) {
+      const { error: codeErr } = await supabase.auth.exchangeCodeForSession(code)
+      if (codeErr) {
+        setError("This link is invalid or has expired. Request a new one.")
+        setLoading(false)
+        return
+      }
+      setSessionReady(true)
+      setLoading(false)
+      return
+    }
 
     if (tokenHash && type) {
       const { error: verifyErr } = await supabase.auth.verifyOtp({
@@ -73,7 +82,11 @@ function SetPasswordContent() {
 
     setError("This link is invalid or has expired. Request a new one.")
     setLoading(false)
-  }
+  }, [searchParams])
+
+  useEffect(() => {
+    void establishSession()
+  }, [establishSession])
 
   const handleRequestNewLink = async () => {
     if (!requestEmail) return
@@ -119,23 +132,23 @@ function SetPasswordContent() {
 
   if (loading) {
     return (
-      <AuthLayout title="verifying link" subtitle="Please wait a moment...">
-        <p className="text-center text-sm text-muted-foreground">Verifying your invite link...</p>
+      <AuthLayout title="verifying link" subtitle="Hang on — checking your invite.">
+        <p className="sofi-body text-center text-black/50">This usually takes a second.</p>
       </AuthLayout>
     )
   }
 
   if (error && !sessionReady) {
     return (
-      <AuthLayout title="link expired" subtitle="This link has already been used or expired.">
+      <AuthLayout title="link expired" subtitle="Used already, or too old. Either works.">
         <AlertCircle className="mx-auto mb-4 h-10 w-10 text-destructive" />
-        <p className="mb-4 text-center text-sm text-muted-foreground">
-          Enter your email below to request a fresh invitation link.
+        <p className="sofi-body mb-4 text-center text-black/55">
+          Drop your email below and we&apos;ll send a fresh one.
         </p>
 
         {requested ? (
-          <div className="rounded-lg border border-success/30 bg-success/10 p-4 text-center text-sm text-success">
-            Check your inbox — a new link is on its way.
+          <div className="rounded-lg border border-[var(--journal-sage)]/30 bg-[var(--journal-sage)]/10 p-4 text-center text-sm text-[var(--journal-sage)]">
+            Check your inbox — new link sent.
           </div>
         ) : (
           <div className="space-y-3">
@@ -143,30 +156,24 @@ function SetPasswordContent() {
               type="email"
               value={requestEmail}
               onChange={(e) => setRequestEmail(e.target.value)}
-              placeholder="your.email@example.com"
-              className="glass-input w-full px-4 py-3"
+              placeholder="you@domain.com"
+              className="journal-input"
             />
             <button
               onClick={handleRequestNewLink}
               disabled={requesting || !requestEmail}
-              className="btn-primary w-full rounded-full py-3 text-sm disabled:opacity-50"
+              className="journal-btn-primary disabled:cursor-not-allowed"
             >
-              {requesting ? "Sending..." : "Request new invitation →"}
+              {requesting ? "Sending..." : "Send new link"}
             </button>
           </div>
         )}
 
         <div className="mt-5 flex flex-col gap-2 text-center">
-          <p className="text-xs text-muted-foreground">
-            Already have a password?{" "}
-            <Link href="/login" className="text-accent hover:opacity-80">
-              Sign in here
-            </Link>
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Or go to login and use{" "}
-            <Link href="/login?magic=true" className="text-accent hover:opacity-80">
-              &ldquo;email me a login link instead&rdquo;
+          <p className="text-xs text-black/45">
+            Already set a password?{" "}
+            <Link href="/login" className="text-[var(--journal-sage)] hover:opacity-80">
+              Sign in
             </Link>
           </p>
         </div>
@@ -176,37 +183,37 @@ function SetPasswordContent() {
 
   if (success) {
     return (
-      <AuthLayout title="password set" subtitle="Taking you to your dashboard...">
-        <CheckCircle className="mx-auto mb-4 h-12 w-12 text-success" />
+      <AuthLayout title="you're in" subtitle="Setting up your profile next…">
+        <CheckCircle className="mx-auto mb-4 h-12 w-12 text-[var(--journal-sage)]" />
       </AuthLayout>
     )
   }
 
   return (
-    <AuthLayout title="set your password" subtitle="Choose a strong password. You'll use this to log in any time.">
+    <AuthLayout title="pick a password" subtitle="8+ characters. You'll use this to sign in.">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="mb-2 block text-sm">New password</label>
+          <label className="journal-label mb-2 block">new password</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={8}
-            placeholder="At least 8 characters"
-            className="glass-input w-full px-4 py-3"
+            placeholder="at least 8 characters"
+            className="journal-input"
           />
         </div>
 
         <div>
-          <label className="mb-2 block text-sm">Confirm password</label>
+          <label className="journal-label mb-2 block">confirm</label>
           <input
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
-            placeholder="Re-type your password"
-            className="glass-input w-full px-4 py-3"
+            placeholder="same again"
+            className="journal-input"
           />
         </div>
 
@@ -219,9 +226,9 @@ function SetPasswordContent() {
         <button
           type="submit"
           disabled={submitting}
-          className="btn-primary w-full rounded-full py-3 text-sm font-medium disabled:opacity-50"
+          className="journal-btn-primary disabled:cursor-not-allowed"
         >
-          {submitting ? "Setting password..." : "Set password & log in"}
+          {submitting ? "Saving..." : "Save & continue"}
         </button>
       </form>
     </AuthLayout>

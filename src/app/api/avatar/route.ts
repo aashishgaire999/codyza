@@ -59,7 +59,7 @@ export async function POST(req: Request) {
       .eq("codyza_id", codyza_id)
 
     return NextResponse.json({ success: true, avatar_url: avatarUrl })
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 })
   }
 }

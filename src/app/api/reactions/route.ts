@@ -29,7 +29,7 @@ export async function POST(req: Request) {
       await supabase.from("reactions").insert({ submission_id, codyza_id, emoji })
       return NextResponse.json({ action: "added" })
     }
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: "Failed" }, { status: 500 })
   }
 }

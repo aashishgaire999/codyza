@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { CodyzaLogo } from "@/components/shared/codyza-logo"
-import { SiteShell } from "@/components/shared/site-shell"
+import { PublicShell } from "@/components/shared/public-shell"
 import { FadeIn } from "@/components/motion/fade-in"
 
 export function AuthLayout({
@@ -15,26 +15,22 @@ export function AuthLayout({
   subtitle?: string
 }) {
   return (
-    <SiteShell className="flex min-h-screen flex-col">
-      <div className="flex flex-1 flex-col items-center justify-center px-6 py-24">
+    <PublicShell footer={false}>
+      <div className="flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center px-6 py-24">
         <FadeIn className="w-full max-w-md">
           <div className="mb-8 text-center">
             <Link href="/" className="inline-block">
-              <CodyzaLogo size={48} withGlow={false} />
+              <CodyzaLogo size={48} variant="full" />
             </Link>
-            <h1 className="mt-6 font-[family-name:var(--font-heading)] text-3xl font-bold lowercase tracking-tight">
-              {title}
-            </h1>
-            {subtitle && (
-              <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p>
-            )}
+            <h1 className="sofi-display-section mt-6 text-black">{title}</h1>
+            {subtitle && <p className="sofi-body mt-3 text-black/55">{subtitle}</p>}
           </div>
-          <div className="surface-card p-8">{children}</div>
-          <Link href="/" className="mt-6 block text-center text-sm text-muted-foreground hover:text-foreground">
-            ← back to codyza
+          <div className="auth-journal-card">{children}</div>
+          <Link href="/" className="sofi-body mt-6 block text-center text-black/45 hover:text-black">
+            ← back home
           </Link>
         </FadeIn>
       </div>
-    </SiteShell>
+    </PublicShell>
   )
 }

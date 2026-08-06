@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useCallback } from "react"
+import NextImage from "next/image"
 import { Camera, Loader2, Check, X } from "lucide-react"
 import Cropper from "react-easy-crop"
 
@@ -19,7 +20,7 @@ function getInitials(name: string) {
 function getAvatarBg(id: string) {
   const colors = [
     "linear-gradient(135deg,#8b5cf6,#6d28d9)",
-    "linear-gradient(135deg,#3b82f6,#1d4ed8)",
+    "linear-gradient(135deg,#302bfb,#1b14ba)",
     "linear-gradient(135deg,#22c55e,#16a34a)",
     "linear-gradient(135deg,#f59e0b,#d97706)",
     "linear-gradient(135deg,#06b6d4,#0891b2)",
@@ -169,7 +170,14 @@ export function AvatarUpload({ codyzaId, currentUrl, name, onUpload, size = 72 }
       <div className="flex flex-col items-center gap-2">
         <div className="relative cursor-pointer group" onClick={() => fileRef.current?.click()}>
           {preview ? (
-            <img src={preview} alt={name} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(139,92,246,0.35)" }}/>
+            <NextImage
+              src={preview}
+              alt={name}
+              width={size}
+              height={size}
+              unoptimized={preview.startsWith("blob:") || preview.startsWith("data:")}
+              style={{ borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(139,92,246,0.35)" }}
+            />
           ) : (
             <div style={{ width: size, height: size, borderRadius: "50%", background: getAvatarBg(codyzaId), display: "flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.3, fontWeight: 800, color: "white", border: "2px solid rgba(139,92,246,0.25)" }}>
               {getInitials(name)}

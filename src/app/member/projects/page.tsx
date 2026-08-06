@@ -1,8 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import { createClient } from "@/lib/supabase"
 import { ExternalLink, GitBranch, FileText, Send, ChevronDown, ChevronUp, Plus } from "lucide-react"
+import { MemberPageHeader } from "@/components/member/member-page-header"
 
 const TECH_OPTIONS = [
   "Next.js","React","TypeScript","Python","Node.js","Tailwind CSS",
@@ -48,8 +50,8 @@ export default function ProjectsPage() {
   const [submitting, setSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [submitError, setSubmitError] = useState("")
-
-  useEffect(() => { loadData() }, [])
+  const [claimedBounties, setClaimedBounties] = useState<any[]>([])
+  const [selectedBounty, setSelectedBounty] = useState("")
 
   async function loadData() {
     const supabase = createClient()
@@ -69,7 +71,25 @@ export default function ProjectsPage() {
     const enriched = (subs || []).map((s: any) => ({ ...s, member_name: nameMap.get(s.codyza_id) || s.codyza_id, member_avatar: avatarMap.get(s.codyza_id) || "" }))
     setProjects(enriched)
     setLoading(false)
+
+    if (contrib) {
+      const res = await fetch("/api/bounties")
+      const bounties = await res.json()
+      const mine = Array.isArray(bounties)
+        ? bounties.filter((b: any) => b.status === "claimed" && b.claimed_by === contrib.codyza_id)
+        : []
+      setClaimedBounties(mine)
+
+      const params = new URLSearchParams(window.location.search)
+      const bountyParam = params.get("bounty")
+      if (bountyParam && mine.some((b: any) => b.id === bountyParam)) {
+        setSelectedBounty(bountyParam)
+        setSubmitOpen(true)
+      }
+    }
   }
+
+  useEffect(() => { void loadData() }, [])
 
   function toggleTech(tech: string) {
     setSelectedTech(prev => prev.includes(tech) ? prev.filter(t => t !== tech) : prev.length < 8 ? [...prev, tech] : prev)
@@ -91,12 +111,13 @@ export default function ProjectsPage() {
           live_url: liveUrl,
           description,
           tech_stack: selectedTech,
+          bounty_id: selectedBounty || null,
         }),
       })
       const data = await res.json()
       if (!res.ok) { setSubmitError(data.error || "Submission failed"); setSubmitting(false); return }
       setSubmitSuccess(true)
-      setProjectName(""); setGithubUrl(""); setLiveUrl(""); setDescription(""); setSelectedTech([])
+      setProjectName(""); setGithubUrl(""); setLiveUrl(""); setDescription(""); setSelectedTech([]); setSelectedBounty("")
       await loadData()
       setTimeout(() => { setSubmitSuccess(false); setSubmitOpen(false) }, 3000)
     } catch {
@@ -124,23 +145,97 @@ export default function ProjectsPage() {
 
   return (
     <>
-      <div className="mb-10 max-w-2xl">
-        <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
-          member · projects
-        </p>
-        <h1 className="headline-section font-[family-name:var(--font-heading)] lowercase text-foreground">
-          community <span className="text-accent">projects</span>
-        </h1>
-        <p className="mt-4 text-muted-foreground">
-          Everything the Codyza community has shipped. Real work, real people.
-        </p>
+      <MemberPageHeader
+        label="member · projects"
+        title={
+          <>
+            community <span className="text-accent">projects</span>
+          </>
+        }
+        description="Everything members have submitted — live, in review, or still building."
+      />
+
+      {/* Submit CTA — mobile only (above the list) */}
+      <div className="mb-5 lg:hidden">
+        <div className="surface-card overflow-hidden">
+          <button onClick={() => setSubmitOpen(!submitOpen)} className="flex w-full items-center justify-between px-5 py-4 transition-colors hover:bg-muted/50">
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-accent/25 bg-accent/10">
+                <Plus className="h-4 w-4 text-accent" />
+              </div>
+              <div className="text-left">
+                <div className="text-sm font-semibold text-foreground">Submit your project</div>
+                <div className="text-xs text-muted-foreground">Earn XP + AI review</div>
+              </div>
+            </div>
+            {submitOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+          </button>
+          {submitOpen && (
+            <div className="border-t border-border px-5 py-4">
+              {submitSuccess ? (
+                <div className="py-6 text-center">
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-success/25 bg-success/15">
+                    <span className="text-xl text-success">✓</span>
+                  </div>
+                  <p className="text-sm font-semibold text-success">Submitted!</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Your project is under review.</p>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-3">
+                  <div>
+                    <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Project name *</label>
+                    <input type="text" required value={projectName} onChange={e => setProjectName(e.target.value)} placeholder="My awesome project" className="glass-input w-full px-3 py-2 text-sm focus:outline-none" />
+                  </div>
+                  <div>
+                    <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">GitHub URL *</label>
+                    <input type="url" required value={githubUrl} onChange={e => setGithubUrl(e.target.value)} placeholder="https://github.com/..." className="glass-input w-full px-3 py-2 text-sm focus:outline-none" />
+                  </div>
+                  <div>
+                    <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Live URL <span className="text-success">+150 XP</span></label>
+                    <input type="url" value={liveUrl} onChange={e => setLiveUrl(e.target.value)} placeholder="https://myproject.vercel.app" className="glass-input w-full px-3 py-2 text-sm focus:outline-none" />
+                  </div>
+                  <div>
+                    <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Description *</label>
+                    <textarea required value={description} onChange={e => setDescription(e.target.value)} placeholder="What does it do? What problem does it solve?" rows={3} className="glass-input w-full resize-none px-3 py-2 text-sm focus:outline-none" />
+                  </div>
+                  {claimedBounties.length > 0 && (
+                    <div>
+                      <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Submitting for a bounty? (optional)</label>
+                      <select value={selectedBounty} onChange={e => setSelectedBounty(e.target.value)} className="glass-input w-full px-3 py-2 text-sm focus:outline-none">
+                        <option value="">None — general submission</option>
+                        {claimedBounties.map((b: any) => (
+                          <option key={b.id} value={b.id}>{b.title} (+{b.xp_reward} XP)</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  <div>
+                    <label className="mb-1.5 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Tech stack <span className="normal-case tracking-normal text-muted-foreground">(up to 8)</span></label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {TECH_OPTIONS.map(tech => (
+                        <button key={tech} type="button" onClick={() => toggleTech(tech)} className={`rounded px-2 py-0.5 text-[11px] transition-colors ${selectedTech.includes(tech) ? "border border-accent/50 bg-accent/15 text-accent" : "border border-border bg-muted text-muted-foreground hover:border-accent/30"}`}>
+                          {tech}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {submitError && <p className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-xs text-destructive">{submitError}</p>}
+                  <button type="submit" disabled={submitting} className="btn-primary flex w-full items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold disabled:opacity-50">
+                    <Send className="h-4 w-4" />
+                    {submitting ? "Getting AI Review..." : "Submit & Get AI Review"}
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="flex items-start gap-6">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         {/* LEFT: Projects */}
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           {/* Filter tabs */}
-          <div className="mb-5 flex gap-1 border-b border-border">
+          <div className="mb-5 flex gap-1 overflow-x-auto border-b border-border scrollbar-none">
             {[
               { key: "all", label: "All" },
               { key: "live", label: "Live" },
@@ -161,14 +256,14 @@ export default function ProjectsPage() {
             ))}
           </div>
 
-          <div className="mb-5 grid grid-cols-4 gap-3">
+          <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
               { label: "Total projects", value: projects.length },
               { label: "Live now", value: counts.live },
               { label: "Contributors", value: new Set(projects.map(p => p.codyza_id)).size },
               { label: "XP awarded", value: projects.reduce((s,p)=>s+(p.xp_awarded||0),0).toLocaleString() },
             ].map(({ label, value }) => (
-              <div key={label} className="dashboard-stat">
+              <div key={label} className="arcade-stat">
                 <div className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{label}</div>
                 <div className="font-[family-name:var(--font-heading)] text-xl font-bold text-accent">{value}</div>
               </div>
@@ -218,9 +313,9 @@ export default function ProjectsPage() {
                     )}
                     <div className="flex items-center justify-between px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="h-6 w-6 flex-shrink-0 overflow-hidden rounded-full border border-border">
+                        <div className="relative h-6 w-6 flex-shrink-0 overflow-hidden rounded-full border border-border">
                           {project.member_avatar
-                            ? <img src={project.member_avatar } alt={project.member_name} className="h-full w-full object-cover"/>
+                            ? <Image src={project.member_avatar} alt={project.member_name} fill sizes="24px" className="object-cover"/>
                             : <div className={`flex h-full w-full items-center justify-center text-[9px] font-bold ${getAvatarColor(project.codyza_id)}`}>{getInitials(project.member_name)}</div>
                           }
                         </div>
@@ -253,8 +348,8 @@ export default function ProjectsPage() {
           )}
         </div>
 
-        {/* RIGHT: Submit panel */}
-        <div className="w-80 flex-shrink-0">
+        {/* RIGHT: Submit panel — desktop only */}
+        <div className="hidden w-80 flex-shrink-0 lg:block">
           <div className="surface-card sticky top-24 overflow-hidden">
             <button onClick={() => setSubmitOpen(!submitOpen)} className="flex w-full items-center justify-between px-5 py-4 transition-colors hover:bg-muted/50">
               <div className="flex items-center gap-3">
@@ -273,7 +368,7 @@ export default function ProjectsPage() {
               <div className="px-5 pb-4">
                 <div className="mb-3 grid grid-cols-2 gap-2">
                   {[{ label: "Base XP", value: "+100" }, { label: "Live URL", value: "+150" }, { label: "Quality", value: "+300" }, { label: "Streak", value: "+200" }].map(({ label, value }) => (
-                    <div key={label} className="dashboard-stat px-3 py-2 text-center">
+                    <div key={label} className="arcade-stat px-3 py-2 text-center">
                       <div className="text-[10px] text-muted-foreground">{label}</div>
                       <div className="text-sm font-bold text-accent">{value}</div>
                     </div>

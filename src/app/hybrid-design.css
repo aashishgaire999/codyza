@@ -1,0 +1,355 @@
+/* Codyza hybrid: Field Journal + Magazine (public) · Sofi + Arcade (member) */
+
+.sofi-headline-section {
+  font-family: var(--font-instrument);
+  font-weight: 400;
+  font-size: clamp(2rem, 8vw, 5.5rem);
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  text-transform: lowercase;
+}
+
+.codyza-public {
+  --journal-paper: #f7f6f2; /* canonical paper (brand-direction §2) */
+  --journal-ink: #000000;
+  --journal-muted: rgba(0, 0, 0, 0.45);
+  /* D-001/D-006 merged accent family — canonical Codyza Blue */
+  --cz-accent: #302bfb;
+  --cz-accent-2: #1b14ba;
+  --cz-accent-soft: rgba(48, 43, 251, 0.08);
+  --cz-accent-badge: rgba(48, 43, 251, 0.14);
+  --cz-accent-bright: #8b87ff; /* on dark surfaces only (terminal, Arcade chrome) */
+  /* legacy aliases — components still reference the journal-* names */
+  --journal-sage: var(--cz-accent);
+  --journal-terracotta: var(--cz-accent-2);
+  --journal-rule: rgba(0, 0, 0, 0.1);
+  background: var(--journal-paper);
+  color: var(--journal-ink);
+}
+
+.journal-hero {
+  border-bottom: 1px solid var(--journal-rule);
+}
+
+.journal-specimen {
+  position: relative;
+  background: #fff;
+  border: 1px solid var(--journal-rule);
+  border-radius: 4px 16px 16px 4px;
+  padding: 1.5rem;
+  transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+}
+
+.journal-specimen::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 4px 0 0 4px;
+  background: var(--journal-sage);
+}
+
+.journal-specimen:hover {
+  border-color: rgba(48, 43, 251, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
+}
+
+.journal-label {
+  font-family: var(--font-jetbrains-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: lowercase;
+  color: var(--journal-sage);
+}
+
+.journal-ledger-stat {
+  background: #fff;
+  border: 1px solid var(--journal-rule);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  text-align: center;
+}
+
+.journal-ledger-stat .value {
+  font-family: var(--font-instrument);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 400;
+  line-height: 1;
+  color: var(--journal-ink);
+}
+
+.journal-form-card {
+  background: #fff;
+  border: 1px solid var(--journal-rule);
+  border-radius: 16px;
+  padding: 1.5rem 2rem;
+}
+
+.codyza-member {
+  --arcade-glow: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.arcade-stat {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.arcade-stat::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--arcade-glow), transparent 55%);
+  pointer-events: none;
+}
+
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--card));
+  padding: 0.25rem 0.75rem;
+  font-family: var(--font-jetbrains-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.quest-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.quest-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  transform: translateY(-1px);
+}
+
+.quest-card-xp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  padding: 0.35rem 0.75rem;
+  font-family: var(--font-jetbrains-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.xp-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: var(--muted);
+}
+
+.xp-track-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(
+    90deg,
+    var(--accent),
+    color-mix(in srgb, var(--success) 70%, var(--accent))
+  );
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.podium-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr 1fr;
+  gap: 1rem;
+  align-items: end;
+  margin-bottom: 2rem;
+}
+
+.podium-slot {
+  background: #fff;
+  border: 1px solid var(--journal-rule);
+  border-radius: 16px 16px 4px 4px;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  transition: transform 0.25s;
+}
+
+.podium-slot:hover {
+  transform: translateY(-4px);
+}
+
+.podium-slot-first {
+  border-color: color-mix(in srgb, var(--journal-terracotta) 40%, var(--journal-rule));
+  box-shadow: 0 16px 40px rgba(27, 20, 186, 0.12);
+  padding-bottom: 1.75rem;
+}
+
+.podium-rank-num {
+  font-family: var(--font-instrument);
+  font-size: 2rem;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--journal-ink);
+}
+
+.member-hero-label {
+  font-family: var(--font-jetbrains-mono);
+  font-size: 10px;
+  letter-spacing: 0.35em;
+  text-transform: lowercase;
+  color: var(--muted-foreground);
+}
+
+.member-headline {
+  font-family: var(--font-instrument);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  text-transform: lowercase;
+}
+
+.reaction-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--muted);
+  padding: 0.35rem 0.65rem;
+  font-size: 11px;
+  transition: all 0.2s;
+}
+
+.reaction-badge-active {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--card));
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.crew-feed-item-own {
+  border-color: color-mix(in srgb, var(--accent) 25%, var(--border)) !important;
+  background: color-mix(in srgb, var(--accent) 5%, var(--card)) !important;
+}
+
+.auth-journal-card {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+}
+
+.codyza-public .journal-input,
+.codyza-public .auth-journal-card .glass-input {
+  width: 100%;
+  border: 1px solid var(--journal-rule);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  font-size: 14px;
+  color: var(--journal-ink);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.codyza-public .journal-input:focus,
+.codyza-public .auth-journal-card .glass-input:focus {
+  outline: none;
+  border-color: var(--journal-sage);
+  box-shadow: 0 0 0 3px rgba(48, 43, 251, 0.12);
+}
+
+.codyza-public .journal-input::placeholder,
+.codyza-public .auth-journal-card .glass-input::placeholder {
+  color: rgba(0, 0, 0, 0.35);
+}
+
+.codyza-public .journal-btn-primary {
+  display: inline-flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid var(--journal-ink);
+  background: var(--journal-ink);
+  padding: 0.75rem 1.25rem;
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  transition: opacity 0.2s;
+}
+
+.codyza-public .journal-btn-primary:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.codyza-public .journal-btn-primary:disabled {
+  opacity: 0.45;
+}
+
+.codyza-public .rank-badge {
+  border-color: color-mix(in srgb, var(--journal-sage) 40%, var(--journal-rule));
+  background: color-mix(in srgb, var(--journal-sage) 10%, #fff);
+  color: var(--journal-sage);
+}
+
+.codyza-public .rank-badge span {
+  background: color-mix(in srgb, var(--journal-sage) 15%, #fff) !important;
+  color: var(--journal-sage) !important;
+}
+
+.journal-id-card {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  overflow: hidden;
+  border: 1px solid var(--journal-rule);
+  border-radius: 4px 20px 20px 4px;
+  background: #fff;
+  padding: 1.5rem;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.06);
+}
+
+.journal-id-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--journal-terracotta);
+  border-radius: 4px 0 0 4px;
+}
+
+.journal-id-card .id-num {
+  font-family: var(--font-jetbrains-mono);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--journal-ink);
+}
+
+.journal-id-card .id-num span {
+  color: var(--journal-terracotta);
+}
+
+.codyza-public .xp-track {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.codyza-public .xp-track-fill {
+  background: linear-gradient(90deg, var(--journal-sage), var(--journal-terracotta));
+}

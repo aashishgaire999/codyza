@@ -9,17 +9,14 @@ export function XpProgressBar({ current, max, className }: XpProgressBarProps) {
 
   return (
     <div className={className}>
-      <div className="mb-1.5 flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-zinc-500">
+      <div className="mb-1.5 flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
         <span>XP Progress</span>
-        <span className="text-zinc-400">
+        <span>
           {current.toLocaleString()} / {max.toLocaleString()}
         </span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
-        <div
-          className="h-full rounded-full bg-gradient-to-r from-[#7c3aed] via-[#3b82f6] to-[#06b6d4]"
-          style={{ width: `${pct}%`, transition: "width 0.6s ease" }}
-        />
+      <div className="xp-track">
+        <div className="xp-track-fill" style={{ width: `${pct}%` }} />
       </div>
     </div>
   )

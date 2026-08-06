@@ -1,28 +1,22 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { Suspense, useState } from "react"
 import { createClient } from "@/lib/supabase"
-import { useRouter } from "next/navigation"
-import { CodyzaLogo } from "@/components/shared/codyza-logo"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { AuthLayout } from "@/components/shared/auth-layout"
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const [rememberMe, setRememberMe] = useState(true)
-  const [magicMode, setMagicMode] = useState(false)
+  const [magicOverride, setMagicOverride] = useState<boolean | null>(null)
   const [magicLinkSent, setMagicLinkSent] = useState(false)
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search)
-      if (params.get("magic") === "true") setMagicMode(true)
-    }
-  }, [])
+  const magicMode = magicOverride ?? searchParams.get("magic") === "true"
+  const urlError = searchParams.get("error")
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -31,12 +25,12 @@ export default function LoginPage() {
     const supabase = createClient()
 
     if (magicMode) {
-      const { error } = await supabase.auth.signInWithOtp({
+      const { error: otpError } = await supabase.auth.signInWithOtp({
         email: email.toLowerCase().trim(),
         options: { shouldCreateUser: false, emailRedirectTo: `${window.location.origin}/set-password` },
       })
-      if (error) {
-        setError(error.message.includes("Signups not allowed") ? "This email isn't registered." : error.message)
+      if (otpError) {
+        setError(otpError.message.includes("Signups not allowed") ? "This email isn't registered." : otpError.message)
         setLoading(false)
         return
       }
@@ -45,9 +39,12 @@ export default function LoginPage() {
       return
     }
 
-    const { error } = await supabase.auth.signInWithPassword({ email: email.toLowerCase().trim(), password })
-    if (error) {
-      setError(error.message.includes("Signups not allowed") ? "This email isn't registered." : error.message)
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: email.toLowerCase().trim(),
+      password,
+    })
+    if (signInError) {
+      setError(signInError.message.includes("Signups not allowed") ? "This email isn't registered." : signInError.message)
       setLoading(false)
     } else {
       router.push("/member")
@@ -58,44 +55,91 @@ export default function LoginPage() {
   if (magicLinkSent) {
     return (
       <AuthLayout title="check your inbox" subtitle={`We sent a link to ${email}`}>
-        <p className="text-center text-sm text-muted-foreground">Click the link in your email to sign in.</p>
-        <button onClick={() => { setMagicLinkSent(false); setMagicMode(false) }} className="mt-4 w-full text-sm text-accent">
-          Use password instead
+        <p className="sofi-body text-center text-black/55">Open the link in your email to finish signing in.</p>
+        <button
+          type="button"
+          onClick={() => {
+            setMagicLinkSent(false)
+            setMagicOverride(false)
+          }}
+          className="mt-4 w-full text-sm text-[var(--journal-sage)]"
+        >
+          use password instead
         </button>
       </AuthLayout>
     )
   }
 
   return (
-    <AuthLayout title="member login" subtitle="Access your Codyza portal">
+    <AuthLayout title="sign in" subtitle="Use the email we invited you with.">
       <form onSubmit={handleLogin} className="space-y-4">
         <div>
-          <label className="mb-2 block text-sm">Email</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="glass-input w-full px-4 py-3" placeholder="your.email@example.com" />
+          <label className="journal-label mb-2 block">email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="journal-input"
+            placeholder="you@domain.com"
+          />
         </div>
         {!magicMode && (
           <div>
-            <label className="mb-2 block text-sm">Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="glass-input w-full px-4 py-3" placeholder="••••••••" />
+            <label className="journal-label mb-2 block">password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="journal-input"
+              placeholder="••••••••"
+            />
           </div>
         )}
-        {!magicMode && (
-          <label className="flex items-center gap-2 text-sm text-muted-foreground">
-            <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="accent-accent" />
-            Remember me
-          </label>
+        {urlError === "link_expired" && !error && (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+            That link has expired or already been used. Request a new one via &quot;forgot password?&quot; below.
+          </div>
         )}
-        {error && <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
-        <button type="submit" disabled={loading} className="btn-primary w-full rounded-full py-3 text-sm font-medium disabled:opacity-50">
-          {loading ? "Signing in..." : magicMode ? "Email me a link" : "Sign in"}
+        {error && (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+            {error}
+          </div>
+        )}
+        <button type="submit" disabled={loading} className="journal-btn-primary disabled:cursor-not-allowed">
+          {loading ? "signing in..." : magicMode ? "email me a link" : "sign in"}
         </button>
       </form>
       <div className="mt-4 space-y-2 text-center text-sm">
-        <button type="button" onClick={() => { setMagicMode(!magicMode); setError("") }} className="text-muted-foreground hover:text-foreground">
-          {magicMode ? "← Use password" : "Email me a login link →"}
+        <button
+          type="button"
+          onClick={() => {
+            setMagicOverride(!magicMode)
+            setError("")
+          }}
+          className="text-black/45 hover:text-black"
+        >
+          {magicMode ? "← use password" : "email me a login link →"}
         </button>
-        <Link href="/forgot-password" className="block text-muted-foreground hover:text-foreground">Forgot password?</Link>
+        <Link href="/forgot-password" className="block text-black/45 hover:text-black">
+          forgot password?
+        </Link>
       </div>
     </AuthLayout>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <AuthLayout title="sign in" subtitle="Use the email we invited you with.">
+          <p className="sofi-body text-center text-black/45">loading…</p>
+        </AuthLayout>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   )
 }

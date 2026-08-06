@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next"
-import { inter, spaceMono, syne, jetbrainsMono, fraunces, instrumentSerif } from "@/lib/fonts"
+import { inter, jetbrainsMono, instrumentSerif } from "@/lib/fonts"
 import { SITE_CONFIG } from "@/constants/site"
 import { ThemeProvider } from "@/components/providers/theme-provider"
 import { cn } from "@/lib/utils"
@@ -30,21 +30,26 @@ export const metadata: Metadata = {
     title: SITE_CONFIG.name,
     description: SITE_CONFIG.description,
     siteName: SITE_CONFIG.name,
+    images: [{ url: SITE_CONFIG.ogImage, width: 500, height: 500, alt: SITE_CONFIG.name }],
   },
   twitter: {
     card: "summary_large_image",
     title: SITE_CONFIG.name,
     description: SITE_CONFIG.description,
+    images: [SITE_CONFIG.ogImage],
   },
   icons: {
-    icon: "/logo/codyza-logo.png",
-    apple: "/logo/codyza-logo.png",
+    icon: [
+      { url: "/favicon.png", sizes: "32x32", type: "image/png" },
+      { url: "/logo/codyza-logo.png", type: "image/png" },
+    ],
+    apple: "/favicon.png",
   },
 }
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f7f5f0" },
+    { media: "(prefers-color-scheme: light)", color: "#f7f6f2" },
     { media: "(prefers-color-scheme: dark)", color: "#0c0c0c" },
   ],
   width: "device-width",
@@ -62,10 +67,7 @@ export default function RootLayout({
         className={cn(
           "min-h-screen bg-background font-sans antialiased",
           inter.variable,
-          spaceMono.variable,
-          syne.variable,
           jetbrainsMono.variable,
-          fraunces.variable,
           instrumentSerif.variable
         )}
       >

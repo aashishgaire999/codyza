@@ -3,7 +3,7 @@ export const FOUNDING_TEAM = [
     name: "Ayush Gaire",
     initials: "AG",
     role: "Founder & CEO",
-    color: "#3b82f6",
+    color: "#302bfb",
     bio: "Building communities, products, and the future.",
     github: "https://github.com/codyza-com",
     twitter: "https://twitter.com",

@@ -2,17 +2,20 @@
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { SofiNav } from "@/components/landing/sofi/sofi-nav"
-import { SofiScrollProgress } from "@/components/landing/sofi/sofi-scroll"
-import { SofiHero } from "@/components/landing/sofi/sofi-hero"
-import { SofiChapters } from "@/components/landing/sofi/sofi-chapters"
-import { SofiManifesto } from "@/components/landing/sofi/sofi-manifesto"
-import { SofiFooter } from "@/components/landing/sofi/sofi-footer"
+import { CodyzaHeroSection } from "@/components/landing/codyza-hero-section"
+import { SmoothScroll } from "@/components/providers/smooth-scroll"
+import { ScrollProgress } from "@/components/landing/scroll-progress"
+import { Nav } from "@/components/landing/nav"
+import { Spotlight } from "@/components/landing/spotlight"
+import { Chapters } from "@/components/landing/chapters"
+import { Features } from "@/components/landing/features"
+import { About } from "@/components/landing/about"
+import { Projects } from "@/components/landing/projects"
+import { StatsBand } from "@/components/landing/stats-band"
+import { Team } from "@/components/landing/team"
+import { ApplyCta } from "@/components/landing/apply-cta"
+import { Footer } from "@/components/landing/footer"
 
-/**
- * Sofi-exact landing structure:
- * nav → hero → pinned word chapters → manifesto → footer
- */
 export default function HomePage() {
   const router = useRouter()
 
@@ -25,13 +28,23 @@ export default function HomePage() {
   }, [router])
 
   return (
-    <main className="sofi-landing min-h-screen">
-      <SofiScrollProgress />
-      <SofiNav />
-      <SofiHero />
-      <SofiChapters />
-      <SofiManifesto />
-      <SofiFooter />
-    </main>
+    <SmoothScroll>
+      <main className="cz-landing min-h-screen overflow-x-clip">
+        <ScrollProgress />
+        <Nav />
+        <CodyzaHeroSection />
+        <div className="mx-auto max-w-[1320px] px-5 pb-10 sm:px-8 lg:px-10">
+          <Spotlight />
+        </div>
+        <Chapters />
+        <Features />
+        <About />
+        <Projects />
+        <StatsBand />
+        <Team />
+        <ApplyCta />
+        <Footer />
+      </main>
+    </SmoothScroll>
   )
 }

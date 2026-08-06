@@ -1,10 +1,13 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { createClient } from "@/lib/supabase"
+import { createClient, RANKS as RANK_XP } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { Trophy, Zap, Target, FileText, Award, Settings } from "lucide-react"
+import { RankBadge } from "@/components/shared/rank-badge"
+import { QuestCard } from "@/components/shared/quest-card"
 
 interface Contributor {
   codyza_id: string
@@ -38,17 +41,6 @@ const RANK_CONFIG: Record<string, { color: string; gradient: string }> = {
   "Codyza Fellow": { color: "text-accent", gradient: "from-accent to-accent" },
 }
 
-const RANK_XP: { name: string; minXP: number }[] = [
-  { name: "Apprentice", minXP: 0 },
-  { name: "Associate Engineer", minXP: 500 },
-  { name: "Software Engineer", minXP: 1500 },
-  { name: "Senior Engineer", minXP: 3500 },
-  { name: "Staff Engineer", minXP: 7000 },
-  { name: "Principal Engineer", minXP: 12000 },
-  { name: "Distinguished Engineer", minXP: 20000 },
-  { name: "Codyza Fellow", minXP: 35000 },
-]
-
 export default function MemberDashboard() {
   const router = useRouter()
   const [contributor, setContributor] = useState<Contributor | null>(null)
@@ -58,10 +50,6 @@ export default function MemberDashboard() {
   const [openBounties, setOpenBounties] = useState<any[]>([])
   const [reactions, setReactions] = useState<Record<string,Record<string,string[]>>>({})
   const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    loadData()
-  }, [])
 
   const loadData = async () => {
     const supabase = createClient()
@@ -122,6 +110,10 @@ export default function MemberDashboard() {
     setLoading(false)
   }
 
+  useEffect(() => {
+    void loadData()
+  }, [])
+
   const handleLogout = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
@@ -176,14 +168,14 @@ export default function MemberDashboard() {
   return (
     <>
       <div className="mb-10 max-w-2xl">
-        <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
+        <p className="member-hero-label mb-4">
           member · hub
         </p>
-        <h1 className="headline-section font-[family-name:var(--font-heading)] lowercase text-foreground">
-          your <span className="text-accent">dashboard</span>
+        <h1 className="member-headline text-foreground">
+          hey, <span className="text-accent">{contributor.name.split(" ")[0].toLowerCase()}</span>
         </h1>
         <p className="mt-4 text-muted-foreground">
-          Track progress, ship projects, and stay connected with the crew.
+          Your hub — rank, projects, bounties, what the crew is up to.
         </p>
       </div>
 
@@ -192,9 +184,9 @@ export default function MemberDashboard() {
         <div className="id-card-inner">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="h-[88px] w-[88px] flex-shrink-0 overflow-hidden rounded-full border-2 border-border">
+              <div className="relative h-[88px] w-[88px] flex-shrink-0 overflow-hidden rounded-full border-2 border-border">
                 {contributor.avatar_url
-                  ? <img src={contributor.avatar_url + "?v=1"} alt={contributor.name} className="h-full w-full object-cover"/>
+                  ? <Image src={contributor.avatar_url + "?v=1"} alt={contributor.name} fill sizes="88px" className="object-cover"/>
                   : <div className="flex h-full w-full items-center justify-center bg-muted text-2xl font-bold text-foreground">
                       {contributor.name.split(" ").map((p:string)=>p[0]).slice(0,2).join("").toUpperCase()}
                     </div>
@@ -203,9 +195,7 @@ export default function MemberDashboard() {
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xl font-bold text-foreground">{contributor.name}</span>
-                  <span className={`rounded-full border border-current px-2.5 py-0.5 text-xs font-semibold ${rankConfig.color}`}>
-                    {contributor.rank}
-                  </span>
+                  <RankBadge rank={contributor.rank} />
                 </div>
                 <div className="mt-1 font-mono text-2xl font-bold tracking-wider text-foreground">
                   CZX-<span className="text-accent">{contributor.codyza_id.replace("CZX-", "")}</span>
@@ -238,7 +228,7 @@ export default function MemberDashboard() {
 
       {/* Stats Grid */}
       <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
-        <div className="dashboard-stat">
+        <div className="arcade-stat">
           <div className="mb-2 flex items-center gap-3">
             <Trophy className="h-5 w-5 text-accent" />
             <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Your Rank</span>
@@ -246,7 +236,7 @@ export default function MemberDashboard() {
           <p className={`font-[family-name:var(--font-heading)] text-2xl font-bold ${rankConfig.color}`}>{contributor.rank}</p>
         </div>
 
-        <div className="dashboard-stat">
+        <div className="arcade-stat">
           <div className="mb-2 flex items-center gap-3">
             <Zap className="h-5 w-5 text-accent" />
             <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Total XP</span>
@@ -254,7 +244,7 @@ export default function MemberDashboard() {
           <p className="font-[family-name:var(--font-heading)] text-2xl font-bold text-accent">{contributor.xp.toLocaleString()}</p>
         </div>
 
-        <div className="dashboard-stat">
+        <div className="arcade-stat">
           <div className="mb-2 flex items-center gap-3">
             <Target className="h-5 w-5 text-accent" />
             <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Streak</span>
@@ -262,7 +252,7 @@ export default function MemberDashboard() {
           <p className="font-[family-name:var(--font-heading)] text-2xl font-bold text-foreground">{contributor.streak} weeks</p>
         </div>
 
-        <div className="dashboard-stat">
+        <div className="arcade-stat">
           <div className="mb-2 flex items-center gap-3">
             <FileText className="h-5 w-5 text-accent" />
             <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Projects</span>
@@ -285,8 +275,8 @@ export default function MemberDashboard() {
                 {next ? `${contributor.xp.toLocaleString()} / ${next.minXP.toLocaleString()} XP → ${next.name}` : "MAX RANK"}
               </span>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-muted">
-              <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${progress}%` }}/>
+            <div className="h-2 overflow-hidden rounded-full bg-muted xp-track">
+              <div className="xp-track-fill h-full" style={{ width: `${progress}%` }}/>
             </div>
           </div>
         )
@@ -329,21 +319,14 @@ export default function MemberDashboard() {
           </div>
           <div className="space-y-2">
             {openBounties.map((b: any) => (
-              <div key={b.id} className="surface-card flex items-center justify-between px-4 py-3">
-                <div>
-                  <span className="text-sm font-medium text-foreground">{b.title}</span>
-                  {b.tech_tags?.length > 0 && (
-                    <div className="mt-1 flex gap-1.5">
-                      {b.tech_tags.slice(0,3).map((t: string) => (
-                        <span key={t} className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">{t}</span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <Link href="/member/bounties" className="btn-accent flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold">
-                  <Zap className="h-3 w-3" />+{b.xp_reward} XP
-                </Link>
-              </div>
+              <QuestCard
+                key={b.id}
+                title={b.title}
+                techTags={b.tech_tags}
+                xpReward={b.xp_reward}
+                status={b.status}
+                href="/member/bounties"
+              />
             ))}
           </div>
         </div>
@@ -357,8 +340,8 @@ export default function MemberDashboard() {
               <FileText className="h-6 w-6 text-accent" />
             </div>
             <div>
-              <h3 className="mb-1 font-semibold text-foreground">Submit New Project</h3>
-              <p className="text-sm text-muted-foreground">Get AI review and earn XP</p>
+              <h3 className="mb-1 font-semibold text-foreground">Submit a project</h3>
+              <p className="text-sm text-muted-foreground">Push a repo, get a review, earn XP</p>
             </div>
           </div>
         </Link>
@@ -369,8 +352,8 @@ export default function MemberDashboard() {
               <Award className="h-6 w-6 text-accent" />
             </div>
             <div>
-              <h3 className="mb-1 font-semibold text-foreground">View Public Profile</h3>
-              <p className="text-sm text-muted-foreground">See how others see you</p>
+              <h3 className="mb-1 font-semibold text-foreground">Public profile</h3>
+              <p className="text-sm text-muted-foreground">What people see on the leaderboard</p>
             </div>
           </div>
         </Link>
@@ -379,10 +362,10 @@ export default function MemberDashboard() {
       {/* Crew Feed */}
       <div className="mb-8">
         <div className="mb-4 flex items-center gap-3">
-          <h2 className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Crew Activity</h2>
+          <h2 className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">What shipped</h2>
           <span className="flex items-center gap-1.5 rounded-full border border-success/30 bg-success/10 px-2 py-0.5 font-mono text-xs text-success">
             <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-success"></span>
-            Live
+            recent
           </span>
         </div>
         {crewFeed.length === 0 ? (
@@ -393,7 +376,7 @@ export default function MemberDashboard() {
               const scoreClass = item.ai_score >= 8 ? "text-success" : item.ai_score >= 6 ? "text-accent" : "text-muted-foreground"
               const isOwn = item.codyza_id === contributor?.codyza_id
               return (
-                <div key={i} className={`surface-card flex items-start gap-4 p-4 transition-all ${isOwn ? "border-accent/20 bg-accent/5" : ""}`}>
+                <div key={i} className={`surface-card flex items-start gap-4 p-4 transition-all ${isOwn ? "crew-feed-item-own" : ""}`}>
                   <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-muted text-sm font-bold text-foreground">
                     {item.codyza_id?.replace("CZX-","")}
                   </div>
@@ -428,11 +411,7 @@ export default function MemberDashboard() {
                           const reacted = reacters.includes(contributor?.codyza_id || "")
                           return (
                             <button key={label} onClick={() => toggleReaction(item.id, label)}
-                              className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] transition-all ${
-                                reacted
-                                  ? "border-accent/50 bg-accent/10 font-bold text-accent"
-                                  : "border-border bg-muted/50 text-muted-foreground hover:border-accent/30"
-                              }`}>
+                              className={`reaction-badge ${reacted ? "reaction-badge-active" : "text-muted-foreground hover:border-accent/30"}`}>
                               <span className="text-[13px]">{label}</span>
                               {reacters.length > 0 && (
                                 <span className={`text-[10px] font-bold ${reacted ? "text-accent" : "text-muted-foreground"}`}>

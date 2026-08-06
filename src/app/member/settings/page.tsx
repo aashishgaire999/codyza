@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Save, Check } from "lucide-react"
+import { MemberPageHeader } from "@/components/member/member-page-header"
 import { AvatarUpload } from "@/components/member/avatar-upload"
 
 const SKILL_OPTIONS = [
@@ -82,15 +83,15 @@ export default function SettingsPage() {
         <ArrowLeft className="h-4 w-4" /> Back to Hub
       </Link>
 
-      <div className="mb-10 max-w-2xl">
-        <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
-          member · settings
-        </p>
-        <h1 className="headline-section font-[family-name:var(--font-heading)] lowercase text-foreground">
-          profile <span className="text-accent">settings</span>
-        </h1>
-        <p className="mt-4 text-muted-foreground">{contributor?.codyza_id} · {contributor?.email}</p>
-      </div>
+      <MemberPageHeader
+        label="member · settings"
+        title={
+          <>
+            profile <span className="text-accent">settings</span>
+          </>
+        }
+        description="Name, photo, skills — what shows on your public profile."
+      />
 
       <div className="space-y-6">
         <div className="surface-card p-5 md:p-6">

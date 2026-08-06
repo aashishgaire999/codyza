@@ -1,8 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { createClient } from "@/lib/supabase"
 import { Zap, CheckCircle, Clock, User } from "lucide-react"
+import { MemberPageHeader } from "@/components/member/member-page-header"
 
 const STATUS_CONFIG: Record<string, { label: string; badge: string }> = {
   open:      { label: "Open",      badge: "bg-success/10 text-success" },
@@ -18,8 +20,6 @@ export default function BountiesPage() {
   const [filter, setFilter] = useState("open")
   const [claiming, setClaiming] = useState<string | null>(null)
 
-  useEffect(() => { loadData() }, [])
-
   async function loadData() {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -31,6 +31,8 @@ export default function BountiesPage() {
     setBounties(Array.isArray(data) ? data : [])
     setLoading(false)
   }
+
+  useEffect(() => { void loadData() }, [])
 
   async function claimBounty(bountyId: string) {
     if (!contributor) return
@@ -54,19 +56,17 @@ export default function BountiesPage() {
 
   return (
     <>
-      <div className="mb-10 max-w-2xl">
-        <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
-          member · bounties
-        </p>
-        <h1 className="headline-section font-[family-name:var(--font-heading)] lowercase text-foreground">
-          open <span className="text-accent">bounties</span>
-        </h1>
-        <p className="mt-4 text-muted-foreground">
-          Pick up a task, build it, earn XP. Posted by admins and leads.
-        </p>
-      </div>
+      <MemberPageHeader
+        label="member · bounties"
+        title={
+          <>
+            open <span className="text-accent">bounties</span>
+          </>
+        }
+        description="Small tasks with XP attached. Claim one, finish it, move on."
+      />
 
-      <div className="flex items-start gap-6">
+      <div className="flex flex-col items-start gap-6 lg:flex-row">
         <div className="min-w-0 flex-1">
           <div className="mb-5 flex gap-1 border-b border-border">
             {[
@@ -147,7 +147,9 @@ export default function BountiesPage() {
                           </button>
                         )}
                         {isClaimed && (
-                          <span className="text-xs font-medium text-accent">Submit via Projects →</span>
+                          <Link href={`/member/projects?bounty=${bounty.id}`} className="text-xs font-medium text-accent hover:underline">
+                            Submit via Projects →
+                          </Link>
                         )}
                       </div>
                     </div>
@@ -178,11 +180,11 @@ export default function BountiesPage() {
             </div>
             <div className="mt-4 border-t border-border pt-4">
               <div className="grid grid-cols-2 gap-2">
-                <div className="dashboard-stat p-3 text-center">
+                <div className="arcade-stat p-3 text-center">
                   <div className="text-lg font-bold text-success">{counts.open}</div>
                   <div className="text-[10px] text-muted-foreground">Open</div>
                 </div>
-                <div className="dashboard-stat p-3 text-center">
+                <div className="arcade-stat p-3 text-center">
                   <div className="text-lg font-bold text-accent">{counts.claimed}</div>
                   <div className="text-[10px] text-muted-foreground">Claimed</div>
                 </div>

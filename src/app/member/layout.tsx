@@ -30,7 +30,7 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
   }
 
   return (
-    <SiteShell showProgress={false}>
+    <SiteShell showProgress={false} className="codyza-member">
       <MemberNavbar />
       <main className="mx-auto max-w-7xl px-6 py-10 md:px-8">{children}</main>
     </SiteShell>

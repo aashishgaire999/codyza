@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase"
 import { Users, GitBranch, Globe, ChevronRight, Clock, CheckCircle, Zap, Hammer, Eye } from "lucide-react"
+import { MemberPageHeader } from "@/components/member/member-page-header"
 
 const STATUS_CONFIG: Record<string, { label: string; badge: string; icon: any }> = {
   planning:  { label: "Planning",  badge: "bg-muted text-muted-foreground", icon: Clock },
@@ -44,8 +45,6 @@ export default function GroupsPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState("all")
 
-  useEffect(() => { loadData() }, [])
-
   async function loadData() {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -65,6 +64,8 @@ export default function GroupsPage() {
     setLoading(false)
   }
 
+  useEffect(() => { void loadData() }, [])
+
   const myGroups = groups.filter(g =>
     g.members?.some((m: any) => m.codyza_id === contributor?.codyza_id)
   )
@@ -75,19 +76,17 @@ export default function GroupsPage() {
 
   return (
     <>
-      <div className="mb-10 max-w-2xl">
-        <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
-          member · groups
-        </p>
-        <h1 className="headline-section font-[family-name:var(--font-heading)] lowercase text-foreground">
-          project <span className="text-accent">groups</span>
-        </h1>
-        <p className="mt-4 text-muted-foreground">
-          Teams working on real projects together. Groups are assigned by admins.
-        </p>
-      </div>
+      <MemberPageHeader
+        label="member · groups"
+        title={
+          <>
+            project <span className="text-accent">groups</span>
+          </>
+        }
+        description="Your assigned teams. Admins place you — you ship with them."
+      />
 
-      <div className="flex items-start gap-6">
+      <div className="flex flex-col items-start gap-6 lg:flex-row">
         <div className="flex-1 min-w-0">
 
           {/* Filter tabs */}

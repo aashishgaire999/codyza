@@ -6,7 +6,9 @@ import { useRouter } from "next/navigation"
 import { CheckCircle, AlertCircle, Camera, X, Check } from "lucide-react"
 import Link from "next/link"
 import Cropper from "react-easy-crop"
-import { SiteShell } from "@/components/shared/site-shell"
+import { PublicShell } from "@/components/shared/public-shell"
+import { CodyzaLogo } from "@/components/shared/codyza-logo"
+import { FadeIn } from "@/components/motion/fade-in"
 
 async function getCroppedImg(imageSrc: string, croppedAreaPixels: any): Promise<Blob> {
   const image = new Image()
@@ -120,26 +122,31 @@ export default function OnboardingPage() {
 
   if (loading) {
     return (
-      <SiteShell className="flex min-h-screen items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
-      </SiteShell>
+      <PublicShell footer={false}>
+        <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
+          <p className="sofi-body text-black/50">loading...</p>
+        </div>
+      </PublicShell>
     )
   }
 
   if (success) {
     return (
-      <SiteShell className="flex min-h-screen items-center justify-center p-4">
-        <div className="surface-card w-full max-w-md p-8 text-center">
-          <CheckCircle className="mx-auto mb-4 h-12 w-12 text-success" />
-          <h1 className="font-[family-name:var(--font-heading)] text-2xl font-bold lowercase">you&apos;re in.</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Taking you to your dashboard...</p>
+      <PublicShell footer={false}>
+        <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center px-6 py-24">
+          <FadeIn className="auth-journal-card w-full max-w-md text-center">
+            <CheckCircle className="mx-auto mb-4 h-12 w-12 text-success" />
+            <h1 className="sofi-display-section text-black">you&apos;re in.</h1>
+            <p className="sofi-body mt-2">Taking you to your dashboard...</p>
+          </FadeIn>
         </div>
-      </SiteShell>
+      </PublicShell>
     )
   }
 
   return (
-    <SiteShell className="flex min-h-screen items-center justify-center p-4">
+    <PublicShell footer={false}>
+      <div className="flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center px-6 py-24">
       {showCropper && cropSrc && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-background/90 backdrop-blur-sm">
           <div className="surface-card w-[min(480px,95vw)] p-6">
@@ -192,14 +199,16 @@ export default function OnboardingPage() {
         </div>
       )}
 
-      <div className="w-full max-w-md">
-        <div className="surface-card p-8">
-          <div className="mb-6 text-center">
-            <h1 className="font-[family-name:var(--font-heading)] text-2xl font-bold lowercase tracking-tight">
-              welcome aboard.
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">Set up your profile to get started.</p>
-          </div>
+      <FadeIn className="w-full max-w-md">
+        <div className="mb-8 text-center">
+          <Link href="/" className="inline-block">
+            <CodyzaLogo size={48} variant="full" />
+          </Link>
+          <h1 className="sofi-display-section mt-6 text-black">last step.</h1>
+          <p className="sofi-body mt-3">Name and photo. That&apos;s it for now.</p>
+        </div>
+
+        <div className="auth-journal-card">
 
           <div className="mb-6 flex flex-col items-center">
             <div className="group relative mb-3 cursor-pointer" onClick={() => fileRef.current?.click()}>
@@ -228,19 +237,17 @@ export default function OnboardingPage() {
             <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleFileSelect} />
           </div>
 
-          <div className="mb-6 rounded-xl border border-border bg-muted/50 px-5 py-4">
+          <div className="mb-6 rounded-xl border border-black/10 bg-black/[0.03] px-5 py-4">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-                  Your Contributor ID
-                </div>
-                <div className="mt-1 font-mono text-xl font-bold tracking-wider">
+                <div className="sofi-micro">your contributor id</div>
+                <div className="mt-1 font-mono text-xl font-bold tracking-wider text-black">
                   CZX-<span className="text-accent">{nextCodyzaId.replace("CZX-", "")}</span>
                 </div>
               </div>
               <div className="text-right">
-                <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Rank</div>
-                <div className="mt-1 text-sm font-medium text-foreground">Apprentice</div>
+                <div className="sofi-micro">rank</div>
+                <div className="mt-1 text-sm font-medium text-black">Apprentice</div>
               </div>
             </div>
           </div>
@@ -256,17 +263,17 @@ export default function OnboardingPage() {
                 minLength={2}
                 maxLength={100}
                 placeholder="Ada Lovelace"
-                className="glass-input w-full px-4 py-3"
+                className="journal-input"
               />
-              <p className="mt-1.5 text-xs text-muted-foreground">
-                This is how others will see you on your public profile.
+              <p className="mt-1.5 text-xs text-black/45">
+                Shown on your profile and the leaderboard.
               </p>
             </div>
             <div>
               <label className="mb-2 block text-sm">
                 Email <span className="text-xs font-normal text-muted-foreground">(can&apos;t be changed)</span>
               </label>
-              <div className="glass-input px-4 py-3 font-mono text-sm text-muted-foreground">{email}</div>
+              <div className="journal-input px-4 py-3 font-mono text-sm text-black/45">{email}</div>
             </div>
             {error && (
               <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
@@ -277,18 +284,19 @@ export default function OnboardingPage() {
             <button
               type="submit"
               disabled={submitting || name.trim().length < 2}
-              className="btn-primary w-full rounded-full px-4 py-3 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
+              className="journal-btn-primary disabled:cursor-not-allowed"
             >
-              {submitting ? "Setting up your profile..." : "Complete setup →"}
+              {submitting ? "Setting up..." : "Finish setup →"}
             </button>
           </form>
-          <p className="mt-5 text-center text-xs text-muted-foreground">Takes you to your member dashboard</p>
+          <p className="sofi-body mt-5 text-center text-black/45">Then straight to your hub.</p>
         </div>
 
-        <Link href="/" className="mt-6 block text-center text-sm text-muted-foreground transition-colors hover:text-foreground">
-          ← Back to Codyza
+        <Link href="/" className="sofi-body mt-6 block text-center text-black/50 hover:text-black">
+          ← back to codyza
         </Link>
+      </FadeIn>
       </div>
-    </SiteShell>
+    </PublicShell>
   )
 }
