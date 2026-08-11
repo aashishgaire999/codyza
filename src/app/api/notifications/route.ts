@@ -1,20 +1,15 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+import { createServiceSupabase, isAdminRequest } from "@/lib/admin-auth"
+import { getRequestMember } from "@/lib/member-auth"
 
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url)
-  const codyza_id = searchParams.get("codyza_id")
-  if (!codyza_id) return NextResponse.json([])
+  const member = await getRequestMember(req)
+  if (!member) return NextResponse.json({ error: "Member sign-in required" }, { status: 401 })
 
-  const { data } = await supabase
+  const { data } = await createServiceSupabase()
     .from("notifications")
     .select("*")
-    .eq("codyza_id", codyza_id)
+    .eq("codyza_id", member.codyza_id)
     .order("created_at", { ascending: false })
     .limit(20)
 
@@ -22,19 +17,23 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  if (!isAdminRequest(req)) return NextResponse.json({ error: "Admin authorization required" }, { status: 401 })
   const { codyza_id, type, message, link } = await req.json()
   if (!codyza_id || !message) return NextResponse.json({ error: "Missing fields" }, { status: 400 })
 
-  await supabase.from("notifications").insert({ codyza_id, type, message, link: link || "" })
+  await createServiceSupabase().from("notifications").insert({ codyza_id, type, message, link: link || "" })
   return NextResponse.json({ success: true })
 }
 
 export async function PATCH(req: Request) {
-  const { codyza_id, id } = await req.json()
+  const member = await getRequestMember(req)
+  if (!member) return NextResponse.json({ error: "Member sign-in required" }, { status: 401 })
+  const { id } = await req.json()
+  const supabase = createServiceSupabase()
   if (id) {
-    await supabase.from("notifications").update({ read: true }).eq("id", id)
-  } else if (codyza_id) {
-    await supabase.from("notifications").update({ read: true }).eq("codyza_id", codyza_id)
+    await supabase.from("notifications").update({ read: true }).eq("id", id).eq("codyza_id", member.codyza_id)
+  } else {
+    await supabase.from("notifications").update({ read: true }).eq("codyza_id", member.codyza_id)
   }
   return NextResponse.json({ success: true })
 }

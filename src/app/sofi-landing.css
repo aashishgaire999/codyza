@@ -1,0 +1,848 @@
+/* Sofi-inspired Codyza landing — light canvas, ink black, Instrument Serif */
+
+.sofi-landing {
+  --sofi-canvas: #f7f7f7;
+  --sofi-ink: #000000;
+  --sofi-muted: rgba(0, 0, 0, 0.45);
+  --sofi-accent: #302bfb; /* canonical Codyza Blue (D-006); replaces --sofi-sage */
+  --sofi-dark: #090909;
+  --sofi-cream: #f5f0eb;
+  --sofi-white: #ffffff;
+  --sofi-dark-muted: rgba(255, 255, 255, 0.4);
+  --progress-color: rgba(255, 255, 255, 0.8);
+  background: var(--sofi-canvas);
+  color: var(--sofi-ink);
+  font-family: var(--font-inter);
+}
+
+body:has(.sofi-landing) {
+  background: var(--sofi-canvas);
+}
+
+.sofi-display {
+  font-family: var(--font-instrument);
+  font-weight: 400;
+  font-size: clamp(5rem, 22vw, 18rem);
+  letter-spacing: -0.04em;
+  line-height: 0.88;
+  text-transform: lowercase;
+}
+
+.sofi-display-hero {
+  font-family: var(--font-instrument);
+  font-weight: 400;
+  font-size: clamp(4rem, 13vw, 12rem);
+  letter-spacing: -0.04em;
+  line-height: 0.92;
+  text-transform: lowercase;
+  padding-top: 0.12em;
+  overflow: visible;
+}
+
+.sofi-display-section {
+  font-family: var(--font-instrument);
+  font-weight: 400;
+  font-size: clamp(2rem, 8vw, 5.5rem);
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  text-transform: lowercase;
+}
+
+.sofi-poem-line-1 { padding-left: 0; padding-top: 0.06em; }
+.sofi-poem-line-2 { padding-left: clamp(3rem, 16vw, 8.5rem); }
+.sofi-poem-line-3 { padding-left: 0; }
+.sofi-poem-line-4 { padding-left: clamp(1.75rem, 9vw, 5rem); color: rgba(0, 0, 0, 0.38); }
+.sofi-poem-line-4-dark { color: rgba(255, 255, 255, 0.3); }
+
+.sofi-hero-micro {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.sofi-hero-body-text {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.sofi-hero-headline-row {
+  align-items: center;
+}
+
+.sofi-hero-headline-row > .sofi-display-hero {
+  padding-left: clamp(0.75rem, 2vw, 1.25rem);
+  margin-left: 0;
+}
+
+.sofi-hero-body {
+  padding-left: clamp(0.75rem, 2vw, 1.25rem);
+  margin-left: 0;
+}
+
+@media (min-width: 1024px) {
+  .sofi-hero-headline-row {
+    align-items: stretch;
+  }
+
+  .sofi-hero-headline-row > .sofi-display-hero {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: clamp(1rem, 2vw, 1.5rem);
+    margin-left: 0;
+  }
+
+  .sofi-hero-body {
+    padding-left: clamp(1rem, 2vw, 1.5rem);
+    margin-left: 0;
+  }
+}
+
+.sofi-micro {
+  font-family: var(--font-jetbrains-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+  color: var(--sofi-muted);
+}
+
+.sofi-nav-wordmark {
+  color: var(--sofi-ink);
+}
+
+.sofi-body {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--sofi-muted);
+}
+
+.sofi-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--sofi-ink);
+  padding: 0.625rem 1.25rem;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: lowercase;
+  transition: background 0.2s, color 0.2s;
+}
+
+.sofi-pill:hover {
+  background: var(--sofi-ink);
+  color: var(--sofi-canvas);
+}
+
+.sofi-pill-fill {
+  background: var(--sofi-ink);
+  color: var(--sofi-canvas);
+}
+
+.sofi-pill-fill:hover {
+  opacity: 0.88;
+}
+
+.sofi-edge-bar {
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.sofi-chapter-dark {
+  background: #090909;
+  color: #fff;
+}
+
+.sofi-chapter-light {
+  background: #f5f0eb;
+  color: #000;
+}
+
+.sofi-chapter-dark .sofi-micro {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.sofi-chapter-word {
+  font-family: var(--font-instrument);
+  font-weight: 400;
+  font-size: clamp(5rem, 22vw, 18rem);
+  letter-spacing: -0.04em;
+  line-height: 0.9;
+  text-transform: lowercase;
+  transition:
+    opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0;
+  transform: translateX(-3vw);
+}
+
+.sofi-chapter-word.in-view {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.sofi-chapter-num {
+  opacity: 0;
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sofi-chapter-num.in-view {
+  opacity: 1;
+}
+
+.sofi-scroll-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 1.5px;
+  background: var(--progress-color);
+  transform-origin: left;
+  z-index: 90;
+  opacity: 0.85;
+}
+
+.sofi-footer-logo {
+  font-family: var(--font-instrument);
+  font-weight: 400;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  text-transform: lowercase;
+}
+
+.sofi-marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 3rem;
+  animation: sofi-marquee 45s linear infinite;
+}
+
+.sofi-featured-bar {
+  border-top: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+  background:
+    linear-gradient(var(--sofi-canvas), var(--sofi-canvas)) padding-box,
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(0, 0, 0, 0.06) 20%,
+      rgba(0, 0, 0, 0.06) 80%,
+      transparent 100%
+    ) border-box;
+}
+
+.sofi-featured-label {
+  padding-top: 0.25rem;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.32);
+}
+
+.sofi-featured-track {
+  gap: clamp(3rem, 8vw, 6rem);
+  animation-duration: 35s;
+}
+
+.sofi-featured-item {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 1rem;
+  cursor: default;
+}
+
+.sofi-featured-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sofi-featured-logo-img {
+  height: clamp(2rem, 4vw, 2.75rem);
+  width: auto;
+  max-width: min(240px, 42vw);
+  object-fit: contain;
+  opacity: 0.42;
+  filter: grayscale(1) saturate(0.15);
+  transition: opacity 0.4s ease, filter 0.4s ease;
+}
+
+.sofi-featured-item:hover .sofi-featured-logo-img {
+  opacity: 1;
+  filter: grayscale(0) saturate(1);
+}
+
+.sofi-featured-name {
+  font-family: var(--font-instrument);
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  text-transform: lowercase;
+  color: rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+  transition: color 0.4s ease;
+}
+
+.sofi-featured-item:hover .sofi-featured-name {
+  color: rgba(0, 0, 0, 0.38);
+}
+
+.sofi-featured-static {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(2rem, 5vw, 4rem);
+  padding-inline: 1.5rem;
+}
+
+.sofi-marquee-wrap:hover .sofi-marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes sofi-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sofi-marquee-track {
+    animation: none;
+  }
+
+  .sofi-chapter-word,
+  .sofi-chapter-num {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+.sofi-pillar {
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  padding-top: 1.25rem;
+}
+
+.sofi-team-card {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 1.25rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.sofi-team-card:hover {
+  border-color: rgba(0, 0, 0, 0.18);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
+}
+
+.sofi-stat-band-cinematic {
+  background: #0a0a0a;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sofi-stat-band-inner {
+  padding-top: clamp(5rem, 12vw, 8rem);
+  padding-bottom: clamp(4rem, 10vw, 6rem);
+}
+
+.sofi-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(2.5rem, 6vw, 4rem);
+}
+
+@media (min-width: 768px) {
+  .sofi-stats-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+  }
+
+  .sofi-stat-cell {
+    padding-inline: clamp(1rem, 3vw, 2rem);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .sofi-stat-cell:last-child {
+    border-right: none;
+  }
+}
+
+.sofi-stat-value {
+  font-size: clamp(2.75rem, 7vw, 5.5rem);
+  line-height: 0.88;
+  color: #fff;
+}
+
+.sofi-stat-label {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.sofi-stats-locations {
+  margin-top: clamp(4rem, 10vw, 6rem);
+  padding-top: clamp(2.5rem, 6vw, 3.5rem);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ── CTA + shipping closing act ── */
+
+.sofi-cta-section {
+  position: relative;
+  overflow: hidden;
+  background: #090909;
+  padding: clamp(5rem, 14vw, 9rem) 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sofi-cta-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 100%, rgba(139, 135, 255, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 35% at 20% 30%, rgba(48, 43, 251, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+  animation: sofi-cta-glow 12s ease-in-out infinite alternate;
+}
+
+@keyframes sofi-cta-glow {
+  0% { opacity: 0.7; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1.04); }
+}
+
+.sofi-cta-headline {
+  font-family: var(--font-instrument);
+  font-size: clamp(2.75rem, 9vw, 5.5rem);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  text-transform: lowercase;
+}
+
+.sofi-cta-micro {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.sofi-cta-body {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.sofi-cta-actions .sofi-pill {
+  min-width: 10rem;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+}
+
+.sofi-shipping-section {
+  background: var(--sofi-cream);
+  padding: clamp(5rem, 14vw, 9rem) 0;
+}
+
+.sofi-shipping-empty {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  padding-top: clamp(2.5rem, 6vw, 4rem);
+  max-width: 32rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sofi-cta-glow {
+    animation: none;
+  }
+}
+
+.sofi-pill-outline-light {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.85);
+  background: transparent;
+}
+
+.sofi-pill-outline-light:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.sofi-nav-wordmark {
+  color: var(--sofi-ink);
+}
+
+.sofi-nav-drawer {
+  animation: sofi-drawer-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes sofi-drawer-in {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.sofi-stat-band {
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background: #fff;
+}
+
+.terminal-cursor {
+  animation: terminal-blink 1s steps(1) infinite;
+}
+
+@keyframes terminal-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.terminal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.terminal-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+}
+
+/* ── Hero galaxy background (CSS-only, GPU-friendly) ── */
+
+.sofi-space-bg {
+  z-index: 0;
+  --galaxy-blue: rgba(48, 43, 251, 0.11);
+  --galaxy-sky: rgba(147, 180, 220, 0.38);
+  --galaxy-sage: rgba(139, 135, 255, 0.16);
+  --galaxy-violet: rgba(124, 58, 237, 0.09);
+  background:
+    radial-gradient(ellipse at 30% 50%, #1a1a2e 0%, #080808 70%);
+}
+
+.sofi-hero .sofi-space-bg {
+  background:
+    radial-gradient(ellipse at 30% 50%, #1a1a2e 0%, #080808 70%);
+}
+
+.sofi-hero .sofi-space-bg::after {
+  background: linear-gradient(to bottom, transparent 0%, #080808 90%);
+}
+
+.sofi-space-bg::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 32%;
+  background: linear-gradient(to bottom, transparent 0%, var(--sofi-canvas) 90%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.sofi-space-bg__nebula {
+  position: absolute;
+  inset: -25%;
+  background:
+    radial-gradient(ellipse 48% 38% at 68% 22%, var(--galaxy-sky) 0%, transparent 58%),
+    radial-gradient(ellipse 36% 30% at 22% 68%, var(--galaxy-sage) 0%, transparent 55%),
+    radial-gradient(ellipse 42% 34% at 82% 72%, var(--galaxy-violet) 0%, transparent 52%),
+    radial-gradient(ellipse 55% 45% at 48% 48%, var(--galaxy-blue) 0%, transparent 62%);
+  animation: sofi-galaxy-nebula 32s ease-in-out infinite alternate;
+}
+
+.sofi-hero .sofi-space-bg__nebula {
+  background:
+    radial-gradient(ellipse 48% 38% at 68% 22%, rgba(48, 43, 251, 0.18) 0%, transparent 58%),
+    radial-gradient(ellipse 36% 30% at 22% 68%, rgba(139, 135, 255, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 42% 34% at 82% 72%, rgba(124, 58, 237, 0.14) 0%, transparent 52%);
+}
+
+.sofi-hero .sofi-space-bg__stars--far {
+  opacity: 0.55;
+  background-image:
+    radial-gradient(1px 1px at 6% 14%, rgba(255, 255, 255, 0.5) 50%, transparent 50%),
+    radial-gradient(1px 1px at 14% 52%, rgba(255, 255, 255, 0.25) 50%, transparent 50%),
+    radial-gradient(1px 1px at 22% 28%, rgba(147, 180, 220, 0.45) 50%, transparent 50%),
+    radial-gradient(1px 1px at 31% 76%, rgba(255, 255, 255, 0.2) 50%, transparent 50%),
+    radial-gradient(1px 1px at 39% 11%, rgba(48, 43, 251, 0.45) 50%, transparent 50%),
+    radial-gradient(1px 1px at 47% 44%, rgba(255, 255, 255, 0.35) 50%, transparent 50%),
+    radial-gradient(1px 1px at 53% 68%, rgba(255, 255, 255, 0.22) 50%, transparent 50%),
+    radial-gradient(1px 1px at 61% 22%, rgba(147, 180, 220, 0.4) 50%, transparent 50%),
+    radial-gradient(1px 1px at 69% 58%, rgba(124, 58, 237, 0.35) 50%, transparent 50%),
+    radial-gradient(1px 1px at 77% 84%, rgba(255, 255, 255, 0.18) 50%, transparent 50%),
+    radial-gradient(1px 1px at 84% 36%, rgba(255, 255, 255, 0.3) 50%, transparent 50%),
+    radial-gradient(1px 1px at 91% 12%, rgba(147, 180, 220, 0.38) 50%, transparent 50%),
+    radial-gradient(1px 1px at 96% 62%, rgba(255, 255, 255, 0.2) 50%, transparent 50%);
+}
+
+.sofi-hero .sofi-space-bg__vignette {
+  background:
+    radial-gradient(ellipse 88% 78% at 50% 42%, transparent 52%, rgba(8, 8, 8, 0.55) 100%),
+    radial-gradient(ellipse 100% 100% at 50% 50%, transparent 60%, rgba(0, 0, 0, 0.35) 100%);
+}
+
+.sofi-hero .sofi-space-bg__arm {
+  mix-blend-mode: screen;
+  opacity: 0.4;
+}
+
+.sofi-space-bg__galaxy-core {
+  position: absolute;
+  top: -18%;
+  right: -8%;
+  width: min(72vw, 780px);
+  height: min(72vw, 780px);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 42% 38%, rgba(255, 255, 255, 0.55) 0%, transparent 22%),
+    radial-gradient(circle at 50% 50%, var(--galaxy-sky) 0%, var(--galaxy-violet) 38%, transparent 68%);
+  filter: blur(48px);
+  opacity: 0.85;
+  animation: sofi-galaxy-core 24s ease-in-out infinite alternate;
+}
+
+.sofi-space-bg__arm {
+  position: absolute;
+  inset: -35%;
+  filter: blur(64px);
+  opacity: 0.55;
+  mix-blend-mode: multiply;
+}
+
+.sofi-space-bg__arm--a {
+  background: conic-gradient(
+    from 210deg at 58% 32%,
+    transparent 0deg,
+    var(--galaxy-sky) 28deg,
+    transparent 72deg,
+    var(--galaxy-blue) 140deg,
+    transparent 200deg,
+    var(--galaxy-sage) 270deg,
+    transparent 330deg
+  );
+  animation: sofi-galaxy-spin 140s linear infinite;
+}
+
+.sofi-space-bg__arm--b {
+  background: conic-gradient(
+    from 30deg at 42% 58%,
+    transparent 0deg,
+    var(--galaxy-violet) 40deg,
+    transparent 95deg,
+    var(--galaxy-sky) 180deg,
+    transparent 250deg
+  );
+  opacity: 0.35;
+  animation: sofi-galaxy-spin 180s linear infinite reverse;
+}
+
+.sofi-space-bg__orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  will-change: transform;
+}
+
+.sofi-space-bg__orb--1 {
+  top: 8%;
+  right: 12%;
+  width: min(46vw, 480px);
+  height: min(46vw, 480px);
+  background: radial-gradient(circle, var(--galaxy-sky) 0%, transparent 68%);
+  animation: sofi-space-drift-1 22s ease-in-out infinite;
+}
+
+.sofi-space-bg__orb--2 {
+  bottom: 10%;
+  left: -4%;
+  width: min(40vw, 420px);
+  height: min(40vw, 420px);
+  background: radial-gradient(circle, var(--galaxy-sage) 0%, transparent 70%);
+  animation: sofi-space-drift-2 26s ease-in-out infinite;
+}
+
+.sofi-space-bg__orb--3 {
+  top: 44%;
+  left: 38%;
+  width: min(32vw, 340px);
+  height: min(32vw, 340px);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, transparent 72%);
+  animation: sofi-space-drift-3 30s ease-in-out infinite;
+}
+
+.sofi-space-bg__stars {
+  position: absolute;
+  inset: 0;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+.sofi-space-bg__stars--far {
+  opacity: 0.45;
+  background-image:
+    radial-gradient(1px 1px at 6% 14%, rgba(139, 135, 255, 0.5) 50%, transparent 50%),
+    radial-gradient(1px 1px at 14% 52%, rgba(0, 0, 0, 0.1) 50%, transparent 50%),
+    radial-gradient(1px 1px at 22% 28%, rgba(147, 180, 220, 0.45) 50%, transparent 50%),
+    radial-gradient(1px 1px at 31% 76%, rgba(0, 0, 0, 0.08) 50%, transparent 50%),
+    radial-gradient(1px 1px at 39% 11%, rgba(48, 43, 251, 0.35) 50%, transparent 50%),
+    radial-gradient(1px 1px at 47% 44%, rgba(139, 135, 255, 0.4) 50%, transparent 50%),
+    radial-gradient(1px 1px at 53% 68%, rgba(0, 0, 0, 0.09) 50%, transparent 50%),
+    radial-gradient(1px 1px at 61% 22%, rgba(147, 180, 220, 0.4) 50%, transparent 50%),
+    radial-gradient(1px 1px at 69% 58%, rgba(124, 58, 237, 0.25) 50%, transparent 50%),
+    radial-gradient(1px 1px at 77% 84%, rgba(0, 0, 0, 0.07) 50%, transparent 50%),
+    radial-gradient(1px 1px at 84% 36%, rgba(139, 135, 255, 0.35) 50%, transparent 50%),
+    radial-gradient(1px 1px at 91% 12%, rgba(147, 180, 220, 0.38) 50%, transparent 50%),
+    radial-gradient(1px 1px at 96% 62%, rgba(0, 0, 0, 0.08) 50%, transparent 50%);
+  animation: sofi-space-twinkle 8s ease-in-out infinite alternate;
+}
+
+.sofi-space-bg__stars--near {
+  opacity: 0.7;
+  background-image:
+    radial-gradient(1.5px 1.5px at 18% 38%, rgba(147, 180, 220, 0.65) 50%, transparent 50%),
+    radial-gradient(2px 2px at 56% 18%, rgba(255, 255, 255, 0.9) 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 74% 46%, rgba(139, 135, 255, 0.55) 50%, transparent 50%),
+    radial-gradient(2px 2px at 88% 28%, rgba(147, 180, 220, 0.7) 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 42% 72%, rgba(48, 43, 251, 0.4) 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 8% 66%, rgba(147, 180, 220, 0.5) 50%, transparent 50%);
+  animation: sofi-space-twinkle-near 5s ease-in-out infinite alternate;
+}
+
+.sofi-space-bg__dust {
+  position: absolute;
+  inset: 0;
+  opacity: 0.18;
+  background: linear-gradient(
+    118deg,
+    transparent 30%,
+    rgba(147, 180, 220, 0.22) 48%,
+    rgba(139, 135, 255, 0.12) 52%,
+    transparent 68%
+  );
+  animation: sofi-galaxy-dust 20s ease-in-out infinite alternate;
+}
+
+.sofi-space-bg__shimmer {
+  position: absolute;
+  inset: 0;
+  opacity: 0.28;
+  background: linear-gradient(
+    108deg,
+    transparent 36%,
+    rgba(255, 255, 255, 0.55) 49%,
+    rgba(147, 180, 220, 0.22) 51%,
+    transparent 64%
+  );
+  background-size: 240% 100%;
+  animation: sofi-space-shimmer 16s ease-in-out infinite;
+}
+
+.sofi-space-bg__vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 88% 78% at 50% 42%, transparent 52%, rgba(232, 238, 246, 0.55) 100%),
+    radial-gradient(ellipse 100% 100% at 50% 50%, transparent 60%, rgba(0, 0, 0, 0.025) 100%);
+  z-index: 1;
+}
+
+.sofi-space-bg__horizon {
+  position: absolute;
+  inset-inline: -12%;
+  bottom: -14%;
+  height: 44%;
+  background:
+    radial-gradient(ellipse 72% 58% at 50% 0%, var(--galaxy-sky) 0%, transparent 56%),
+    linear-gradient(to top, rgba(238, 243, 248, 0.9) 0%, transparent 74%);
+  animation: sofi-space-horizon 22s ease-in-out infinite alternate;
+  z-index: 1;
+}
+
+@keyframes sofi-galaxy-nebula {
+  0% { transform: scale(1) translate(0, 0); opacity: 0.8; }
+  100% { transform: scale(1.08) translate(-2%, 1.5%); opacity: 1; }
+}
+
+@keyframes sofi-galaxy-core {
+  0% { transform: scale(1) translate(0, 0); opacity: 0.75; }
+  100% { transform: scale(1.06) translate(-2%, 3%); opacity: 0.95; }
+}
+
+@keyframes sofi-galaxy-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes sofi-galaxy-dust {
+  0% { transform: translateX(-2%) skewX(-2deg); opacity: 0.12; }
+  100% { transform: translateX(2%) skewX(2deg); opacity: 0.22; }
+}
+
+@keyframes sofi-space-drift-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-3%, 4%) scale(1.05); }
+}
+
+@keyframes sofi-space-drift-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(5%, -3%) scale(1.04); }
+}
+
+@keyframes sofi-space-drift-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.65; }
+  50% { transform: translate(-4%, 2%) scale(1.08); opacity: 0.9; }
+}
+
+@keyframes sofi-space-twinkle {
+  0% { opacity: 0.35; }
+  100% { opacity: 0.6; }
+}
+
+@keyframes sofi-space-twinkle-near {
+  0% { opacity: 0.55; }
+  100% { opacity: 0.85; }
+}
+
+@keyframes sofi-space-shimmer {
+  0%, 100% { background-position: 130% 0; opacity: 0.15; }
+  50% { background-position: -30% 0; opacity: 0.4; }
+}
+
+@keyframes sofi-space-horizon {
+  0% { transform: translateY(0) scaleX(1); opacity: 0.7; }
+  100% { transform: translateY(-2%) scaleX(1.04); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sofi-space-bg__nebula,
+  .sofi-space-bg__galaxy-core,
+  .sofi-space-bg__arm,
+  .sofi-space-bg__orb,
+  .sofi-space-bg__stars,
+  .sofi-space-bg__dust,
+  .sofi-space-bg__shimmer,
+  .sofi-space-bg__horizon {
+    animation: none;
+  }
+}
+
+.sofi-shipping-header {
+  padding-bottom: clamp(3rem, 6vw, 4rem);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  margin-bottom: 0;
+}
+
+/* ─────────────────────────────────────────────
+   Scroll-snap — pure CSS, zero JS, zero dev impact.
+   Sections snap at their top edge (proximity mode).
+   Content-heavy sections (intro, team) snap at top
+   then scroll through normally.
+   FadeInView + chapter-word CSS handle all content
+   animations — no scroll-driven opacity conflicts.
+   ───────────────────────────────────────────── */
+
+html:has(.sofi-landing) {
+  scroll-snap-type: y proximity;
+  scroll-behavior: smooth;
+  scroll-padding-top: 3.5rem;
+}
+
+.sofi-landing section,
+.sofi-landing footer {
+  scroll-snap-align: start;
+  scroll-snap-stop: normal;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:has(.sofi-landing) {
+    scroll-snap-type: none;
+    scroll-behavior: auto;
+  }
+}

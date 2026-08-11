@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { Resend } from "resend"
+import { isAdminRequest } from "@/lib/admin-auth"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -11,6 +12,7 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(req: Request) {
   try {
+    if (!isAdminRequest(req)) return NextResponse.json({ error: "Admin authorization required" }, { status: 401 })
     const { application_id, action } = await req.json()
 
     const { data: app, error } = await supabase
@@ -25,7 +27,10 @@ export async function POST(req: Request) {
 
     if (action === "approve") {
       // Send Supabase invite
-      const { error: inviteError } = await supabase.auth.admin.inviteUserByEmail(app.email)
+      const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || new URL(req.url).origin).replace(/\/$/, "")
+      const { error: inviteError } = await supabase.auth.admin.inviteUserByEmail(app.email, {
+        redirectTo: `${siteUrl}/auth/callback?next=/set-password`,
+      })
       if (inviteError) {
         return NextResponse.json({ error: inviteError.message }, { status: 500 })
       }

@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Bell, CheckCircle, XCircle, Trophy, Flame, Users, Zap, Megaphone, Star } from "lucide-react"
-import Link from "next/link"
+import { memberFetch } from "@/lib/member-fetch"
 
 interface Notification {
   id: string
@@ -11,6 +11,16 @@ interface Notification {
   link: string
   read: boolean
   created_at: string
+}
+
+function timeAgo(dateStr: string, now = Date.now()) {
+  const diff = now - new Date(dateStr).getTime()
+  const m = Math.floor(diff / 60000)
+  if (m < 1) return "just now"
+  if (m < 60) return `${m}m ago`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `${h}h ago`
+  return `${Math.floor(h / 24)}d ago`
 }
 
 function NotifIcon({ type }: { type: string }) {
@@ -34,18 +44,28 @@ function NotifIcon({ type }: { type: string }) {
   )
 }
 
-export function NotificationBell({ codyzaId }: { codyzaId: string }) {
+export function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [open, setOpen] = useState(false)
+  const [now, setNow] = useState(() => Date.now())
   const ref = useRef<HTMLDivElement>(null)
 
   const unread = notifications.filter(n => !n.read).length
 
+  const loadNotifications = useCallback(async () => {
+    const res = await memberFetch("/api/notifications")
+    const data = await res.json()
+    setNotifications(Array.isArray(data) ? data : [])
+    setNow(Date.now())
+  }, [])
+
   useEffect(() => {
-    loadNotifications()
-    const interval = setInterval(loadNotifications, 30000)
+    void loadNotifications()
+    const interval = setInterval(() => {
+      void loadNotifications()
+    }, 30000)
     return () => clearInterval(interval)
-  }, [codyzaId])
+  }, [loadNotifications])
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -55,38 +75,22 @@ export function NotificationBell({ codyzaId }: { codyzaId: string }) {
     return () => document.removeEventListener("mousedown", handleClick)
   }, [])
 
-  const loadNotifications = async () => {
-    const res = await fetch(`/api/notifications?codyza_id=${codyzaId}`)
-    const data = await res.json()
-    setNotifications(data)
-  }
-
   const markAllRead = async () => {
-    await fetch("/api/notifications", {
+    await memberFetch("/api/notifications", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ codyza_id: codyzaId }),
+      body: JSON.stringify({}),
     })
     setNotifications(prev => prev.map(n => ({ ...n, read: true })))
   }
 
   const markRead = async (id: string) => {
-    await fetch("/api/notifications", {
+    await memberFetch("/api/notifications", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     })
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
-  }
-
-  function timeAgo(dateStr: string) {
-    const diff = Date.now() - new Date(dateStr).getTime()
-    const m = Math.floor(diff / 60000)
-    if (m < 1) return "just now"
-    if (m < 60) return `${m}m ago`
-    const h = Math.floor(m / 60)
-    if (h < 24) return `${h}h ago`
-    return `${Math.floor(h / 24)}d ago`
   }
 
   return (
@@ -161,7 +165,7 @@ export function NotificationBell({ codyzaId }: { codyzaId: string }) {
                     {n.message}
                   </p>
                   <p style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 3, fontFamily: "monospace" }}>
-                    {timeAgo(n.created_at)}
+                    {timeAgo(n.created_at, now)}
                   </p>
                 </div>
                 {!n.read && (

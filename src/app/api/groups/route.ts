@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+import { createServiceSupabase, isAdminRequest } from "@/lib/admin-auth"
+import { getRequestMember } from "@/lib/member-auth"
 
 // GET all groups
-export async function GET() {
+export async function GET(req: Request) {
+  const member = await getRequestMember(req)
+  if (!member && !isAdminRequest(req)) return NextResponse.json({ error: "Sign-in required" }, { status: 401 })
+  const supabase = createServiceSupabase()
   const { data: groups, error } = await supabase
     .from("project_groups")
     .select("*")
@@ -45,28 +44,27 @@ export async function GET() {
 // POST create group (admin only)
 export async function POST(req: Request) {
   try {
+    if (!isAdminRequest(req)) return NextResponse.json({ error: "Admin authorization required" }, { status: 401 })
     const body = await req.json()
-    const { name, description, member_ids, roles, created_by } = body
+    const { name, description, member_ids, roles } = body
 
-    if (!name || !created_by) {
-      return NextResponse.json({ error: "Name and creator required" }, { status: 400 })
+    if (!name) {
+      return NextResponse.json({ error: "Name required" }, { status: 400 })
     }
-
-    // Verify creator is admin
+    const supabase = createServiceSupabase()
     const { data: admin } = await supabase
       .from("contributors")
-      .select("is_admin")
-      .eq("codyza_id", created_by)
+      .select("codyza_id")
+      .eq("is_admin", true)
+      .order("joined_at", { ascending: true })
+      .limit(1)
       .maybeSingle()
-
-    if (!admin?.is_admin) {
-      return NextResponse.json({ error: "Only admins can create groups" }, { status: 403 })
-    }
+    if (!admin) return NextResponse.json({ error: "No admin contributor profile configured" }, { status: 409 })
 
     // Create group
     const { data: group, error: groupErr } = await supabase
       .from("project_groups")
-      .insert({ name, description, created_by, status: "planning" })
+      .insert({ name: String(name).slice(0, 160), description: String(description || "").slice(0, 3000), created_by: admin.codyza_id, status: "planning" })
       .select()
       .single()
 
@@ -92,7 +90,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true, group })
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 })
   }
 }

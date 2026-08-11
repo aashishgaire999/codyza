@@ -1,14 +1,17 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { createClient } from "@/lib/supabase"
-import { Zap, CheckCircle, Clock, User, Tag } from "lucide-react"
+import { Zap, CheckCircle, Clock, User } from "lucide-react"
+import { MemberPageHeader } from "@/components/member/member-page-header"
+import { memberFetch } from "@/lib/member-fetch"
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  open:      { label: "Open",      color: "#22c55e", bg: "rgba(34,197,94,0.1)" },
-  claimed:   { label: "Claimed",   color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
-  completed: { label: "Completed", color: "#8b5cf6", bg: "rgba(139,92,246,0.1)" },
-  cancelled: { label: "Cancelled", color: "#ef4444", bg: "rgba(239,68,68,0.1)" },
+const STATUS_CONFIG: Record<string, { label: string; badge: string }> = {
+  open:      { label: "Open",      badge: "bg-success/10 text-success" },
+  claimed:   { label: "Claimed",   badge: "bg-accent/10 text-accent" },
+  completed: { label: "Completed", badge: "bg-accent/10 text-accent" },
+  cancelled: { label: "Cancelled", badge: "bg-destructive/10 text-destructive" },
 }
 
 export default function BountiesPage() {
@@ -18,27 +21,27 @@ export default function BountiesPage() {
   const [filter, setFilter] = useState("open")
   const [claiming, setClaiming] = useState<string | null>(null)
 
-  useEffect(() => { loadData() }, [])
-
   async function loadData() {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user?.email) { window.location.href = "/login"; return }
     const { data: contrib } = await supabase.from("contributors").select("*").eq("email", user.email).maybeSingle()
     setContributor(contrib)
-    const res = await fetch("/api/bounties")
+    const res = await memberFetch("/api/bounties")
     const data = await res.json()
     setBounties(Array.isArray(data) ? data : [])
     setLoading(false)
   }
 
+  useEffect(() => { void loadData() }, [])
+
   async function claimBounty(bountyId: string) {
     if (!contributor) return
     setClaiming(bountyId)
-    await fetch("/api/bounties", {
+    await memberFetch("/api/bounties", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ bounty_id: bountyId, codyza_id: contributor.codyza_id, action: "claim" }),
+      body: JSON.stringify({ bounty_id: bountyId, action: "claim" }),
     })
     await loadData()
     setClaiming(null)
@@ -53,16 +56,20 @@ export default function BountiesPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-1">Bounties</h1>
-        <p className="text-gray-400 text-sm">Pick up a task, build it, earn XP. Posted by admins and leads.</p>
-      </div>
+    <>
+      <MemberPageHeader
+        label="member · bounties"
+        title={
+          <>
+            open <span className="text-accent">bounties</span>
+          </>
+        }
+        description="Small tasks with XP attached. Claim one, finish it, move on."
+      />
 
-      <div className="flex gap-6 items-start">
-        <div className="flex-1 min-w-0">
-          {/* Filter tabs */}
-          <div className="flex gap-1 mb-5 border-b border-white/[0.06]">
+      <div className="flex flex-col items-start gap-6 lg:flex-row">
+        <div className="min-w-0 flex-1">
+          <div className="mb-5 flex gap-1 border-b border-border">
             {[
               { key: "open", label: "Open" },
               { key: "claimed", label: "Claimed" },
@@ -70,11 +77,11 @@ export default function BountiesPage() {
               { key: "all", label: "All" },
             ].map(({ key, label }) => (
               <button key={key} onClick={() => setFilter(key)}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${
-                  filter === key ? "border-purple-500 text-white" : "border-transparent text-gray-500 hover:text-gray-300"
+                className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
+                  filter === key ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}>
                 {label}
-                <span className={`ml-1.5 text-xs ${filter === key ? "text-purple-400" : "text-gray-600"}`}>
+                <span className={`ml-1.5 text-xs ${filter === key ? "text-accent" : "text-muted-foreground"}`}>
                   {counts[key as keyof typeof counts] ?? bounties.length}
                 </span>
               </button>
@@ -83,13 +90,13 @@ export default function BountiesPage() {
 
           {loading ? (
             <div className="space-y-4">
-              {[1,2,3].map(i => <div key={i} className="h-28 animate-pulse bg-white/[0.03] rounded-xl border border-white/[0.06]" />)}
+              {[1,2,3].map(i => <div key={i} className="surface-card h-28 animate-pulse" />)}
             </div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-16 border border-dashed border-white/[0.08] rounded-xl">
-              <Zap className="w-10 h-10 text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-400 font-medium">No {filter} bounties right now.</p>
-              <p className="text-gray-600 text-sm mt-1">Check back soon — admins post new ones regularly.</p>
+            <div className="surface-card border-dashed py-16 text-center">
+              <Zap className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+              <p className="font-medium text-muted-foreground">No {filter} bounties right now.</p>
+              <p className="mt-1 text-sm text-muted-foreground">Check back soon — admins post new ones regularly.</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -99,49 +106,51 @@ export default function BountiesPage() {
                 const isOpen = bounty.status === "open"
 
                 return (
-                  <div key={bounty.id} className={`bg-white/[0.03] border rounded-xl p-5 transition-all hover:border-white/[0.15] ${isClaimed ? "border-yellow-500/20" : "border-white/[0.07]"}`}>
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-2 flex-wrap">
-                          <h3 className="font-bold text-white text-sm">{bounty.title}</h3>
-                          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium" style={{ background: status.bg, color: status.color }}>
-                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: status.color }}></span>
+                  <div key={bounty.id} className={`surface-card p-5 transition-all ${isClaimed ? "border-accent/20" : ""}`}>
+                    <div className="flex flex-col items-start justify-between gap-4 sm:flex-row">
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-2 flex flex-wrap items-center gap-3">
+                          <h3 className="text-sm font-bold text-foreground">{bounty.title}</h3>
+                          <div className={`flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${status.badge}`}>
+                            <span className={`h-1.5 w-1.5 rounded-full ${status.badge.includes("success") ? "bg-success" : status.badge.includes("destructive") ? "bg-destructive" : "bg-accent"}`}></span>
                             {status.label}
                           </div>
                           {isClaimed && (
-                            <span className="px-2 py-0.5 rounded-full text-xs bg-yellow-500/10 border border-yellow-500/20 text-yellow-400">Claimed by you</span>
+                            <span className="rounded-full border border-accent/20 bg-accent/10 px-2 py-0.5 text-xs text-accent">Claimed by you</span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-400 leading-relaxed mb-3">{bounty.description}</p>
+                        <p className="mb-3 text-sm leading-relaxed text-muted-foreground">{bounty.description}</p>
                         {bounty.tech_tags?.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 mb-3">
+                          <div className="mb-3 flex flex-wrap gap-1.5">
                             {bounty.tech_tags.map((t: string) => (
-                              <span key={t} className="px-2 py-0.5 text-[10px] rounded-md bg-purple-500/10 border border-purple-500/20 text-purple-400">{t}</span>
+                              <span key={t} className="rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">{t}</span>
                             ))}
                           </div>
                         )}
-                        <div className="flex items-center gap-4 text-xs text-gray-500">
-                          <span className="flex items-center gap-1"><User className="w-3 h-3" />Posted by {bounty.poster_name}</span>
-                          {bounty.claimer_name && <span className="flex items-center gap-1"><CheckCircle className="w-3 h-3" />Claimed by {bounty.claimer_name}</span>}
-                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{new Date(bounty.posted_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1"><User className="h-3 w-3" />Posted by {bounty.poster_name}</span>
+                          {bounty.claimer_name && <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3" />Claimed by {bounty.claimer_name}</span>}
+                          <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{new Date(bounty.posted_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
                         </div>
                       </div>
-                      <div className="flex flex-col items-end gap-3 flex-shrink-0">
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
-                          <Zap className="w-3.5 h-3.5 text-yellow-400" />
-                          <span className="text-sm font-bold text-yellow-400">+{bounty.xp_reward} XP</span>
+                      <div className="flex w-full flex-shrink-0 flex-row items-center justify-between gap-3 sm:w-auto sm:flex-col sm:items-end">
+                        <div className="flex items-center gap-1.5 rounded-xl border border-accent/20 bg-accent/10 px-3 py-1.5">
+                          <Zap className="h-3.5 w-3.5 text-accent" />
+                          <span className="text-sm font-bold text-accent">+{bounty.xp_reward} XP</span>
                         </div>
                         {isOpen && !isClaimed && (
                           <button
                             onClick={() => claimBounty(bounty.id)}
                             disabled={claiming === bounty.id}
-                            className="px-4 py-2 text-xs font-semibold rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+                            className="btn-primary rounded-full px-4 py-2 text-xs font-semibold disabled:opacity-50"
                           >
                             {claiming === bounty.id ? "Claiming..." : "Claim bounty"}
                           </button>
                         )}
                         {isClaimed && (
-                          <span className="text-xs text-yellow-400 font-medium">Submit via Projects →</span>
+                          <Link href={`/member/projects?bounty=${bounty.id}`} className="text-xs font-medium text-accent hover:underline">
+                            Submit via Projects
+                          </Link>
                         )}
                       </div>
                     </div>
@@ -152,40 +161,39 @@ export default function BountiesPage() {
           )}
         </div>
 
-        {/* RIGHT: Info panel */}
         <div className="w-72 flex-shrink-0">
-          <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-5 sticky top-24">
-            <h3 className="font-semibold text-white text-sm mb-3">How Bounties Work</h3>
+          <div className="surface-card sticky top-24 p-5">
+            <h3 className="mb-3 text-sm font-semibold text-foreground">How Bounties Work</h3>
             <div className="space-y-3">
               {[
-                { step: "1", color: "#22c55e", text: "Browse open bounties and find one that fits your skills" },
-                { step: "2", color: "#3b82f6", text: "Claim it — it's locked to you for 7 days" },
-                { step: "3", color: "#8b5cf6", text: "Build it and submit via the Projects page" },
-                { step: "4", color: "#f59e0b", text: "Admin approves → XP auto-awarded to your profile" },
-              ].map(({ step, color, text }) => (
+                { step: "1", text: "Browse open bounties and find one that fits your skills" },
+                { step: "2", text: "Claim it — it's locked to you for 7 days" },
+                { step: "3", text: "Build it and submit via the Projects page" },
+                { step: "4", text: "Admin approval awards XP to your profile" },
+              ].map(({ step, text }) => (
                 <div key={step} className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold" style={{ background: `${color}18`, border: `1px solid ${color}30`, color }}>
+                  <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border border-accent/20 bg-accent/10 text-xs font-bold text-accent">
                     {step}
                   </div>
-                  <p className="text-xs text-gray-400 leading-relaxed">{text}</p>
+                  <p className="text-xs leading-relaxed text-muted-foreground">{text}</p>
                 </div>
               ))}
             </div>
-            <div className="mt-4 pt-4 border-t border-white/[0.06]">
+            <div className="mt-4 border-t border-border pt-4">
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-3 text-center">
-                  <div className="text-lg font-bold text-green-400">{counts.open}</div>
-                  <div className="text-[10px] text-gray-500">Open</div>
+                <div className="arcade-stat p-3 text-center">
+                  <div className="text-lg font-bold text-success">{counts.open}</div>
+                  <div className="text-[10px] text-muted-foreground">Open</div>
                 </div>
-                <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-3 text-center">
-                  <div className="text-lg font-bold text-yellow-400">{counts.claimed}</div>
-                  <div className="text-[10px] text-gray-500">Claimed</div>
+                <div className="arcade-stat p-3 text-center">
+                  <div className="text-lg font-bold text-accent">{counts.claimed}</div>
+                  <div className="text-[10px] text-muted-foreground">Claimed</div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }

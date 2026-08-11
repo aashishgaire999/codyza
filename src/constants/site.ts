@@ -4,19 +4,19 @@ export const SITE_CONFIG = {
   url: "https://codyza.com",
   tagline: "Build. Learn. Deploy. Grow Together.",
   description:
-    "A futuristic developer ecosystem where beginners and intermediates collaborate on real-world projects, build SaaS products, deploy AI tools, and grow through gamified contributor systems.",
-  ogImage: "/og-image.png",
+    "A community of devs, designers, and dreamers shipping real projects together. Not a bootcamp. Not another chat server. Free to join, built to last.",
+  ogImage: "/logo/codyza-logo.png",
   email: "team@codyza.com",
   hrEmail: "hiring@codyza.com",
   standupDay: "Tuesday",
   standupTime: "6pm UTC",
-  reviewCycle: "48h",
+  reviewCycle: "48 hours",
 } as const
 
 export const BRAND_COLORS = {
   background: "#050508",
   purple: "#8b5cf6",
-  blue: "#3b82f6",
+  blue: "#302bfb",
   cyan: "#06b6d4",
   green: "#22c55e",
 } as const
@@ -30,6 +30,8 @@ export const SOCIAL_LINKS = {
 
 export const NAV_LINKS: { label: string; href: string }[] = [
   { label: "Projects", href: "/projects" },
-  { label: "Leaderboard", href: "/leaderboard" },
-  { label: "Team", href: "/#team" },
+  { label: "Community", href: "/community" },
+  { label: "News", href: "/news" },
+  { label: "About", href: "/about" },
+  { label: "Quest", href: "/quest" },
 ]

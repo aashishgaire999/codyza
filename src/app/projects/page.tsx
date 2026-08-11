@@ -1,170 +1,123 @@
-import { Metadata } from "next"
+import type { Metadata } from "next"
 import Link from "next/link"
+import { GitBranch, Globe } from "lucide-react"
 import { createClient } from "@/lib/supabase"
-import { Globe, GitBranch, Zap, Search } from "lucide-react"
-import { SmartNavbar } from "@/components/shared/smart-navbar"
-import { GalaxyBackground } from "@/components/effects/galaxy-background"
+import { PublicShell } from "@/components/shared/public-shell"
+import { FadeInView } from "@/components/effects/fade-in-view"
 
 export const metadata: Metadata = {
-  title: "Projects | Codyza",
-  description: "Real projects shipped by the Codyza community.",
+  title: "Projects",
+  description: "The public record of work shipped by Codyza builders.",
 }
 
 export const revalidate = 60
 
-async function getProjects() {
+type ProjectRecord = {
+  project_name: string
+  github_url: string | null
+  live_url: string | null
+  description: string | null
+  tech_stack: string[] | null
+  xp_earned: number | null
+  codyza_id: string | null
+  created_at: string | null
+}
+
+async function getProjects(): Promise<ProjectRecord[]> {
   const supabase = createClient()
   const { data } = await supabase
     .from("submissions")
-    .select("project_name, github_url, live_url, description, tech_stack, ai_score, xp_earned, codyza_id, created_at")
+    .select("project_name, github_url, live_url, description, tech_stack, xp_earned, codyza_id, created_at")
     .eq("status", "approved")
     .order("created_at", { ascending: false })
+
   return data || []
 }
 
-async function getStats() {
-  const supabase = createClient()
-  const { count: total } = await supabase.from("submissions").select("*", { count: "exact", head: true }).eq("status", "approved")
-  const { count: members } = await supabase.from("contributors").select("*", { count: "exact", head: true })
-  return { total: total || 0, members: members || 0 }
-}
-
-export default async function ProjectsPage() {
-  const [projects, stats] = await Promise.all([getProjects(), getStats()])
-
-  const allTech = Array.from(new Set(projects.flatMap(p => p.tech_stack || []))).sort()
+export default async function ProjectsPage({ searchParams }: { searchParams: Promise<{ tech?: string }> }) {
+  const projects = await getProjects()
+  const { tech } = await searchParams
+  const selectedTech = tech?.trim() || ""
+  const allTech = Array.from(new Set(projects.flatMap((project) => project.tech_stack || []))).sort()
+  const visibleProjects = selectedTech
+    ? projects.filter((project) => project.tech_stack?.some((item) => item.toLowerCase() === selectedTech.toLowerCase()))
+    : projects
 
   return (
-    <div className="min-h-screen text-white" style={{background:"linear-gradient(135deg,#0f0c1a 0%,#130d24 50%,#0c1220 100%)"}}>
-      <GalaxyBackground />
-
-      <SmartNavbar />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/30 bg-green-500/8 mb-5">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse inline-block"></span>
-            <span className="font-mono text-xs uppercase tracking-widest text-green-400">Live Projects</span>
-          </div>
-          <h1 className="text-5xl font-black tracking-tight mb-4">
-            Built by the{" "}
-            <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
-              crew.
-            </span>
-          </h1>
-          <p className="text-gray-400 text-lg max-w-xl mx-auto">
-            Real projects shipped by real people. No tutorials. No clones.
-          </p>
-        </div>
-
-        {/* Stats strip */}
-        <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto mb-12">
-          <div className="text-center p-4 rounded-xl bg-white/[0.03] border border-white/8">
-            <p className="text-2xl font-black text-purple-400">{stats.total}</p>
-            <p className="text-xs font-mono uppercase tracking-wider text-gray-500 mt-1">Projects</p>
-          </div>
-          <div className="text-center p-4 rounded-xl bg-white/[0.03] border border-white/8">
-            <p className="text-2xl font-black text-blue-400">{stats.members}</p>
-            <p className="text-xs font-mono uppercase tracking-wider text-gray-500 mt-1">Members</p>
-          </div>
-          <div className="text-center p-4 rounded-xl bg-white/[0.03] border border-white/8">
-            <p className="text-2xl font-black text-cyan-400">{allTech.length}</p>
-            <p className="text-xs font-mono uppercase tracking-wider text-gray-500 mt-1">Tech Used</p>
+    <PublicShell>
+      <section className="cz-page-hero px-5 sm:px-8 lg:px-10">
+        <div className="mx-auto max-w-[1320px]">
+          <FadeInView variant="subtle"><p className="cz-micro">public record / projects</p></FadeInView>
+          <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_0.45fr] lg:items-end">
+            <FadeInView variant="headline" delay={60}>
+              <h1 className="cz-display max-w-4xl">work is the résumé.</h1>
+            </FadeInView>
+            <FadeInView variant="subtle" delay={150}>
+              <p className="cz-body max-w-md">Every approved launch records what was built, who owned it, and where the work lives.</p>
+            </FadeInView>
           </div>
         </div>
+      </section>
 
-        {/* Projects grid */}
-        {projects.length === 0 ? (
-          <div className="text-center py-24">
-            <p className="text-gray-500 text-lg">No approved projects yet.</p>
-            <Link href="/apply" className="mt-4 inline-block text-purple-400 hover:text-purple-300 transition-colors text-sm">
-              Join and be the first →
-            </Link>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {projects.map((project, i) => {
-              const scoreColor = project.ai_score >= 8 ? "#22c55e" : project.ai_score >= 6 ? "#a78bfa" : "#f59e0b"
-              return (
-                <div key={i} className="group flex flex-col rounded-2xl border border-white/8 bg-white/[0.03] hover:border-purple-500/30 hover:bg-white/[0.05] transition-all duration-300 overflow-hidden">
+      <section className="cz-section cz-border-t px-5 sm:px-8 lg:px-10">
+        <div className="mx-auto max-w-[1320px]">
+          {allTech.length > 0 && (
+            <nav className="cz-filter-row" aria-label="Filter projects by technology">
+              <Link href="/projects" aria-current={!selectedTech ? "page" : undefined} className="cz-filter-link">all work</Link>
+              {allTech.map((item) => (
+                <Link
+                  key={item}
+                  href={`/projects?tech=${encodeURIComponent(item)}`}
+                  aria-current={selectedTech.toLowerCase() === item.toLowerCase() ? "page" : undefined}
+                  className="cz-filter-link"
+                >
+                  {item.toLowerCase()}
+                </Link>
+              ))}
+            </nav>
+          )}
 
-                  {/* Top bar */}
-                  <div className="flex items-center justify-between px-5 pt-5 pb-0">
-                    <span className="font-mono text-xs text-gray-500">{project.codyza_id}</span>
-                    <div className="flex items-center gap-2">
-                      {project.ai_score && (
-                        <span style={{ color: scoreColor }} className="font-mono text-sm font-bold">
-                          {project.ai_score}/10
-                        </span>
-                      )}
-                      <span className="flex items-center gap-1 text-xs text-yellow-400 font-semibold">
-                        <Zap size={11} />
-                        +{project.xp_earned}
-                      </span>
+          <div className="cz-ledger mt-10">
+            <div className="cz-ledger-head" aria-hidden>
+              <span>project</span><span>builder</span><span>proof</span><span>state</span>
+            </div>
+            {projects.length === 0 ? (
+              <div className="cz-ledger-empty">
+                <div><p className="cz-micro">an honest beginning</p><h2>No approved launches are public yet.</h2></div>
+                <div><p className="cz-body max-w-md">We would rather show an empty record than fill this page with fictional work.</p><Link href="/join" className="cz-inline-link mt-6">build the first one with us</Link></div>
+              </div>
+            ) : visibleProjects.length === 0 ? (
+              <div className="cz-ledger-empty">
+                <div><p className="cz-micro">nothing filed here yet</p><h2>No projects use {selectedTech}.</h2></div>
+                <Link href="/projects" className="cz-inline-link">clear the filter</Link>
+              </div>
+            ) : (
+              visibleProjects.map((project, index) => (
+                <FadeInView key={`${project.project_name}-${project.codyza_id}-${index}`} delay={Math.min(index * 50, 250)}>
+                  <article className="cz-ledger-row">
+                    <div>
+                      <p className="cz-ledger-index">{String(index + 1).padStart(2, "0")}</p>
+                      <h2>{project.project_name}</h2>
+                      <p className="cz-ledger-description">{project.description || "An approved Codyza build."}</p>
+                      <div className="cz-ledger-tech">{(project.tech_stack || []).slice(0, 5).map((item) => <span key={item}>{item}</span>)}</div>
                     </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1 p-5">
-                    <h3 className="font-bold text-base mb-2 group-hover:text-purple-300 transition-colors leading-snug">
-                      {project.project_name}
-                    </h3>
-                    <p className="text-sm text-gray-400 leading-relaxed line-clamp-3 mb-4">
-                      {project.description}
-                    </p>
-
-                    {/* Tech tags */}
-                    {project.tech_stack?.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5">
-                        {project.tech_stack.slice(0, 5).map((t: string) => (
-                          <span key={t} className="px-2 py-0.5 rounded-md text-xs bg-purple-500/10 border border-purple-500/20 text-purple-300">
-                            {t}
-                          </span>
-                        ))}
-                        {project.tech_stack.length > 5 && (
-                          <span className="px-2 py-0.5 rounded-md text-xs border border-white/[0.08] text-gray-500" style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(12px)"}}>
-                            +{project.tech_stack.length - 5}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Footer links */}
-                  <div className="flex items-center gap-3 px-5 py-4 border-t border-white/5">
-                    <a href={project.github_url} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors">
-                      <GitBranch size={12} /> GitHub
-                    </a>
-                    {project.live_url && (
-                      <a href={project.live_url} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors">
-                        <Globe size={12} /> Live Demo
-                      </a>
-                    )}
-                    <Link href={`/contributor/${project.codyza_id.toLowerCase()}`}
-                      className="ml-auto text-xs text-purple-400 hover:text-purple-300 transition-colors">
-                      View profile →
-                    </Link>
-                  </div>
-                </div>
-              )
-            })}
+                    <div>
+                      {project.codyza_id ? <Link href={`/contributor/${project.codyza_id.toLowerCase()}`} className="cz-ledger-builder">{project.codyza_id.toLowerCase()}</Link> : <span className="cz-footer-muted">crew record</span>}
+                    </div>
+                    <div className="cz-ledger-links">
+                      {project.github_url && <a href={project.github_url} target="_blank" rel="noopener noreferrer"><GitBranch aria-hidden /> code</a>}
+                      {project.live_url && <a href={project.live_url} target="_blank" rel="noopener noreferrer"><Globe aria-hidden /> live</a>}
+                    </div>
+                    <span className="cz-project-state">approved</span>
+                  </article>
+                </FadeInView>
+              ))
+            )}
           </div>
-        )}
 
-        {/* CTA */}
-        <div className="mt-16 text-center p-10 rounded-2xl border border-white/8 bg-white/[0.02]"
-          style={{ background: "radial-gradient(ellipse at center, rgba(139,92,246,0.06) 0%, transparent 70%)" }}>
-          <h2 className="text-2xl font-black mb-2">Want your project here?</h2>
-          <p className="text-gray-400 mb-6 text-sm">Apply to join Codyza, ship something real, and get reviewed by AI.</p>
-          <Link href="/apply" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 font-bold text-sm hover:opacity-90 transition-opacity">
-            Apply to Join →
-          </Link>
+          <div className="mt-16 flex justify-center"><Link href="/join" className="cz-pill cz-pill-solid">bring your project to the crew</Link></div>
         </div>
-      </div>
-    </div>
+      </section>
+    </PublicShell>
   )
 }

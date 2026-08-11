@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { Sparkles, ArrowRight, ArrowLeft, Check, Loader2, Mail, GitBranch as Github, X } from "lucide-react"
+import { Sparkles, Check, Loader2, Mail, GitBranch as Github, X } from "lucide-react"
 import Image from "next/image"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -67,10 +67,10 @@ const SKILL_SUGGESTIONS = [
 ]
 
 const ROADMAP = [
-  { num: "01", color: "#8b5cf6", title: "You write 5 honest answers", desc: "About 3 minutes total" },
-  { num: "02", color: "#3b82f6", title: "A founder reads every one", desc: "Within 48 hours" },
-  { num: "03", color: "#06b6d4", title: "You get a Codyza ID", desc: "Something like CZX-0042" },
-  { num: "04", color: "#22c55e", title: "You join the next standup", desc: "Welcome to the crew" },
+  { num: "01", color: "var(--cz-accent-2)", title: "Five short answers", desc: "Roughly three minutes" },
+  { num: "02", color: "var(--cz-accent)", title: "A founder reads it", desc: `Within ${SITE_CONFIG.reviewCycle}` },
+  { num: "03", color: "var(--cz-accent-2)", title: "You get a CZX ID", desc: "Yours to keep" },
+  { num: "04", color: "var(--cz-accent)", title: "First standup", desc: `${SITE_CONFIG.standupDay}, ${SITE_CONFIG.standupTime}` },
 ]
 
 interface GhUser {
@@ -274,22 +274,10 @@ export function ApplySection() {
   const showCharCount = step === 4 && whyValue.length >= 20
 
   return (
-    <section
-      id="apply"
-      className="relative scroll-mt-32 border-t border-white/[0.04] bg-background py-20"
-    >
+    <section id="apply" className="relative scroll-mt-32 pb-12">
       <div className="mx-auto max-w-6xl px-6 md:px-8">
 
-        {/* HEADER */}
-        <div className="mb-12 text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[10px] font-mono uppercase tracking-widest text-zinc-400">
-            <Sparkles className="h-3 w-3 text-[#8b5cf6]" />
-            Apply To Join
-          </div>
-          <h2 className="font-[family-name:var(--font-heading)] text-4xl font-bold tracking-tight text-white md:text-5xl">
-            Ready to <span className="text-gradient-codyza">build with us?</span>
-          </h2>
-        </div>
+        {/* HEADER removed — EditorialHero on apply page */}
 
         {submitted ? (
           <div className="mx-auto max-w-2xl">
@@ -297,25 +285,25 @@ export function ApplySection() {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className="rounded-2xl border border-[#22c55e]/20 bg-[#22c55e]/[0.04] p-10 text-center"
+              className="rounded-2xl border border-[var(--journal-sage)]/25 bg-[var(--journal-sage)]/[0.06] p-10 text-center"
             >
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-[#22c55e]/10"
+                className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--journal-sage)]/10"
               >
-                <Check className="h-7 w-7 text-[#22c55e]" />
+                <Check className="h-7 w-7 text-[var(--journal-sage)]" />
               </motion.div>
-              <h3 className="font-[family-name:var(--font-heading)] text-3xl font-semibold text-white">
-                You are in.
+              <h3 className="font-[family-name:var(--font-instrument)] text-3xl lowercase text-black">
+                got it — we&apos;ll read this.
               </h3>
-              <p className="mx-auto mt-3 max-w-md text-sm text-zinc-400">
-                Your application is in front of us. Our team will review and get in touch with you.
+              <p className="mx-auto mt-3 max-w-md text-sm text-black/50">
+                Your application is in our queue. Someone on the team will reply by email.
               </p>
               {replyByDate && (
-                <p className="mx-auto mt-2 max-w-md text-sm text-zinc-500">
-                  Expect a reply by <span className="text-zinc-300">{replyByDate}</span>.
+                <p className="mx-auto mt-2 max-w-md text-sm text-black/45">
+                  Expect a reply by <span className="text-black/70">{replyByDate}</span>.
                 </p>
               )}
             </motion.div>
@@ -326,11 +314,11 @@ export function ApplySection() {
             {/* LEFT: Roadmap */}
             <div>
               <div className="lg:sticky lg:top-28">
-                <div className="mb-3 text-[10px] font-mono uppercase tracking-[0.3em] text-zinc-500">
-                  What happens next
+                <div className="mb-3 journal-label">
+                  what happens next
                 </div>
-                <h3 className="mb-6 text-xl font-semibold leading-tight text-white">
-                  Apply once. We handle the rest.
+                <h3 className="mb-6 font-[family-name:var(--font-instrument)] text-xl lowercase leading-tight text-black">
+                  one form. then we take it from here.
                 </h3>
                 <div className="flex flex-col gap-4">
                   {ROADMAP.map((s, i) => {
@@ -351,31 +339,34 @@ export function ApplySection() {
                           {s.num}
                         </div>
                         <div>
-                          <div className="text-sm font-medium text-white">{s.title}</div>
-                          <div className="text-xs text-zinc-500">{s.desc}</div>
+                          <div className="text-sm font-medium text-black">{s.title}</div>
+                          <div className="text-xs text-black/45">{s.desc}</div>
                         </div>
                       </div>
                     )
                   })}
                 </div>
-                <div className="mt-7 border-t border-white/[0.06] pt-5">
-                  <div className="text-xs text-zinc-500">Got questions first?</div>
-                  <div className="mt-1 flex items-center gap-2 text-sm text-blue-400">
+                <div className="mt-7 border-t border-black/10 pt-5">
+                  <div className="text-xs text-black/45">Questions before you apply?</div>
+                  <a
+                    href={`mailto:${SITE_CONFIG.email}`}
+                    className="mt-1 flex items-center gap-2 text-sm text-[var(--journal-sage)] transition-opacity hover:opacity-80"
+                  >
                     <Mail className="h-3.5 w-3.5" />
                     {SITE_CONFIG.email}
-                  </div>
+                  </a>
                 </div>
               </div>
             </div>
 
             {/* RIGHT: Conversational form */}
             <div
-              className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 md:p-8"
+              className="journal-form-card p-6 md:p-8"
               onKeyDown={onKeyDown}
             >
               {/* Progress */}
               <div className="mb-7 flex items-center justify-between">
-                <div className="font-mono text-[10px] uppercase tracking-widest text-zinc-500">
+                <div className="font-mono text-[10px] uppercase tracking-widest text-black/45">
                   Question {step + 1} / {STEPS.length}
                 </div>
                 <div className="flex gap-1.5">
@@ -383,7 +374,7 @@ export function ApplySection() {
                     <div
                       key={i}
                       className={`h-1 w-6 rounded-full transition-colors duration-300 ${
-                        i <= step ? "bg-[#8b5cf6]" : "bg-white/[0.08]"
+                        i <= step ? "bg-[var(--cz-accent-2)]" : "bg-black/[0.08]"
                       }`}
                     />
                   ))}
@@ -402,11 +393,11 @@ export function ApplySection() {
                     {/* STEP 0 — Name + Email */}
                     {step === 0 && (
                       <div>
-                        <h4 className="mb-1 text-2xl font-semibold leading-tight text-white">
-                          Who are you?
+                        <h4 className="mb-1 font-[family-name:var(--font-instrument)] text-3xl lowercase leading-tight text-black">
+                          who are you?
                         </h4>
-                        <p className="mb-5 text-sm text-zinc-500">
-                          Your name and email. We will not share or sell it.
+                        <p className="mb-5 text-sm text-black/55">
+                          Your name and email. We won&apos;t share or sell it.
                         </p>
                         <div className="space-y-3">
                           <Input placeholder="Your name" autoFocus {...register("name")} />
@@ -424,7 +415,7 @@ export function ApplySection() {
                               <motion.div
                                 initial={{ opacity: 0, y: -4 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="absolute left-0 right-0 top-full z-10 mt-1 overflow-hidden rounded-md border border-white/[0.08] bg-[#0a0a0f] shadow-xl"
+                                className="absolute left-0 right-0 top-full z-10 mt-1 overflow-hidden rounded-md border border-black/10 bg-white shadow-xl"
                               >
                                 {filteredEmailDomains.map((d) => (
                                   <button
@@ -438,9 +429,9 @@ export function ApplySection() {
                                       })
                                       setEmailDomainPicked(true)
                                     }}
-                                    className="flex w-full items-center px-3 py-2 text-left text-sm text-zinc-300 transition-colors hover:bg-white/[0.04] hover:text-white"
+                                    className="flex w-full items-center px-3 py-2 text-left text-sm text-black/70 transition-colors hover:bg-black/[0.04] hover:text-black"
                                   >
-                                    <span className="text-zinc-500">{emailLocalPart}@</span>
+                                    <span className="text-black/45">{emailLocalPart}@</span>
                                     <span>{d}</span>
                                   </button>
                                 ))}
@@ -457,10 +448,10 @@ export function ApplySection() {
                     {/* STEP 1 — GitHub */}
                     {step === 1 && (
                       <div>
-                        <h4 className="mb-1 text-2xl font-semibold leading-tight text-white">
-                          Where do you build?
+                        <h4 className="mb-1 font-[family-name:var(--font-instrument)] text-3xl lowercase leading-tight text-black">
+                          where do you build?
                         </h4>
-                        <p className="mb-5 text-sm text-zinc-500">
+                        <p className="mb-5 text-sm text-black/55">
                           Just your GitHub username.
                         </p>
                         <div className="relative">
@@ -470,7 +461,7 @@ export function ApplySection() {
                             {...register("github")}
                           />
                           {ghLoading && (
-                            <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-zinc-500" />
+                            <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-black/45" />
                           )}
                         </div>
                         {errors.github && (
@@ -494,11 +485,11 @@ export function ApplySection() {
                                 className="rounded-full"
                               />
                               <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-1.5 text-sm font-medium text-white truncate">
-                                  <Github className="h-3.5 w-3.5 text-zinc-400 flex-shrink-0" />
+                                <div className="flex items-center gap-1.5 text-sm font-medium text-black truncate">
+                                  <Github className="h-3.5 w-3.5 text-black/50 flex-shrink-0" />
                                   <span className="truncate">{ghUser.name || ghUser.login}</span>
                                 </div>
-                                <div className="text-xs text-zinc-500">
+                                <div className="text-xs text-black/45">
                                   @{ghUser.login} &middot; {ghUser.public_repos} repos
                                 </div>
                               </div>
@@ -510,9 +501,9 @@ export function ApplySection() {
                               initial={{ opacity: 0, y: 8 }}
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: 8 }}
-                              className="mt-3 flex items-center gap-2 text-xs text-zinc-500"
+                              className="mt-3 flex items-center gap-2 text-xs text-black/45"
                             >
-                              <X className="h-3 w-3 text-zinc-500" />
+                              <X className="h-3 w-3 text-black/45" />
                               No GitHub user with that username. Double-check?
                             </motion.div>
                           )}
@@ -523,10 +514,10 @@ export function ApplySection() {
                     {/* STEP 2 — Skills (chip UI) */}
                     {step === 2 && (
                       <div>
-                        <h4 className="mb-1 text-2xl font-semibold leading-tight text-white">
-                          What are you good at?
+                        <h4 className="mb-1 font-[family-name:var(--font-instrument)] text-3xl lowercase leading-tight text-black">
+                          what are you good at?
                         </h4>
-                        <p className="mb-5 text-sm text-zinc-500">
+                        <p className="mb-5 text-sm text-black/55">
                           Pick from common ones or type your own. Press Enter or comma to add.
                         </p>
 
@@ -534,17 +525,17 @@ export function ApplySection() {
                         <input type="hidden" {...register("skills")} />
 
                         {/* Selected chips + input */}
-                        <div className="flex flex-wrap items-center gap-2 rounded-md border border-white/[0.08] bg-white/[0.02] p-2.5">
+                        <div className="flex flex-wrap items-center gap-2 rounded-md border border-black/10 bg-white p-2.5">
                           {skillsArray.map((s) => (
                             <span
                               key={s}
-                              className="inline-flex items-center gap-1.5 rounded-full border border-[#8b5cf6]/30 bg-[#8b5cf6]/10 px-2.5 py-1 text-xs text-white"
+                              className="inline-flex items-center gap-1.5 rounded-full border border-[var(--cz-accent-2)]/30 bg-[var(--cz-accent-2)]/10 px-2.5 py-1 text-xs text-black"
                             >
                               {s}
                               <button
                                 type="button"
                                 onClick={() => removeSkill(s)}
-                                className="text-zinc-400 transition-colors hover:text-white"
+                                className="text-black/50 transition-colors hover:text-black"
                                 aria-label={`Remove ${s}`}
                               >
                                 <X className="h-3 w-3" />
@@ -562,7 +553,7 @@ export function ApplySection() {
                                 : "Add another…"
                             }
                             autoFocus
-                            className="flex-1 min-w-[120px] bg-transparent text-sm text-white placeholder:text-zinc-600 focus:outline-none"
+                            className="flex-1 min-w-[120px] bg-transparent text-sm text-black/40 placeholder:text-black/35 focus:outline-none"
                           />
                         </div>
                         {errors.skills && (
@@ -571,7 +562,7 @@ export function ApplySection() {
 
                         {/* Suggestions */}
                         <div className="mt-4">
-                          <div className="mb-2 text-[10px] font-mono uppercase tracking-widest text-zinc-500">
+                          <div className="mb-2 text-[10px] font-mono uppercase tracking-widest text-black/45">
                             Suggestions
                           </div>
                           <div className="flex flex-wrap gap-1.5">
@@ -584,8 +575,8 @@ export function ApplySection() {
                                   onClick={() => toggleSkill(s)}
                                   className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs transition-colors ${
                                     isSelected
-                                      ? "border-[#8b5cf6]/40 bg-[#8b5cf6]/15 text-white"
-                                      : "border-white/[0.08] bg-white/[0.02] text-zinc-400 hover:text-white"
+                                      ? "border-[var(--cz-accent-2)]/40 bg-[var(--cz-accent-2)]/15 text-black"
+                                      : "border-black/10 bg-white text-black/50 hover:text-black"
                                   }`}
                                 >
                                   {s}
@@ -600,13 +591,13 @@ export function ApplySection() {
                     {/* STEP 3 — Role + Level */}
                     {step === 3 && (
                       <div>
-                        <h4 className="mb-1 text-2xl font-semibold leading-tight text-white">
-                          Where would you fit in?
+                        <h4 className="mb-1 font-[family-name:var(--font-instrument)] text-3xl lowercase leading-tight text-black">
+                          where would you fit in?
                         </h4>
-                        <p className="mb-5 text-sm text-zinc-500">
+                        <p className="mb-5 text-sm text-black/55">
                           Pick one area, and where you are at.
                         </p>
-                        <div className="mb-2 text-xs text-zinc-400">Role interest</div>
+                        <div className="mb-2 text-xs text-black/50">Role interest</div>
                         <div className="mb-5 flex flex-wrap gap-2">
                           {ROLES.map((r) => (
                             <label key={r.value} className="cursor-pointer">
@@ -619,8 +610,8 @@ export function ApplySection() {
                               <span
                                 className={`inline-flex items-center rounded-full border px-3.5 py-1.5 text-xs transition-colors ${
                                   roleValue === r.value
-                                    ? "border-[#8b5cf6] bg-[#8b5cf6]/15 text-white"
-                                    : "border-white/[0.08] bg-white/[0.02] text-zinc-400 hover:text-white"
+                                    ? "border-[var(--cz-accent-2)] bg-[var(--cz-accent-2)]/15 text-black"
+                                    : "border-black/10 bg-white text-black/50 hover:text-black"
                                 }`}
                               >
                                 {r.label}
@@ -631,7 +622,7 @@ export function ApplySection() {
                         {errors.role && (
                           <p className="mb-3 text-xs text-red-400">{errors.role.message}</p>
                         )}
-                        <div className="mb-2 text-xs text-zinc-400">Experience level</div>
+                        <div className="mb-2 text-xs text-black/50">Experience level</div>
                         <div className="flex flex-wrap gap-2">
                           {LEVELS.map((l) => (
                             <label key={l.value} className="cursor-pointer">
@@ -644,8 +635,8 @@ export function ApplySection() {
                               <span
                                 className={`inline-flex items-center rounded-full border px-3.5 py-1.5 text-xs transition-colors ${
                                   levelValue === l.value
-                                    ? "border-[#3b82f6] bg-[#3b82f6]/15 text-white"
-                                    : "border-white/[0.08] bg-white/[0.02] text-zinc-400 hover:text-white"
+                                    ? "border-[var(--journal-sage)] bg-[var(--journal-sage)]/15 text-black"
+                                    : "border-black/10 bg-white text-black/50 hover:text-black"
                                 }`}
                               >
                                 {l.label}
@@ -662,20 +653,20 @@ export function ApplySection() {
                     {/* STEP 4 — Why */}
                     {step === 4 && (
                       <div>
-                        <div className="mb-1 text-xs uppercase tracking-widest text-[#8b5cf6]">
-                          This one matters most.
+                        <div className="mb-1 text-xs uppercase tracking-widest text-[var(--journal-terracotta)]">
+                          this one matters most.
                         </div>
-                        <h4 className="mb-1 text-2xl font-semibold leading-tight text-white">
-                          Why Codyza?
+                        <h4 className="mb-1 font-[family-name:var(--font-instrument)] text-3xl lowercase leading-tight text-black">
+                          why codyza?
                         </h4>
-                        <p className="mb-5 text-sm text-zinc-500">
+                        <p className="mb-5 text-sm text-black/55">
                           We read every word. Honest beats polished.
                         </p>
                         <div
                           className={`rounded-md border transition-colors ${
                             whyValue.length >= 20
-                              ? "border-[#8b5cf6]/30"
-                              : "border-white/[0.08]"
+                              ? "border-[var(--cz-accent-2)]/30"
+                              : "border-black/10"
                           }`}
                         >
                           <Textarea
@@ -693,14 +684,14 @@ export function ApplySection() {
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
-                                className="text-zinc-600"
+                                className="text-black/40"
                               >
                                 Tell us what you want to build, learn, or just why you are here.
                               </motion.span>
                             )}
                           </AnimatePresence>
                           {showCharCount && (
-                            <span className="ml-auto font-mono text-zinc-500">
+                            <span className="ml-auto font-mono text-black/45">
                               {whyValue.length} chars
                             </span>
                           )}
@@ -719,25 +710,23 @@ export function ApplySection() {
                     type="button"
                     onClick={backStep}
                     disabled={step === 0}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.08] bg-white/[0.02] px-3.5 py-2 text-xs text-zinc-400 transition-colors hover:text-white disabled:opacity-30"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-black/10 bg-white px-3.5 py-2 text-xs text-black/50 transition-colors hover:text-black disabled:opacity-30"
                   >
-                    <ArrowLeft className="h-3.5 w-3.5" />
                     Back
                   </button>
                   {step < STEPS.length - 1 ? (
                     <button
                       type="button"
                       onClick={nextStep}
-                      className="group inline-flex items-center gap-1.5 rounded-md bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6] px-5 py-2 text-xs font-medium text-white transition-opacity hover:opacity-90"
+                      className="group inline-flex items-center gap-1.5 rounded-md bg-black px-5 py-2 text-xs font-medium text-white transition-opacity hover:opacity-90"
                     >
                       Next
-                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                     </button>
                   ) : (
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="group inline-flex items-center gap-1.5 rounded-md bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6] px-5 py-2 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                      className="group inline-flex items-center gap-1.5 rounded-md bg-black px-5 py-2 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
                     >
                       {isSubmitting ? (
                         <>
@@ -747,7 +736,6 @@ export function ApplySection() {
                       ) : (
                         <>
                           Submit application
-                          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                         </>
                       )}
                     </button>
@@ -760,7 +748,7 @@ export function ApplySection() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="mt-3 text-[11px] text-zinc-600"
+                      className="mt-3 text-[11px] text-black/40"
                     >
                       Press Enter to continue
                     </motion.div>

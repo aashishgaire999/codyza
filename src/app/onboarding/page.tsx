@@ -3,11 +3,13 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { createClient } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
-import { CodyzaLogo } from "@/components/shared/codyza-logo"
 import { CheckCircle, AlertCircle, Camera, X, Check } from "lucide-react"
 import Link from "next/link"
 import Cropper from "react-easy-crop"
-import { GalaxyBackground } from "@/components/effects/galaxy-background"
+import { PublicShell } from "@/components/shared/public-shell"
+import { CodyzaLogo } from "@/components/shared/codyza-logo"
+import { FadeIn } from "@/components/motion/fade-in"
+import { memberFetch } from "@/lib/member-fetch"
 
 async function getCroppedImg(imageSrc: string, croppedAreaPixels: any): Promise<Blob> {
   const image = new Image()
@@ -31,7 +33,6 @@ export default function OnboardingPage() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
 
-  // Avatar state
   const [cropSrc, setCropSrc] = useState<string | null>(null)
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
@@ -45,9 +46,7 @@ export default function OnboardingPage() {
     setCroppedAreaPixels(pixels)
   }, [])
 
-  useEffect(() => { init() }, [])
-
-  const init = async () => {
+  const init = useCallback(async () => {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user || !user.email) { router.push("/login"); return }
@@ -67,7 +66,9 @@ export default function OnboardingPage() {
     }
     setNextCodyzaId(`CZX-${String(previewNumber).padStart(4, "0")}`)
     setLoading(false)
-  }
+  }, [router])
+
+  useEffect(() => { void init() }, [init])
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -104,13 +105,12 @@ export default function OnboardingPage() {
       const data = await res.json()
       if (!res.ok) { setError(data.error || "Failed to create profile"); setSubmitting(false); return }
 
-      // Upload avatar if selected
       if (croppedBlob && data.codyza_id) {
         const file = new File([croppedBlob], `${data.codyza_id}.jpg`, { type: "image/jpeg" })
         const formData = new FormData()
         formData.append("file", file)
         formData.append("codyza_id", data.codyza_id)
-        await fetch("/api/avatar", { method: "POST", body: formData })
+        await memberFetch("/api/avatar", { method: "POST", body: formData })
       }
 
       setSuccess(true)
@@ -121,127 +121,183 @@ export default function OnboardingPage() {
     }
   }
 
-  if (loading) return (
-    <div className="flex min-h-screen items-center justify-center text-white bg-background">
-      <GalaxyBackground />
-      <div className="text-gray-400">Loading...</div>
-    </div>
-  )
+  if (loading) {
+    return (
+      <PublicShell footer={false}>
+        <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
+          <p className="sofi-body text-black/50">loading...</p>
+        </div>
+      </PublicShell>
+    )
+  }
 
-  if (success) return (
-    <div className="flex min-h-screen items-center justify-center p-4 text-white bg-background">
-      <div className="w-full max-w-md rounded-2xl p-8 text-center" style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",backdropFilter:"blur(24px)"}}>
-        <CheckCircle className="mx-auto mb-4 h-16 w-16 text-green-500" />
-        <h1 className="mb-2 text-2xl font-bold">You're in.</h1>
-        <p className="text-sm text-gray-400">Taking you to your dashboard...</p>
-      </div>
-    </div>
-  )
+  if (success) {
+    return (
+      <PublicShell footer={false}>
+        <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center px-6 py-24">
+          <FadeIn className="auth-journal-card w-full max-w-md text-center">
+            <CheckCircle className="mx-auto mb-4 h-12 w-12 text-success" />
+            <h1 className="sofi-display-section text-black">you&apos;re in.</h1>
+            <p className="sofi-body mt-2">Taking you to your dashboard...</p>
+          </FadeIn>
+        </div>
+      </PublicShell>
+    )
+  }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 text-white bg-background">
-
-      {/* Crop Modal */}
+    <PublicShell footer={false}>
+      <div className="flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center px-6 py-24">
       {showCropper && cropSrc && (
-        <div style={{position:"fixed",inset:0,zIndex:1000,background:"rgba(0,0,0,0.85)",backdropFilter:"blur(8px)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-          <div style={{background:"#0f0c1a",border:"1px solid rgba(139,92,246,0.3)",borderRadius:20,padding:24,width:"min(480px,95vw)"}}>
-            <h3 style={{fontSize:15,fontWeight:700,color:"#f8fafc",marginBottom:16,textAlign:"center"}}>Adjust your photo</h3>
-            <div style={{position:"relative",width:"100%",height:280,borderRadius:12,overflow:"hidden",background:"#000"}}>
-              <Cropper image={cropSrc} crop={crop} zoom={zoom} aspect={1} cropShape="round" showGrid={false} onCropChange={setCrop} onZoomChange={setZoom} onCropComplete={onCropComplete}/>
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-background/90 backdrop-blur-sm">
+          <div className="surface-card w-[min(480px,95vw)] p-6">
+            <h3 className="mb-4 text-center font-[family-name:var(--font-heading)] text-base font-semibold lowercase">
+              adjust your photo
+            </h3>
+            <div className="relative h-[280px] w-full overflow-hidden rounded-xl bg-muted">
+              <Cropper
+                image={cropSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                cropShape="round"
+                showGrid={false}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+              />
             </div>
-            <div style={{marginTop:14,padding:"0 8px"}}>
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
-                <span style={{fontSize:11,color:"rgba(255,255,255,0.4)"}}>Zoom</span>
-                <span style={{fontSize:11,color:"#a78bfa"}}>{Math.round(zoom*100)}%</span>
+            <div className="mt-4 px-2">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Zoom</span>
+                <span className="font-mono text-[10px] text-accent">{Math.round(zoom * 100)}%</span>
               </div>
-              <input type="range" min={1} max={3} step={0.05} value={zoom} onChange={e=>setZoom(Number(e.target.value))} style={{width:"100%",accentColor:"#8b5cf6"}}/>
+              <input
+                type="range"
+                min={1}
+                max={3}
+                step={0.05}
+                value={zoom}
+                onChange={e => setZoom(Number(e.target.value))}
+                className="w-full accent-[var(--accent)]"
+              />
             </div>
-            <div style={{display:"flex",gap:10,marginTop:18}}>
-              <button onClick={()=>{setShowCropper(false);setCropSrc(null)}} style={{flex:1,padding:"10px",borderRadius:10,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"#94a3b8",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6,fontSize:13}}>
-                <X className="w-4 h-4"/> Cancel
+            <div className="mt-5 flex gap-3">
+              <button
+                onClick={() => { setShowCropper(false); setCropSrc(null) }}
+                className="btn-ghost flex flex-1 items-center justify-center gap-2 rounded-full py-2.5 text-sm"
+              >
+                <X className="h-4 w-4" /> Cancel
               </button>
-              <button onClick={handleCropConfirm} style={{flex:2,padding:"10px",borderRadius:10,background:"linear-gradient(135deg,#7c3aed,#2563eb)",border:"none",color:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6,fontSize:13,fontWeight:600}}>
-                <Check className="w-4 h-4"/> Use this photo
+              <button
+                onClick={handleCropConfirm}
+                className="btn-primary flex flex-[2] items-center justify-center gap-2 rounded-full py-2.5 text-sm font-medium"
+              >
+                <Check className="h-4 w-4" /> Use this photo
               </button>
             </div>
           </div>
         </div>
       )}
 
-      <div className="w-full max-w-md">
-        <div className="mb-8 flex flex-col items-center">
-          <CodyzaLogo size={56} withGlow />
+      <FadeIn className="w-full max-w-md">
+        <div className="mb-8 text-center">
+          <Link href="/" className="inline-block">
+            <CodyzaLogo size={48} variant="full" />
+          </Link>
+          <h1 className="sofi-display-section mt-6 text-black">last step.</h1>
+          <p className="sofi-body mt-3">Name and photo. That&apos;s it for now.</p>
         </div>
 
-        <div className="rounded-2xl p-8" style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",backdropFilter:"blur(24px)"}}>
-          <div className="mb-6 text-center">
-            <h1 className="font-[family-name:var(--font-heading)] text-2xl font-bold tracking-tight">Welcome aboard.</h1>
-            <p className="mt-1 text-sm text-gray-400">Set up your profile to get started.</p>
-          </div>
+        <div className="auth-journal-card">
 
-          {/* Avatar upload */}
-          <div className="flex flex-col items-center mb-6">
-            <div className="relative cursor-pointer group mb-3" onClick={() => fileRef.current?.click()}>
-              <div style={{width:88,height:88,borderRadius:"50%",overflow:"hidden",border:"2px solid rgba(139,92,246,0.35)",background:"linear-gradient(135deg,#8b5cf6,#3b82f6)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                {avatarPreview
-                  ? <img src={avatarPreview} alt="preview" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
-                  : <Camera className="w-8 h-8 text-white opacity-80"/>
-                }
+          <div className="mb-6 flex flex-col items-center">
+            <div className="group relative mb-3 cursor-pointer" onClick={() => fileRef.current?.click()}>
+              <div className="flex h-[88px] w-[88px] items-center justify-center overflow-hidden rounded-full border border-border bg-muted">
+                {avatarPreview ? (
+                  <img src={avatarPreview} alt="preview" className="h-full w-full object-cover" />
+                ) : (
+                  <Camera className="h-8 w-8 text-muted-foreground" />
+                )}
               </div>
-              <div style={{position:"absolute",inset:0,borderRadius:"50%",background:"rgba(0,0,0,0.45)",display:"flex",alignItems:"center",justifyContent:"center",opacity:0,transition:"opacity 0.2s"}} className="group-hover:opacity-100">
-                <Camera className="w-5 h-5 text-white"/>
+              <div className="absolute inset-0 flex items-center justify-center rounded-full bg-background/50 opacity-0 transition-opacity group-hover:opacity-100">
+                <Camera className="h-5 w-5 text-foreground" />
               </div>
             </div>
-            <p className="text-xs text-gray-500">{avatarPreview ? "Click to change photo" : "Add a profile photo (optional)"}</p>
+            <p className="text-xs text-muted-foreground">
+              {avatarPreview ? "Click to change photo" : "Add a profile photo (optional)"}
+            </p>
             {avatarPreview && (
-              <button onClick={() => { setAvatarPreview(null); setCroppedBlob(null) }} className="mt-1 text-xs text-red-400 hover:text-red-300">Remove</button>
+              <button
+                onClick={() => { setAvatarPreview(null); setCroppedBlob(null) }}
+                className="mt-1 text-xs text-destructive hover:opacity-80"
+              >
+                Remove
+              </button>
             )}
-            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleFileSelect}/>
+            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleFileSelect} />
           </div>
 
-          {/* CZX ID preview */}
-          <div className="mb-6 rounded-xl px-5 py-4" style={{background:"rgba(139,92,246,0.06)",border:"1px solid rgba(139,92,246,0.2)"}}>
+          <div className="mb-6 rounded-xl border border-black/10 bg-black/[0.03] px-5 py-4">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-zinc-500">Your Contributor ID</div>
-                <div className="mt-1 font-mono text-xl font-bold tracking-wider text-white">
-                  CZX-<span className="text-gradient-codyza">{nextCodyzaId.replace("CZX-", "")}</span>
+                <div className="sofi-micro">your contributor id</div>
+                <div className="mt-1 font-mono text-xl font-bold tracking-wider text-black">
+                  CZX-<span className="text-accent">{nextCodyzaId.replace("CZX-", "")}</span>
                 </div>
               </div>
               <div className="text-right">
-                <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-zinc-500">Rank</div>
-                <div className="mt-1 text-sm font-medium text-zinc-300">Apprentice</div>
+                <div className="sofi-micro">rank</div>
+                <div className="mt-1 text-sm font-medium text-black">Apprentice</div>
               </div>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="mb-2 block text-sm font-medium">Your full name</label>
-              <input type="text" value={name} onChange={(e) => setName(e.target.value)} required minLength={2} maxLength={100} placeholder="Ada Lovelace"
-                className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-white placeholder:text-gray-500 focus:border-purple-500/50 focus:outline-none transition-colors"/>
-              <div className="mt-1.5 text-xs text-zinc-500">This is how others will see you on your public profile.</div>
+              <label className="mb-2 block text-sm">Your full name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                minLength={2}
+                maxLength={100}
+                placeholder="Ada Lovelace"
+                className="journal-input"
+              />
+              <p className="mt-1.5 text-xs text-black/45">
+                Shown on your profile and the leaderboard.
+              </p>
             </div>
             <div>
-              <label className="mb-2 block text-sm font-medium">Email <span className="text-xs font-normal text-zinc-600">(can't be changed)</span></label>
-              <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] px-4 py-3 font-mono text-sm text-zinc-500">{email}</div>
+              <label className="mb-2 block text-sm">
+                Email <span className="text-xs font-normal text-muted-foreground">(can&apos;t be changed)</span>
+              </label>
+              <div className="journal-input px-4 py-3 font-mono text-sm text-black/45">{email}</div>
             </div>
             {error && (
-              <div className="flex items-start gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400">
-                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0"/><span>{error}</span>
+              <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                <span>{error}</span>
               </div>
             )}
-            <button type="submit" disabled={submitting || name.trim().length < 2}
-              className="w-full rounded-xl px-4 py-3 font-semibold transition-all hover:opacity-90 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
-              style={{background:"linear-gradient(135deg,#7c3aed,#2563eb)",boxShadow:"0 8px 32px rgba(124,58,237,0.3)"}}>
-              {submitting ? "Setting up your profile..." : "Complete setup →"}
+            <button
+              type="submit"
+              disabled={submitting || name.trim().length < 2}
+              className="journal-btn-primary disabled:cursor-not-allowed"
+            >
+              {submitting ? "Setting up..." : "Finish setup"}
             </button>
           </form>
-          <p className="mt-5 text-center text-xs text-zinc-600">Takes you to your member dashboard</p>
+          <p className="sofi-body mt-5 text-center text-black/45">Then straight to your hub.</p>
         </div>
 
-        <Link href="/" className="mt-6 block text-center text-sm text-gray-500 transition-colors hover:text-white">← Back to Codyza</Link>
+        <Link href="/" className="sofi-body mt-6 block text-center text-black/50 hover:text-black">
+          back to codyza
+        </Link>
+      </FadeIn>
       </div>
-    </div>
+    </PublicShell>
   )
 }

@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+import { createServiceSupabase, isAdminRequest } from "@/lib/admin-auth"
+import { getRequestMember } from "@/lib/member-auth"
 
 // GET all bounties
-export async function GET() {
+export async function GET(req: Request) {
+  const member = await getRequestMember(req)
+  if (!member && !isAdminRequest(req)) return NextResponse.json({ error: "Sign-in required" }, { status: 401 })
+  const supabase = createServiceSupabase()
   const { data: bounties, error } = await supabase
     .from("bounties")
     .select("*")
@@ -33,27 +32,26 @@ export async function GET() {
 // POST create bounty (admin only)
 export async function POST(req: Request) {
   try {
+    if (!isAdminRequest(req)) return NextResponse.json({ error: "Admin authorization required" }, { status: 401 })
     const body = await req.json()
-    const { title, description, xp_reward, tech_tags, posted_by } = body
+    const { title, description, xp_reward, tech_tags } = body
 
-    if (!title || !description || !posted_by) {
-      return NextResponse.json({ error: "Title, description and poster required" }, { status: 400 })
+    if (!title || !description) {
+      return NextResponse.json({ error: "Title and description required" }, { status: 400 })
     }
-
-    // Verify admin
+    const supabase = createServiceSupabase()
     const { data: admin } = await supabase
       .from("contributors")
-      .select("is_admin")
-      .eq("codyza_id", posted_by)
+      .select("codyza_id")
+      .eq("is_admin", true)
+      .order("joined_at", { ascending: true })
+      .limit(1)
       .maybeSingle()
-
-    if (!admin?.is_admin) {
-      return NextResponse.json({ error: "Only admins can post bounties" }, { status: 403 })
-    }
+    if (!admin) return NextResponse.json({ error: "No admin contributor profile configured" }, { status: 409 })
 
     const { data: bounty, error: bountyErr } = await supabase
       .from("bounties")
-      .insert({ title, description, xp_reward: xp_reward || 100, tech_tags: tech_tags || [], posted_by, status: "open" })
+      .insert({ title: String(title).slice(0, 160), description: String(description).slice(0, 3000), xp_reward: Math.min(5000, Math.max(1, Number(xp_reward) || 100)), tech_tags: Array.isArray(tech_tags) ? tech_tags.slice(0, 20) : [], posted_by: admin.codyza_id, status: "open" })
       .select()
       .single()
 
@@ -83,24 +81,24 @@ export async function POST(req: Request) {
 // PATCH claim a bounty
 export async function PATCH(req: Request) {
   try {
+    const member = await getRequestMember(req)
+    if (!member) return NextResponse.json({ error: "Member sign-in required" }, { status: 401 })
     const body = await req.json()
-    const { bounty_id, codyza_id, action } = body
+    const { bounty_id, action } = body
+    const supabase = createServiceSupabase()
 
     if (action === "claim") {
-      const { data: bounty } = await supabase
+      const { data: bounty, error } = await supabase
         .from("bounties")
-        .select("status, title")
+        .update({ status: "claimed", claimed_by: member.codyza_id, claimed_at: new Date().toISOString() })
         .eq("id", bounty_id)
+        .eq("status", "open")
+        .select("id")
         .maybeSingle()
 
-      if (bounty?.status !== "open") {
+      if (error || !bounty) {
         return NextResponse.json({ error: "Bounty is no longer available" }, { status: 400 })
       }
-
-      await supabase
-        .from("bounties")
-        .update({ status: "claimed", claimed_by: codyza_id, claimed_at: new Date().toISOString() })
-        .eq("id", bounty_id)
 
       return NextResponse.json({ success: true })
     }

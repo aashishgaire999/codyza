@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/node_modules 2/
 /.pnp
 .pnp.*
 .yarn/*
@@ -12,6 +13,13 @@
 
 # testing
 /coverage
+/.screenshots/
+
+# local agent tooling
+/.agents/
+/.claude-flow/
+/.claude/
+/.codex/
 
 # next.js
 /.next/
@@ -32,6 +40,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel

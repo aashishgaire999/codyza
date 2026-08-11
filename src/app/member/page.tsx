@@ -1,10 +1,15 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { createClient } from "@/lib/supabase"
+import { createClient, RANKS as RANK_XP } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Trophy, Zap, Target, Calendar, Award, FileText, Settings } from "lucide-react"
+import Image from "next/image"
+import { Trophy, Zap, Target, FileText, Award, Settings } from "lucide-react"
+import { RankBadge } from "@/components/shared/rank-badge"
+import { QuestCard } from "@/components/shared/quest-card"
+import { MemberAnnouncements } from "@/components/member/member-announcements"
+import { memberFetch } from "@/lib/member-fetch"
 
 interface Contributor {
   codyza_id: string
@@ -28,26 +33,15 @@ interface Submission {
 }
 
 const RANK_CONFIG: Record<string, { color: string; gradient: string }> = {
-  "Apprentice": { color: "text-slate-400", gradient: "from-slate-600 to-slate-400" },
-  "Associate Engineer": { color: "text-green-400", gradient: "from-green-600 to-green-400" },
-  "Software Engineer": { color: "text-blue-400", gradient: "from-blue-600 to-blue-400" },
-  "Senior Engineer": { color: "text-purple-400", gradient: "from-purple-600 to-purple-400" },
-  "Staff Engineer": { color: "text-amber-400", gradient: "from-amber-600 to-amber-400" },
-  "Principal Engineer": { color: "text-red-400", gradient: "from-red-600 to-red-400" },
-  "Distinguished Engineer": { color: "text-cyan-400", gradient: "from-cyan-600 to-cyan-400" },
-  "Codyza Fellow": { color: "text-yellow-400", gradient: "from-yellow-600 to-yellow-400" },
+  "Apprentice": { color: "text-muted-foreground", gradient: "from-muted-foreground to-muted-foreground" },
+  "Associate Engineer": { color: "text-success", gradient: "from-success to-success" },
+  "Software Engineer": { color: "text-accent", gradient: "from-accent to-accent" },
+  "Senior Engineer": { color: "text-accent", gradient: "from-accent to-accent" },
+  "Staff Engineer": { color: "text-foreground", gradient: "from-foreground to-foreground" },
+  "Principal Engineer": { color: "text-foreground", gradient: "from-foreground to-foreground" },
+  "Distinguished Engineer": { color: "text-accent", gradient: "from-accent to-accent" },
+  "Codyza Fellow": { color: "text-accent", gradient: "from-accent to-accent" },
 }
-
-const RANK_XP: { name: string; minXP: number }[] = [
-  { name: "Apprentice", minXP: 0 },
-  { name: "Associate Engineer", minXP: 500 },
-  { name: "Software Engineer", minXP: 1500 },
-  { name: "Senior Engineer", minXP: 3500 },
-  { name: "Staff Engineer", minXP: 7000 },
-  { name: "Principal Engineer", minXP: 12000 },
-  { name: "Distinguished Engineer", minXP: 20000 },
-  { name: "Codyza Fellow", minXP: 35000 },
-]
 
 export default function MemberDashboard() {
   const router = useRouter()
@@ -58,10 +52,6 @@ export default function MemberDashboard() {
   const [openBounties, setOpenBounties] = useState<any[]>([])
   const [reactions, setReactions] = useState<Record<string,Record<string,string[]>>>({})
   const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    loadData()
-  }, [])
 
   const loadData = async () => {
     const supabase = createClient()
@@ -95,8 +85,8 @@ export default function MemberDashboard() {
 
     // Load groups and bounties
     const [groupsRes, bountiesRes] = await Promise.all([
-      fetch("/api/groups").then(r => r.json()),
-      fetch("/api/bounties").then(r => r.json()),
+      memberFetch("/api/groups").then(r => r.json()),
+      memberFetch("/api/bounties").then(r => r.json()),
     ])
     const allGroups = Array.isArray(groupsRes) ? groupsRes : []
     setMyGroups(allGroups.filter((g: any) => g.members?.some((m: any) => m.codyza_id === contrib.codyza_id)))
@@ -114,13 +104,17 @@ export default function MemberDashboard() {
       // Load reactions for feed items
       const ids = feedData.map((f: any) => f.id).filter(Boolean)
       if (ids.length) {
-        const res = await fetch("/api/reactions?ids=" + ids.join(","))
+        const res = await memberFetch("/api/reactions?ids=" + ids.join(","))
         const rData = await res.json()
         setReactions(rData)
       }
     }
     setLoading(false)
   }
+
+  useEffect(() => {
+    void loadData()
+  }, [])
 
   const handleLogout = async () => {
     const supabase = createClient()
@@ -130,10 +124,10 @@ export default function MemberDashboard() {
 
   const toggleReaction = async (submissionId: string, emoji: string) => {
     if (!contributor) return
-    const res = await fetch("/api/reactions", {
+    const res = await memberFetch("/api/reactions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ submission_id: submissionId, codyza_id: contributor.codyza_id, emoji })
+      body: JSON.stringify({ submission_id: submissionId, emoji })
     })
     const data = await res.json()
     setReactions(prev => {
@@ -152,18 +146,18 @@ export default function MemberDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background text-white flex items-center justify-center">
-        <div className="text-gray-400">Loading...</div>
+      <div className="flex items-center justify-center py-24">
+        <div className="text-muted-foreground">Loading...</div>
       </div>
     )
   }
 
   if (!contributor) {
     return (
-      <div className="min-h-screen bg-background text-white flex items-center justify-center">
+      <div className="flex items-center justify-center py-24">
         <div className="text-center">
-          <p className="text-red-400 mb-4">No contributor profile found</p>
-          <button onClick={handleLogout} className="text-gray-400 hover:text-white">
+          <p className="mb-4 text-destructive">No contributor profile found</p>
+          <button onClick={handleLogout} className="btn-ghost rounded-full px-4 py-2 text-sm">
             Sign out
           </button>
         </div>
@@ -175,282 +169,271 @@ export default function MemberDashboard() {
 
   return (
     <>
-      {/* Hub Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mb-10 max-w-2xl">
+        <p className="member-hero-label mb-4">
+          member · hub
+        </p>
+        <h1 className="member-headline text-foreground">
+          hey, <span className="text-accent">{contributor.name.split(" ")[0].toLowerCase()}</span>
+        </h1>
+        <p className="mt-4 text-muted-foreground">
+          Your hub — rank, projects, bounties, what the crew is up to.
+        </p>
+      </div>
 
-        {/* PROFILE ID CARD */}
-        <div className="mb-8" style={{borderRadius:16,padding:"1.5px",background:"linear-gradient(135deg,rgba(139,92,246,0.6),rgba(59,130,246,0.4),rgba(6,182,212,0.3))",boxShadow:"0 0 40px rgba(139,92,246,0.12)"}}>
-          <div style={{borderRadius:"14.5px",background:"rgba(5,5,8,0.9)",backdropFilter:"blur(24px)",padding:"20px 24px"}}>
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-center gap-4">
-                {/* Avatar */}
-                {/* Avatar — display only, edit in settings */}
-                <div style={{width:88,height:88,borderRadius:"50%",overflow:"hidden",border:"2px solid rgba(139,92,246,0.3)",flexShrink:0}}>
-                  {contributor.avatar_url
-                    ? <img src={contributor.avatar_url + "?v=1"} alt={contributor.name} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
-                    : <div style={{width:"100%",height:"100%",background:"linear-gradient(135deg,#8b5cf6,#3b82f6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,fontWeight:800,color:"white"}}>
-                        {contributor.name.split(" ").map((p:string)=>p[0]).slice(0,2).join("").toUpperCase()}
-                      </div>
-                  }
-                </div>
-                {/* Identity */}
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xl font-bold text-white">{contributor.name}</span>
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${rankConfig.color} border border-current`} style={{ borderColor: "currentColor", background: "transparent" }}>
-                      {contributor.rank}
-                    </span>
-                  </div>
-                  <div className="mt-1 font-mono text-2xl font-bold tracking-wider text-white">
-                    CZX-<span className="text-gradient-codyza">{contributor.codyza_id.replace("CZX-", "")}</span>
-                  </div>
-                  <div className="mt-1 text-xs text-zinc-500">{contributor.email}</div>
-                </div>
+      <MemberAnnouncements />
+
+      {/* PROFILE ID CARD */}
+      <div className="id-card-glow mb-8">
+        <div className="id-card-inner">
+          <div className="flex flex-col items-start gap-4 sm:flex-row sm:justify-between">
+            <div className="flex min-w-0 items-center gap-4">
+              <div className="relative h-[88px] w-[88px] flex-shrink-0 overflow-hidden rounded-full border-2 border-border">
+                {contributor.avatar_url
+                  ? <Image src={contributor.avatar_url + "?v=1"} alt={contributor.name} fill sizes="88px" className="object-cover"/>
+                  : <div className="flex h-full w-full items-center justify-center bg-muted text-2xl font-bold text-foreground">
+                      {contributor.name.split(" ").map((p:string)=>p[0]).slice(0,2).join("").toUpperCase()}
+                    </div>
+                }
               </div>
-              {/* Skills on card */}
-              {contributor.skills && (contributor.skills as string[]).length > 0 && (
-                <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginTop:8 }}>
-                  {(contributor.skills as string[]).slice(0,5).map((s: string) => (
-                    <span key={s} style={{ padding:"2px 8px", borderRadius:6, fontSize:10, background:"rgba(139,92,246,0.12)", border:"1px solid rgba(139,92,246,0.2)", color:"#a78bfa" }}>{s}</span>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xl font-bold text-foreground">{contributor.name}</span>
+                  <RankBadge rank={contributor.rank} />
+                </div>
+                <div className="mt-1 font-mono text-2xl font-bold tracking-wider text-foreground">
+                  CZX-<span className="text-accent">{contributor.codyza_id.replace("CZX-", "")}</span>
+                </div>
+                <div className="mt-1 break-all text-xs text-muted-foreground">{contributor.email}</div>
+              </div>
+            </div>
+            {contributor.skills && (contributor.skills as string[]).length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {(contributor.skills as string[]).slice(0,5).map((s: string) => (
+                  <span key={s} className="rounded-md border border-accent/20 bg-accent/10 px-2 py-0.5 text-[10px] text-accent">{s}</span>
+                ))}
+                {(contributor.skills as string[]).length > 5 && (
+                  <span className="rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
+                    +{(contributor.skills as string[]).length - 5}
+                  </span>
+                )}
+              </div>
+            )}
+            <Link
+              href="/member/settings"
+              className="btn-ghost shrink-0 rounded-lg p-2 text-muted-foreground"
+              title="Settings"
+            >
+              <Settings className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
+        <div className="arcade-stat">
+          <div className="mb-2 flex items-center gap-3">
+            <Trophy className="h-5 w-5 text-accent" />
+            <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Your Rank</span>
+          </div>
+          <p className={`font-[family-name:var(--font-heading)] text-2xl font-bold ${rankConfig.color}`}>{contributor.rank}</p>
+        </div>
+
+        <div className="arcade-stat">
+          <div className="mb-2 flex items-center gap-3">
+            <Zap className="h-5 w-5 text-accent" />
+            <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Total XP</span>
+          </div>
+          <p className="font-[family-name:var(--font-heading)] text-2xl font-bold text-accent">{contributor.xp.toLocaleString()}</p>
+        </div>
+
+        <div className="arcade-stat">
+          <div className="mb-2 flex items-center gap-3">
+            <Target className="h-5 w-5 text-accent" />
+            <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Streak</span>
+          </div>
+          <p className="font-[family-name:var(--font-heading)] text-2xl font-bold text-foreground">{contributor.streak} weeks</p>
+        </div>
+
+        <div className="arcade-stat">
+          <div className="mb-2 flex items-center gap-3">
+            <FileText className="h-5 w-5 text-accent" />
+            <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Projects</span>
+          </div>
+          <p className="font-[family-name:var(--font-heading)] text-2xl font-bold text-foreground">{submissions.length}</p>
+        </div>
+      </div>
+
+      {/* XP Progress Bar */}
+      {(() => {
+        const currentIdx = RANK_XP.findIndex(r => r.name === contributor.rank)
+        const next = RANK_XP[currentIdx + 1]
+        const current = RANK_XP[currentIdx]
+        const progress = next ? Math.min(100, Math.round(((contributor.xp - current.minXP) / (next.minXP - current.minXP)) * 100)) : 100
+        return (
+          <div className="surface-card mb-6 px-5 py-4">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">XP to next rank</span>
+              <span className="font-mono text-xs text-accent">
+                {next ? `${contributor.xp.toLocaleString()} / ${next.minXP.toLocaleString()} XP · next: ${next.name}` : "MAX RANK"}
+              </span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-muted xp-track">
+              <div className="xp-track-fill h-full" style={{ width: `${progress}%` }}/>
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* My Groups */}
+      {myGroups.length > 0 && (
+        <div className="mb-6">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Your Groups</h2>
+            <Link href="/member/groups" className="text-xs text-accent hover:opacity-80">View all</Link>
+          </div>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {myGroups.slice(0,2).map((g: any) => (
+              <div key={g.id} className="surface-card border-accent/20 p-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-sm font-semibold text-foreground">{g.name}</span>
+                  <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-xs text-accent">{g.status}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {(g.members||[]).slice(0,4).map((m: any, i: number) => (
+                    <div key={m.codyza_id} className="flex h-6 w-6 items-center justify-center rounded-full border border-background bg-muted text-[8px] font-bold text-foreground" style={{marginLeft:i>0?"-4px":"0",zIndex:10-i}}>
+                      {m.name?.charAt(0).toUpperCase()}
+                    </div>
                   ))}
-                  {(contributor.skills as string[]).length > 5 && <span style={{ padding:"2px 8px", borderRadius:6, fontSize:10, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.3)" }}>+{(contributor.skills as string[]).length - 5}</span>}
+                  <span className="ml-1 text-xs text-muted-foreground">{g.members?.length} members</span>
                 </div>
-              )}
-
-              {/* Settings link */}
-              <Link
-                href="/member/settings"
-                className="shrink-0 rounded-lg border border-white/10 bg-white/[0.03] p-2 text-zinc-500 transition-colors hover:bg-white/[0.07] hover:text-white"
-                title="Settings"
-              >
-                <Settings className="h-4 w-4" />
-              </Link>
-            </div>
+              </div>
+            ))}
           </div>
         </div>
+      )}
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white/[0.03] border border-white/[0.07] rounded-xl p-6 hover:border-purple-500/20 transition-colors">
-            <div className="flex items-center gap-3 mb-2">
-              <Trophy className="w-5 h-5 text-purple-400" />
-              <span className="text-gray-400 text-sm">Your Rank</span>
-            </div>
-            <p className={`text-2xl font-bold ${rankConfig.color}`}>{contributor.rank}</p>
+      {/* Open Bounties */}
+      {openBounties.length > 0 && (
+        <div className="mb-6">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Open Bounties</h2>
+            <Link href="/member/bounties" className="text-xs text-accent hover:opacity-80">View all</Link>
           </div>
-
-          <div className="bg-white/[0.03] border border-white/[0.07] rounded-xl p-6 hover:border-yellow-500/20 transition-colors">
-            <div className="flex items-center gap-3 mb-2">
-              <Zap className="w-5 h-5 text-yellow-400" />
-              <span className="text-gray-400 text-sm">Total XP</span>
-            </div>
-            <p className="text-2xl font-bold text-yellow-400">{contributor.xp.toLocaleString()}</p>
-          </div>
-
-          <div className="bg-white/[0.03] border border-white/[0.07] rounded-xl p-6 hover:border-orange-500/20 transition-colors">
-            <div className="flex items-center gap-3 mb-2">
-              <Target className="w-5 h-5 text-orange-400" />
-              <span className="text-gray-400 text-sm">Streak</span>
-            </div>
-            <p className="text-2xl font-bold text-orange-400">{contributor.streak} weeks</p>
-          </div>
-
-          <div className="bg-white/[0.03] border border-white/[0.07] rounded-xl p-6 hover:border-blue-500/20 transition-colors">
-            <div className="flex items-center gap-3 mb-2">
-              <FileText className="w-5 h-5 text-blue-400" />
-              <span className="text-gray-400 text-sm">Projects</span>
-            </div>
-            <p className="text-2xl font-bold text-blue-400">{submissions.length}</p>
+          <div className="space-y-2">
+            {openBounties.map((b: any) => (
+              <QuestCard
+                key={b.id}
+                title={b.title}
+                techTags={b.tech_tags}
+                xpReward={b.xp_reward}
+                status={b.status}
+                href="/member/bounties"
+              />
+            ))}
           </div>
         </div>
+      )}
 
-        {/* XP Progress Bar */}
-        {(() => {
-          const currentIdx = RANK_XP.findIndex(r => r.name === contributor.rank)
-          const next = RANK_XP[currentIdx + 1]
-          const current = RANK_XP[currentIdx]
-          const progress = next ? Math.min(100, Math.round(((contributor.xp - current.minXP) / (next.minXP - current.minXP)) * 100)) : 100
-          return (
-            <div className="mb-6 bg-white/[0.03] border border-white/[0.07] rounded-xl px-5 py-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-gray-500 font-mono uppercase tracking-wider">XP to next rank</span>
-                <span className="text-xs font-mono" style={{color:"#8b5cf6"}}>{next ? `${contributor.xp.toLocaleString()} / ${next.minXP.toLocaleString()} XP → ${next.name}` : "MAX RANK"}</span>
-              </div>
-              <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
-                <div className="h-full rounded-full transition-all" style={{width:`${progress}%`,background:"linear-gradient(90deg,#8b5cf6,#06b6d4)",boxShadow:"0 0 8px rgba(139,92,246,0.5)"}}/>
-              </div>
+      {/* Quick Actions */}
+      <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <Link href="/member/projects" className="surface-card group p-6 transition-colors hover:border-accent/30">
+          <div className="flex items-center gap-4">
+            <div className="rounded-lg border border-accent/20 bg-accent/10 p-3 transition-colors group-hover:bg-accent/15">
+              <FileText className="h-6 w-6 text-accent" />
             </div>
-          )
-        })()}
-
-        {/* My Groups */}
-        {myGroups.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="font-bold text-white">Your Groups</h2>
-              <Link href="/member/groups" className="text-xs text-purple-400 hover:text-purple-300">View all →</Link>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {myGroups.slice(0,2).map((g: any) => (
-                <div key={g.id} className="bg-white/[0.03] border border-purple-500/20 rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold text-white text-sm">{g.name}</span>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400">{g.status}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    {(g.members||[]).slice(0,4).map((m: any, i: number) => (
-                      <div key={m.codyza_id} className="w-6 h-6 rounded-full flex items-center justify-center text-[8px] font-bold text-white" style={{background:`linear-gradient(135deg,#8b5cf6,#3b82f6)`,marginLeft:i>0?"-4px":"0",zIndex:10-i,border:"1.5px solid #050508"}}>
-                        {m.name?.charAt(0).toUpperCase()}
-                      </div>
-                    ))}
-                    <span className="text-xs text-gray-500 ml-1">{g.members?.length} members</span>
-                  </div>
-                </div>
-              ))}
+            <div>
+              <h3 className="mb-1 font-semibold text-foreground">Submit a project</h3>
+              <p className="text-sm text-muted-foreground">Push a repo, get a review, earn XP</p>
             </div>
           </div>
-        )}
+        </Link>
 
-        {/* Open Bounties */}
-        {openBounties.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="font-bold text-white">Open Bounties</h2>
-              <Link href="/member/bounties" className="text-xs text-yellow-400 hover:text-yellow-300">View all →</Link>
+        <Link href={`/contributor/${contributor.codyza_id.toLowerCase()}`} className="surface-card group p-6 transition-colors hover:border-accent/30">
+          <div className="flex items-center gap-4">
+            <div className="rounded-lg border border-border bg-muted p-3 transition-colors group-hover:bg-accent/10">
+              <Award className="h-6 w-6 text-accent" />
             </div>
-            <div className="space-y-2">
-              {openBounties.map((b: any) => (
-                <div key={b.id} className="bg-white/[0.03] border border-yellow-500/15 rounded-xl px-4 py-3 flex items-center justify-between">
-                  <div>
-                    <span className="text-sm font-medium text-white">{b.title}</span>
-                    {b.tech_tags?.length > 0 && (
-                      <div className="flex gap-1.5 mt-1">
-                        {b.tech_tags.slice(0,3).map((t: string) => (
-                          <span key={t} className="px-1.5 py-0.5 rounded text-[10px] bg-white/[0.04] border border-white/[0.07] text-gray-400">{t}</span>
-                        ))}
+            <div>
+              <h3 className="mb-1 font-semibold text-foreground">Public profile</h3>
+              <p className="text-sm text-muted-foreground">What people see on the leaderboard</p>
+            </div>
+          </div>
+        </Link>
+      </div>
+
+      {/* Crew Feed */}
+      <div className="mb-8">
+        <div className="mb-4 flex items-center gap-3">
+          <h2 className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">What shipped</h2>
+          <span className="flex items-center gap-1.5 rounded-full border border-success/30 bg-success/10 px-2 py-0.5 font-mono text-xs text-success">
+            <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-success"></span>
+            recent
+          </span>
+        </div>
+        {crewFeed.length === 0 ? (
+          <p className="py-8 text-center text-muted-foreground">No activity yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {crewFeed.map((item, i) => {
+              const scoreClass = item.ai_score >= 8 ? "text-success" : item.ai_score >= 6 ? "text-accent" : "text-muted-foreground"
+              const isOwn = item.codyza_id === contributor?.codyza_id
+              return (
+                <div key={i} className={`surface-card flex items-start gap-4 p-4 transition-all ${isOwn ? "crew-feed-item-own" : ""}`}>
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-muted text-sm font-bold text-foreground">
+                    {item.codyza_id?.replace("CZX-","")}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-1 flex flex-wrap items-center gap-2">
+                      <span className="font-mono text-xs text-accent">{item.codyza_id}</span>
+                      {isOwn && <span className="text-xs text-muted-foreground">· you</span>}
+                      <span className={`ml-auto rounded px-2 py-0.5 text-xs font-bold ${
+                        item.status === "approved" ? "bg-success/10 text-success" : item.status === "rejected" ? "bg-destructive/10 text-destructive" : "bg-accent/10 text-accent"
+                      }`}>
+                        {item.status}
+                      </span>
+                    </div>
+                    <p className="mb-1 text-sm font-semibold text-foreground">{item.project_name}</p>
+                    <p className="mb-2 line-clamp-2 text-xs text-muted-foreground">{item.description}</p>
+                    <div className="flex flex-wrap items-center gap-3">
+                      {item.tech_stack?.slice(0,3).map((t: string) => (
+                        <span key={t} className="rounded border border-border bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{t}</span>
+                      ))}
+                      <span className="ml-auto font-mono text-xs text-muted-foreground">
+                        {new Date(item.created_at).toLocaleDateString()}
+                      </span>
+                      {item.ai_score && (
+                        <span className={`text-xs font-bold ${scoreClass}`}>{item.ai_score}/10</span>
+                      )}
+                      <span className="text-xs font-semibold text-accent">+{item.xp_earned} XP</span>
+                    </div>
+                    {item.id && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {["🔥","⚡","🚀","💜","👏"].map((label) => {
+                          const reacters = reactions[item.id]?.[label] || []
+                          const reacted = reacters.includes(contributor?.codyza_id || "")
+                          return (
+                            <button key={label} onClick={() => toggleReaction(item.id, label)}
+                              className={`reaction-badge ${reacted ? "reaction-badge-active" : "text-muted-foreground hover:border-accent/30"}`}>
+                              <span className="text-[13px]">{label}</span>
+                              {reacters.length > 0 && (
+                                <span className={`text-[10px] font-bold ${reacted ? "text-accent" : "text-muted-foreground"}`}>
+                                  {reacters.length}
+                                </span>
+                              )}
+                            </button>
+                          )
+                        })}
                       </div>
                     )}
                   </div>
-                  <Link href="/member/bounties" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-xs font-bold hover:bg-yellow-500/20 transition-colors">
-                    <Zap className="w-3 h-3" />+{b.xp_reward} XP
-                  </Link>
                 </div>
-              ))}
-            </div>
+              )
+            })}
           </div>
         )}
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <Link href="/member/projects" className="bg-white/[0.03] border border-white/[0.07] rounded-xl p-6 hover:border-purple-500/30 transition-all group">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-colors">
-                <FileText className="w-6 h-6 text-purple-400" />
-              </div>
-              <div>
-                <h3 className="font-semibold mb-1">Submit New Project</h3>
-                <p className="text-sm text-gray-400">Get AI review and earn XP</p>
-              </div>
-            </div>
-          </Link>
-
-          <Link href={`/contributor/${contributor.codyza_id.toLowerCase()}`} className="bg-white/[0.03] border border-white/[0.07] rounded-xl p-6 hover:border-blue-500/30 transition-all group">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-blue-500/20 rounded-lg group-hover:bg-blue-500/30 transition-colors">
-                <Award className="w-6 h-6 text-blue-400" />
-              </div>
-              <div>
-                <h3 className="font-semibold mb-1">View Public Profile</h3>
-                <p className="text-sm text-gray-400">See how others see you</p>
-              </div>
-            </div>
-          </Link>
-        </div>
-
-        {/* Crew Feed */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <h2 className="text-xl font-bold">Crew Activity</h2>
-            <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-green-500/10 border border-green-500/30 text-green-400 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" style={{animation:"pulse 2s infinite"}}></span>
-              Live
-            </span>
-          </div>
-          {crewFeed.length === 0 ? (
-            <p className="text-gray-400 text-center py-8">No activity yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {crewFeed.map((item, i) => {
-                const scoreColor = item.ai_score >= 8 ? "#22c55e" : item.ai_score >= 6 ? "#a78bfa" : "#f59e0b"
-                const isOwn = item.codyza_id === contributor?.codyza_id
-                return (
-                  <div key={i} className={`flex items-start gap-4 p-4 rounded-xl border transition-all ${isOwn ? "border-purple-500/20 bg-purple-500/[0.04]" : "border-white/8 bg-white/[0.02]"}`}>
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-sm font-bold">
-                      {item.codyza_id?.replace("CZX-","")}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className="font-mono text-xs text-purple-400">{item.codyza_id}</span>
-                        {isOwn && <span className="text-xs text-gray-500">· you</span>}
-                        <span className={`ml-auto px-2 py-0.5 rounded text-xs font-bold ${item.status === "approved" ? "bg-green-500/10 text-green-400" : item.status === "rejected" ? "bg-red-500/10 text-red-400" : "bg-yellow-500/10 text-yellow-400"}`}>
-                          {item.status}
-                        </span>
-                      </div>
-                      <p className="font-semibold text-sm mb-1">{item.project_name}</p>
-                      <p className="text-xs text-gray-400 line-clamp-2 mb-2">{item.description}</p>
-                      <div className="flex items-center gap-3 flex-wrap">
-                        {item.tech_stack?.slice(0,3).map((t: string) => (
-                          <span key={t} className="px-1.5 py-0.5 rounded text-xs bg-white/5 border border-white/8 text-gray-400">{t}</span>
-                        ))}
-                        <span className="text-xs text-gray-500 ml-auto font-mono">
-                          {new Date(item.created_at).toLocaleDateString()}
-                        </span>
-                        {item.ai_score && (
-                          <span style={{color: scoreColor}} className="text-xs font-bold">{item.ai_score}/10</span>
-                        )}
-                        <span className="text-xs text-yellow-400 font-semibold">+{item.xp_earned} XP</span>
-                      </div>
-                      {/* Reactions */}
-                      {item.id && (
-                        <div style={{ display:"flex", gap:5, marginTop:8, flexWrap:"wrap" }}>
-                          {[
-                            {key:"fire",label:"🔥",color:"#f97316"},
-                            {key:"zap",label:"⚡",color:"#f59e0b"},
-                            {key:"rocket",label:"🚀",color:"#3b82f6"},
-                            {key:"heart",label:"💜",color:"#8b5cf6"},
-                            {key:"clap",label:"👏",color:"#22c55e"},
-                          ].map(({key,label,color}) => {
-                            const reacters = reactions[item.id]?.[label] || []
-                            const reacted = reacters.includes(contributor?.codyza_id || "")
-                            return (
-                              <button key={key} onClick={() => toggleReaction(item.id, label)}
-                                style={{
-                                  padding:"3px 10px", borderRadius:8, fontSize:11, cursor:"pointer",
-                                  background: reacted ? `${color}22` : "rgba(255,255,255,0.03)",
-                                  border: reacted ? `1px solid ${color}50` : "1px solid rgba(255,255,255,0.07)",
-                                  transition:"all 0.15s", display:"flex", alignItems:"center", gap:5,
-                                  color: reacted ? color : "rgba(255,255,255,0.4)",
-                                  fontWeight: reacted ? 700 : 400,
-                                }}>
-                                <span style={{fontSize:13}}>{label}</span>
-                                {reacters.length > 0 && <span style={{fontSize:10,fontWeight:700,color:reacted?color:"rgba(255,255,255,0.3)"}}>{reacters.length}</span>}
-                              </button>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
-
-
       </div>
-
-
     </>
   )
 }

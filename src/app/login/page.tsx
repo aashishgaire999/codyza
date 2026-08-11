@@ -1,47 +1,37 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { Suspense, useState } from "react"
 import { createClient } from "@/lib/supabase"
-import { useRouter } from "next/navigation"
-import { CodyzaLogo } from "@/components/shared/codyza-logo"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { GalaxyBackground } from "@/components/effects/galaxy-background"
+import { AuthLayout } from "@/components/shared/auth-layout"
+import { InstallAppButton } from "@/components/shared/install-app-button"
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const [rememberMe, setRememberMe] = useState(true)
-  const [magicMode, setMagicMode] = useState(false)
+  const [magicOverride, setMagicOverride] = useState<boolean | null>(null)
   const [magicLinkSent, setMagicLinkSent] = useState(false)
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search)
-      if (params.get("magic") === "true") setMagicMode(true)
-    }
-  }, [])
+  const magicMode = magicOverride ?? searchParams.get("magic") === "true"
+  const urlError = searchParams.get("error")
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError("")
-
     const supabase = createClient()
 
     if (magicMode) {
-      // Magic link flow — send email with one-time login link
-      const { error } = await supabase.auth.signInWithOtp({
+      const { error: otpError } = await supabase.auth.signInWithOtp({
         email: email.toLowerCase().trim(),
-        options: {
-          shouldCreateUser: false,
-          emailRedirectTo: `${window.location.origin}/set-password`,
-        },
+        options: { shouldCreateUser: false, emailRedirectTo: `${window.location.origin}/set-password` },
       })
-      if (error) {
-        setError(error.message.includes("Signups not allowed") ? "This email isn't registered. Check the address or contact team@codyza.com." : error.message)
+      if (otpError) {
+        setError(otpError.message.includes("Signups not allowed") ? "This email isn't registered." : otpError.message)
         setLoading(false)
         return
       }
@@ -50,14 +40,12 @@ export default function LoginPage() {
       return
     }
 
-    // Password flow
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error: signInError } = await supabase.auth.signInWithPassword({
       email: email.toLowerCase().trim(),
       password,
     })
-
-    if (error) {
-      setError(error.message.includes("Signups not allowed") ? "This email isn't registered. Check the address or contact team@codyza.com." : error.message)
+    if (signInError) {
+      setError(signInError.message.includes("Signups not allowed") ? "This email isn't registered." : signInError.message)
       setLoading(false)
     } else {
       router.push("/member")
@@ -67,129 +55,100 @@ export default function LoginPage() {
 
   if (magicLinkSent) {
     return (
-      <div className="min-h-screen text-white flex items-center justify-center p-4" style={{background:"linear-gradient(135deg,#0f0c1a 0%,#130d24 50%,#0c1220 100%)"}}>
-      <GalaxyBackground />
-        <div className="max-w-md w-full rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
-          <CodyzaLogo size={56} withGlow />
-          <h1 className="mt-4 text-2xl font-bold">Check your inbox</h1>
-          <p className="mt-3 text-sm text-gray-400">
-            A login link is on its way to <span className="text-white">{email}</span>. Click it to sign in.
-          </p>
-          <p className="mt-2 text-xs text-zinc-500">
-            Tip: check spam if you don\'t see it within a minute.
-          </p>
-          <button
-            onClick={() => {
-              setMagicLinkSent(false)
-              setMagicMode(false)
-              setPassword("")
-            }}
-            className="mt-6 text-sm text-purple-400 hover:text-purple-300"
-          >
-            Use password instead
-          </button>
-          <Link href="/" className="mt-4 block text-sm text-gray-500 hover:text-white">
-            ← Back to Codyza
-          </Link>
-        </div>
-      </div>
+      <AuthLayout title="check your inbox" subtitle={`We sent a link to ${email}`}>
+        <p className="sofi-body text-center text-black/55">Open the link in your email to finish signing in.</p>
+        <button
+          type="button"
+          onClick={() => {
+            setMagicLinkSent(false)
+            setMagicOverride(false)
+          }}
+          className="mt-4 w-full text-sm text-[var(--journal-sage)]"
+        >
+          use password instead
+        </button>
+      </AuthLayout>
     )
   }
 
   return (
-    <div className="min-h-screen text-white flex items-center justify-center p-4" style={{background:"linear-gradient(135deg,#0f0c1a 0%,#130d24 50%,#0c1220 100%)"}}>
-      <div className="max-w-md w-full bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm">
-        <div className="flex flex-col items-center mb-8">
-          <CodyzaLogo size={60} withGlow />
-          <h1 className="text-2xl font-bold mt-4">Member Login</h1>
-          <p className="text-gray-400 text-sm mt-2">Access your Codyza member portal</p>
+    <AuthLayout title="sign in" subtitle="Use the email we invited you with.">
+      <form onSubmit={handleLogin} className="space-y-4">
+        <div>
+          <label className="journal-label mb-2 block">email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="journal-input"
+            placeholder="you@domain.com"
+          />
         </div>
-
-        <form onSubmit={handleLogin} className="space-y-4">
+        {!magicMode && (
           <div>
-            <label className="block text-sm font-medium mb-2">Email</label>
+            <label className="journal-label mb-2 block">password</label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500"
-              placeholder="your.email@example.com"
+              className="journal-input"
+              placeholder="••••••••"
             />
           </div>
-
-          {!magicMode && (
-            <div>
-              <label className="block text-sm font-medium mb-2">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required={!magicMode}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500"
-                placeholder="••••••••"
-              />
-            </div>
-          )}
-
-          {!magicMode && (
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-300">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="h-4 w-4 cursor-pointer accent-purple-500"
-                />
-                Remember me for 30 days
-              </label>
-            </div>
-          )}
-
-          {error && (
-            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg font-semibold hover:opacity-90 hover:-translate-y-0.5 transition-all disabled:opacity-50"
-          >
-            {loading
-              ? (magicMode ? "Sending link..." : "Signing in...")
-              : (magicMode ? "Email me a login link" : "Sign In")}
-          </button>
-        </form>
-
-        {/* Toggle between password + magic link mode */}
-        <div className="mt-4 text-center">
-          <button
-            type="button"
-            onClick={() => {
-              setMagicMode(!magicMode)
-              setError("")
-            }}
-            className="text-sm text-gray-400 hover:text-purple-400 transition-colors"
-          >
-            {magicMode ? "← Use password instead" : "Or, email me a login link instead →"}
-          </button>
-        </div>
-
-        <div className="text-center mt-5">
-          <Link
-            href="/forgot-password"
-            className="text-sm text-gray-400 hover:text-purple-400 transition-colors"
-          >
-            Forgot password?
-          </Link>
-        </div>
-
-        <Link href="/" className="block text-center text-gray-400 text-sm mt-4 hover:text-white transition-colors">
-          ← Back to Codyza
+        )}
+        {urlError === "link_expired" && !error && (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+            That link has expired or already been used. Request a new one via &quot;forgot password?&quot; below.
+          </div>
+        )}
+        {error && (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+            {error}
+          </div>
+        )}
+        <button type="submit" disabled={loading} className="journal-btn-primary disabled:cursor-not-allowed">
+          {loading ? "signing in..." : magicMode ? "email me a link" : "sign in"}
+        </button>
+      </form>
+      <div className="mt-4 space-y-2 text-center text-sm">
+        <button
+          type="button"
+          onClick={() => {
+            setMagicOverride(!magicMode)
+            setError("")
+          }}
+          className="text-black/45 hover:text-black"
+        >
+          {magicMode ? "use password" : "email me a login link"}
+        </button>
+        <Link href="/forgot-password" className="block text-black/45 hover:text-black">
+          forgot password?
         </Link>
+        <div className="pt-2">
+          <InstallAppButton />
+        </div>
+        {process.env.NODE_ENV === "development" && (
+          <Link href="/member-preview" className="mt-4 block rounded-full border border-[var(--journal-rule)] px-4 py-2 text-[var(--journal-sage)] hover:bg-[var(--journal-sage)]/5">
+            preview the member portal without signing in
+          </Link>
+        )}
       </div>
-    </div>
+    </AuthLayout>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <AuthLayout title="sign in" subtitle="Use the email we invited you with.">
+          <p className="sofi-body text-center text-black/45">loading…</p>
+        </AuthLayout>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   )
 }

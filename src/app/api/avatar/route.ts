@@ -1,19 +1,16 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+import { createServiceSupabase } from "@/lib/admin-auth"
+import { getRequestMember } from "@/lib/member-auth"
 
 export async function POST(req: Request) {
   try {
+    const member = await getRequestMember(req)
+    if (!member) return NextResponse.json({ error: "Member sign-in required" }, { status: 401 })
     const formData = await req.formData()
     const file = formData.get("file") as File
-    const codyza_id = formData.get("codyza_id") as string
 
-    if (!file || !codyza_id) {
-      return NextResponse.json({ error: "File and codyza_id required" }, { status: 400 })
+    if (!file) {
+      return NextResponse.json({ error: "File required" }, { status: 400 })
     }
 
     // Validate file type
@@ -28,11 +25,12 @@ export async function POST(req: Request) {
     }
 
     const ext = file.type.split("/")[1]
-    const fileName = `${codyza_id.toLowerCase()}.${ext}`
+    const fileName = `${member.codyza_id.toLowerCase()}.${ext}`
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
     // Upload to Supabase Storage
+    const supabase = createServiceSupabase()
     const { error: uploadError } = await supabase.storage
       .from("avatars")
       .upload(fileName, buffer, {
@@ -56,10 +54,10 @@ export async function POST(req: Request) {
     await supabase
       .from("contributors")
       .update({ avatar_url: avatarUrl })
-      .eq("codyza_id", codyza_id)
+      .eq("id", member.id)
 
     return NextResponse.json({ success: true, avatar_url: avatarUrl })
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 })
   }
 }
