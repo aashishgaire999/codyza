@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next"
 import { inter, jetbrainsMono, instrumentSerif } from "@/lib/fonts"
 import { SITE_CONFIG } from "@/constants/site"
 import { ThemeProvider } from "@/components/providers/theme-provider"
+import { PwaProvider } from "@/components/providers/pwa-provider"
 import { cn } from "@/lib/utils"
 import "./globals.css"
 
@@ -23,6 +24,16 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Codyza" }],
   creator: "Codyza",
+  applicationName: "Codyza",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Codyza",
+  },
+  formatDetection: {
+    telephone: false,
+  },
   metadataBase: new URL(SITE_CONFIG.url),
   openGraph: {
     type: "website",
@@ -43,7 +54,7 @@ export const metadata: Metadata = {
       { url: "/favicon.png", sizes: "32x32", type: "image/png" },
       { url: "/logo/codyza-logo.png", type: "image/png" },
     ],
-    apple: "/favicon.png",
+    apple: "/icons/apple-touch-icon.png",
   },
 }
 
@@ -71,7 +82,10 @@ export default function RootLayout({
           instrumentSerif.variable
         )}
       >
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <PwaProvider />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   )

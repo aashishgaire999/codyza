@@ -1,182 +1,213 @@
-# Session Handoff — read this first in a new chat
+# Session Handoff — read this first
 
-Written to let a fresh Claude Code session pick up this work with zero
-re-explaining. The founder (casual tone, calls me "bro", non-technical
-background, prefers direct honest answers over reassurance) asked for this
-because a long session needs to continue in a new chat without interruption.
+Written so a fresh AI tool with access to this folder can pick up the work
+with zero re-explaining. The founder (casual tone, calls people "bro",
+non-technical background, prefers direct honest answers over reassurance —
+he has repeatedly caught and corrected inflated "everything's done!" status
+reports from AI assistants, so don't round up) is handing this folder to a
+different AI tool to continue the design/build work.
 
-**Nothing in this file is a git commit — all work described below is
-currently uncommitted on `main`** (126 modified files as of this writing).
-Do not `git reset`, `git stash`, or `git clean` anything without checking
-`git status` first and confirming with the user — that would destroy real,
-unsaved work.
-
----
-
-## 0. Read this before touching `next dev` or `next build`
-
-This is the single most important operational fact for continuing this
-project in this environment.
-
-**The user's Mac has been running under sustained heavy CPU load
-(load average routinely 3–8) for this entire session**, apparently from
-other running apps (a second, separate Claude Code session was found
-running concurrently at one point — check for that first with
-`ps aux | grep claude-code` before assuming it's gone). This is **not**
-a bug in the Codyza code. Symptoms and the correct response:
-
-- `next dev` / `next build` processes will often sit at **0% CPU for
-  10–40+ minutes** before printing anything, then eventually work
-  correctly. This has happened repeatedly and is confirmed to be
-  OS-level CPU starvation, not a hang: `ps -p <pid> -o pid,pcpu,time`
-  will show almost no accumulated CPU time despite huge wall-clock
-  elapsed time. A genuinely stuck process would show 0.00 forever; this
-  one slowly accumulates seconds.
-- **Do not repeatedly kill and restart** as the first reaction — that
-  resets progress and has never once been the fix. Only kill a process
-  if you've confirmed via `ps` that a *newer* one is competing for the
-  same port, or if the user explicitly asks you to retry.
-- **Never run `next build` and `next dev` at the same time.** Doing so
-  once already corrupted `.next` earlier this session (`rm -rf .next`
-  fixed it). Always fully stop one before starting the other.
-- To wait on a slow process without polling manually, use a background
-  Bash command with a `while kill -0 <pid>; do sleep 5; done` loop and
-  `run_in_background: true`, so the harness notifies you when it
-  resolves instead of you burning turns on manual `sleep`.
-- A **production build (`npm run build`) has never once completed
-  successfully** in this environment across many attempts this session
-  — every attempt was still running (not failed, not crashed) when it
-  was eventually killed to free the port for something more urgent.
-  This is the single biggest unverified risk on the project. If asked
-  to verify the build, expect to need 20–60+ minutes of real elapsed
-  time, and don't edit any source file while a build is running (it
-  reads files as it compiles; a mid-build edit can produce a
-  build result that doesn't match either the old or new code).
-- Network connectivity itself is fine — this was explicitly tested
-  (`curl` to github.com, supabase.com, and the project's actual Supabase
-  REST endpoint all return fast, correct responses). The slowness is
-  pure CPU scheduling starvation, not a network or Supabase issue.
-- If the user says "show me the site" — start the dev server via the
-  Claude_Browser `preview_start` tool with name `codyza-dev`, then poll
-  in a background loop, and be honest that it may take a while. Don't
-  promise "quick."
+**Read `docs/decisions.md`, `docs/PRD.md`, and `docs/sitemap.md` before making
+any design or scope call.** They are the authoritative, binding plan for
+this project (see §1 below). Do not re-litigate decisions already marked
+DECIDED in `docs/decisions.md` without a very good reason and the founder's
+explicit sign-off — several "obvious improvements" (e.g. a decorative hero
+globe animation) have already been proposed and explicitly rejected once
+(D-008).
 
 ---
 
-## 1. What this whole session has been about
+## 0. Git state — READ THIS FIRST
 
-The founder asked for a full "strict" six-role code review (Product
-Owner, Technical Lead, UI/UX Designer, Frontend Developer, Backend
-Developer, QA/Performance Specialist) of the Codyza site, then said
-"let's start fixing our site as per the six roles and our plan."
-Everything below is progress against that review. The review report
-itself is a published Artifact:
+As of **2026-08-06**, a checkpoint commit (`a2b9ea8`, "Checkpoint: Codyza 2.0
+homepage refactor + new public pages (about, join)") captured everything that
+had accumulated uncommitted since the last real commit before it
+(`e0a5f13`, "wip: sofi-style redesign components"). That gap between
+`e0a5f13` and `a2b9ea8` — 137 files — is effectively **this entire visual
+redesign**: the whole homepage refactor, the new `/about` and `/join` pages,
+the rank-ladder consolidation, the test runner, dark-mode fix, avatar
+`next/image` conversions, everything. None of it existed in git history
+until that one checkpoint commit.
 
-**https://claude.ai/code/artifact/4c6fe425-41d2-4a52-932b-1fc474ec20f0**
+**Practical implication:** treat `a2b9ea8` as the safe baseline. Before
+running any destructive git operation (`reset --hard`, `checkout .`,
+`clean -f`, force-push, branch deletion) — check `git status` first and
+confirm with the founder. If you're not sure whether something is checked
+in, it's safer to assume it might not be and commit again rather than
+assume git history has your back.
 
-(Six-role scores, average 5.7/10, kept deliberately strict — not
-encouraging. If you need to re-publish/update it, use the Artifact tool
-with that same URL passed as `url` to keep the link stable.)
-
----
-
-## 2. What's actually done (verified, not just attempted)
-
-- **Sitewide dark-mode contrast bug fixed.** The site was silently
-  switching to `.dark` CSS based on OS preference (`next-themes`
-  `enableSystem`), but public pages hardcode light-theme colors — text
-  like "XP Progress" labels rendered white-on-white for any visitor
-  with system dark mode. Fixed in
-  `src/components/providers/theme-provider.tsx`
-  (`defaultTheme="light" enableSystem={false}`). The member dashboard's
-  own manual dark-mode toggle (`src/components/shared/theme-toggle.tsx`)
-  is untouched and still works.
-- **Homepage (`src/app/page.tsx`) fully refactored**: was 1,355 lines,
-  now 50 lines, composing 10 new component files under
-  `src/components/landing/`: `scroll-progress.tsx`, `nav.tsx`,
-  `spotlight.tsx`, `chapters.tsx`, `features.tsx`, `about.tsx`,
-  `projects.tsx`, `stats-band.tsx`, `team.tsx`, `apply-cta.tsx`,
-  `footer.tsx`. Typecheck confirmed clean after the split.
-- **Chapters section** (`ship`/`learn`/`grow` story) reordered to
-  learn → grow → ship (was ship → learn → grow, per user's explicit
-  request that "first you learn and grow and ship"), unified into one
-  consistent two-column layout (previously each panel had a different,
-  inconsistent structure), and each panel got a real designed diagram
-  (dark terminal window, PR-review card, crew-avatar cluster) with
-  staggered Framer Motion reveal animation, replacing generic
-  translucent ghost icons. Numbering in `src/constants/landing.ts`
-  (`CHAPTER_PANELS`) updated to match the new order.
-- **Footer rebuilt** (`src/components/landing/footer.tsx`): removed a
-  literal empty `<div />` that was wasting half the footer's width and
-  pushing everything else into a big dead gap; now one compact block
-  (wordmark + live "recently at codyza" activity feed, then a single
-  horizontal nav row) instead of two sparse stacked rows.
-- **"Get your website" / Spotlight CTA rebuilt**
-  (`src/components/landing/spotlight.tsx`): was a wide card with only
-  two small elements pushed to opposite edges (huge dead middle gap);
-  now a proper two-column layout — left side has a real 3-step process
-  list, right side has an actual contact card (icon, "Start a project"
-  title, email, "Send an email" link) instead of a bare pill. Copy uses
-  normal sentence case and the site's actual Inter/Instrument Serif
-  fonts (was using the sitewide lowercase-mono micro-label convention,
-  which read as too "developer-tool" for a sales pitch — this was an
-  explicit, deliberate exception to the site's D-007 casing rule for
-  this one section only, per the founder's direct instruction).
-  Pricing language is deliberately non-numeric ("priced fairly for
-  your budget", not "affordable" alone, not a dollar figure, not
-  "free") — see §4 for why.
-- **All 6 remote-avatar `<img>` tags converted to `next/image`**
-  across: `src/components/landing/team.tsx` (×2),
-  `src/app/contributor/[id]/page.tsx`,
-  `src/components/shared/leaderboard-podium.tsx`,
-  `src/app/member/page.tsx`, `src/app/member/projects/page.tsx`.
-  `next.config.ts` updated to whitelist `*.supabase.co` in
-  `images.remotePatterns` (previously only GitHub avatar domains were
-  allowed). Typecheck confirmed clean.
-  - **Two `<img>` tags were deliberately left alone** and should stay
-    that way: `src/app/onboarding/page.tsx` (line ~217) and
-    `src/components/member/avatar-upload.tsx` use the browser's global
-    `Image()` constructor (for canvas-based photo cropping) elsewhere
-    in the same file — importing `next/image`'s default export as
-    `Image` would silently shadow that constructor and break the
-    cropping code. `avatar-upload.tsx` **was** still converted, but
-    carefully: imported as `import NextImage from "next/image"` (not
-    `Image`), and given `unoptimized={preview.startsWith("blob:") ||
-    preview.startsWith("data:")}` since its preview can be either a
-    real remote URL or a local blob URL after cropping — Next's image
-    optimizer cannot fetch `blob:` URLs server-side, so `unoptimized`
-    is required for that case specifically. `onboarding.tsx`'s preview
-    is *always* a blob (first-time photo picker, nothing saved yet),
-    so there's no optimization value there and it was left as plain
-    `<img>` on purpose.
-- **Earlier in the session** (before the six-role review existed):
-  fixed a Lenis/Framer-Motion scroll-freeze bug, fixed an undefined-font
-  CSS bug, connected the homepage Team section and Footer to live
-  Supabase data, shortened an overly-long pinned scroll section, fixed
-  oversized section padding sitewide (`.cz-section` clamp reduced),
-  fixed duplicate page `<title>` tags on the contributor and admin
-  analytics pages, consolidated 5 duplicate rank-ladder implementations
-  into one canonical `src/lib/ranks.ts`.
-- **Bounty-completion and clock-in/out features** were built earlier
-  this session (submission form bounty picker, admin approval marking
-  bounties complete, a full clock-in/out timesheet page at
-  `/member/standup`, an admin "sessions" tab). Code is done and
-  typechecks, but **cannot be exercised at all** until the two SQL
-  statements in §3 are run — see there.
-- A real photo (team receiving a "1st Dollar Award" from the Marshall
-  Area Chamber) was cropped to 16:9
-  (`public/press/1st-dollar-award-crop.jpg`, cropped from
-  `~/Downloads/IMG_9122.JPG` — original untouched) but **not yet placed
-  anywhere on the site**. Ask the user where they want it before adding
-  it.
+Local AI-tool state directories (`.claude/`, `.agents/`, `.claude-flow/`,
+`.codex/`, `.screenshots/`) were deliberately excluded from that commit —
+they're this session's tool config/cache, not project source. Don't assume
+they reflect anything meaningful about the project; they're safe to ignore
+or clean up.
 
 ---
 
-## 3. Blocked on the user — do not attempt these yourself
+## 1. What this project actually is, and the two things layered on top of each other
 
-1. **Two SQL statements must be run in the Supabase dashboard** before
-   bounty-completion or clock-in/out can be tested at all. As of the
-   last check-in, the user confirmed **these have not been run yet**:
+**Codyza** is a volunteer tech community/org: contributors ship real
+projects, earn XP, rank up an 8-tier ladder, and the public site
+(`codyza.com`) exists to build trust and recruit more contributors. Stack:
+Next.js (App Router) + TypeScript + Tailwind v4 + Framer Motion + Supabase
+(Postgres + Auth + Storage) + Vercel. No CMS, no other backend.
+
+There are **two layers of planning documents** in `docs/`, from two
+different points in the project's life, and it's important not to confuse
+them:
+
+### Layer A — the formal "Codyza 2.0" plan (`docs/decisions.md`, `docs/PRD.md`,
+### `docs/sitemap.md`, `docs/brand-direction.md`, `docs/blueprint.md`)
+
+Dated 2026-07-12 through 2026-08-01. This is a full, structured redesign
+spec — written in a multi-role format (Product Manager, Information
+Architect, Brand Director, etc. — this looks like it was produced by a
+multi-agent/swarm-style planning session, not a single conversational
+back-and-forth, so treat its claims about "current site state" as
+sometimes aspirational rather than verified — see §6 for a confirmed
+example). Key binding decisions from `docs/decisions.md`:
+
+- **D-001:** Merged visual direction — light editorial public site,
+  **Codyza Blue accent**, Field Journal's lowercase serif headlines +
+  mono specimen labels, dark terminal-in-hero, dark "Arcade" member area.
+- **D-002:** MVP scope (see PRD §1.4) — no CMS, no replatform, no new
+  gamification, no i18n, no payments, no forum, no public dark-mode toggle.
+- **D-003:** New top nav = **Home · Projects · Community · News · About ·
+  Join · Quest**. New routes: `/community`, `/news`, `/about`, `/join`
+  (replacing `/apply`), `/quest`. `/team` → `/about#leadership`.
+- **D-004:** News = MDX files in-repo, no CMS.
+- **D-005:** Certificate verification via a new, manually-synced Supabase
+  `certificates` table — exact-match lookup only, no browse/list endpoint.
+- **D-006:** Canonical Codyza Blue = `#302bfb` (deep variant `#1b14ba`).
+  **Already applied** in `src/app/globals.css` (`--cz-accent`,
+  `--color-codyza-blue`) — confirmed, not just planned.
+- **D-007:** Typography = Instrument Serif lowercase display (`-0.03em`,
+  line-height 0.95) + Inter body/UI + JetBrains Mono labels. Lowercase
+  headlines are **deliberate house style**, not a bug — don't "fix" them.
+- **D-008:** A decorative Earth/globe hero animation was **explicitly
+  rejected** — a current SaaS hero cliché, threatens the Lighthouse budget.
+- **D-009:** Founder answers to open PRD questions (achievements =
+  ranks/streaks only, no separate model; contributor consent = onboarding
+  + an opt-out toggle; analytics = Vercel Analytics + custom events).
+- **D-010:** Member work-tracking (clock-in/out) ships as a pure
+  accountability log — **no XP for time logged**, XP stays single-sourced
+  from approved submissions only.
+
+`docs/PRD.md` §6 has a full feature spec (purpose/users/journey/data/
+states/a11y/security/analytics/acceptance-criteria) for every MVP page.
+`docs/sitemap.md` has the exact route tree, nav/footer link groups, slug
+rules, and — critically — §7 "Deltas Between This Spec and the Current
+Route Tree", which is a literal, dated implementation checklist.
+
+### Layer B — a "six-role strict code review" pass (referenced in git
+### history, e.g. commit context around avatar/next-image conversions)
+
+Before this handoff was rewritten, an earlier working session ran a
+strict 6-role review (Product Owner, Technical Lead, UI/UX, Frontend,
+Backend, QA — average score 5.7/10, kept deliberately strict) and started
+fixing findings from it. That review is a published Artifact:
+`https://claude.ai/code/artifact/4c6fe425-41d2-4a52-932b-1fc474ec20f0`.
+Its fixes (dark-mode contrast bug, homepage split into components, footer
+rebuild, `next/image` conversions, etc.) turned out to already be
+*executing* the Layer-A PRD's M5 engineering milestone, even though that
+session didn't originally frame it that way. **These two layers are not in
+conflict — Layer B is Layer A's implementation, just discovered
+mid-stream.** The one place they visibly *were* in tension: the founder at
+one point proposed a dark/space/galaxy visual theme (see old commits
+"Add GalaxyBackground", "sofi-style redesign") that directly contradicts
+D-006 (light public site) and D-008 (reject decorative SaaS elements) —
+that direction was abandoned (its files were deleted in the same
+checkpoint commit `a2b9ea8`) in favor of the D-001-compliant editorial
+system. If the founder brings up a dark/galaxy theme again, flag the
+tension with D-006/D-008 rather than just building it, and push for
+something tied to real Codyza data rather than generic stock space visuals
+if it's revisited.
+
+---
+
+## 2. Current build status against the PRD (as of 2026-08-06)
+
+A task list tracking the PRD's M5 engineering build order was created
+this session. Status:
+
+| # | Item | Status |
+|---|------|--------|
+| 1 | Test runner (Vitest) + smoke tests on `src/lib/ranks.ts` | **Done** — 8 tests passing |
+| 2 | `/about` page | **Built**, not yet visually verified (see §5) |
+| 3 | `/team` redirect retargeted to `/about#leadership` | **Done** |
+| 4 | `/join` page + `/apply` → permanent redirect to `/join` | **Built**, not yet visually verified |
+| 5 | `/community` hub (stats + podium + contributor directory) | **Not started** |
+| 6 | `/quest` public explainer | **Not started** |
+| 7 | `/news` feed + `/news/[slug]` (MDX) | **Not started** |
+| 8 | `/contact` + `/legal/privacy` + `/legal/terms` | **Not started** |
+| 9 | `/certificates/verify` | **Not started — blocked**, needs a new Supabase table (§4) |
+| 10 | Unify nav/footer sitewide, retire the old `sofi/` shell | **Not started** |
+
+The founder was explicitly asked "minimal cleanup vs. shell-only migration
+vs. build the full PRD" and chose **"build the full PRD"** — so items 5–10
+above are wanted, not optional polish. Recommended order: 5 → 6 → 7 → 8
+→ 10, with 9 slotted in whenever the founder confirms the Supabase table
+exists (item 10, the nav/footer unification, is listed last because the
+new 7-item nav shouldn't go live pointing at pages that don't exist yet —
+see `docs/sitemap.md` §7 delta #2's explicit warning about the `/team`
+redirect 404ing if sequenced wrong; the same logic applies to the nav).
+
+---
+
+## 3. Environment quirk — READ BEFORE running `next dev` / `next build` / `tsc`
+
+**This Mac runs under sustained heavy CPU load** (load average has been
+observed between 3 and 8+ across this whole project). This is host-level
+CPU contention, not a bug in the Codyza code, and not a network issue
+(connectivity to GitHub/Supabase has been explicitly verified fast and
+correct).
+
+- `next dev` can take **15+ minutes** just to print "Ready", and then each
+  **first** compile of a given route (in dev mode, Next compiles routes
+  on-demand on first request) can take several more minutes on top of
+  that. Confirmed via `ps -p <pid> -o pid,pcpu,time`: the process
+  slowly accumulates CPU seconds over a long wall-clock time — that's
+  "slow but alive," not stuck. A genuinely hung process would show 0.00
+  accumulated CPU forever.
+- `npx tsc --noEmit` will fail with `TS6053: File '.next/types/app/.../
+  page.ts' not found` if you run it before any route has been requested
+  in dev mode — those files are generated lazily per-route, not at server
+  boot. Load the relevant page(s) in a browser first, or just re-run tsc
+  after the dev server has been up and hit for a while.
+- `npx vitest run` can fail with `Timeout waiting for worker to respond`
+  under this same CPU pressure if it tries to spawn forked-process
+  workers. **Fix already applied**: `vitest.config.ts` sets
+  `pool: "threads"` (lighter-weight than the default forked-process pool)
+  — this resolved it. If tests time out again, that's the first thing to
+  check.
+- **Never run `next build` and `next dev` at the same time** — doing so
+  once already corrupted `.next` (`rm -rf .next` fixed it). Fully stop one
+  before starting the other.
+- **Don't repeatedly kill-and-restart** slow processes as a first
+  reaction — it resets progress and has never once been the actual fix.
+  Only kill a process if a *newer* one is confirmed (via `ps`) to be
+  competing for the same port, or if the founder explicitly asks for a
+  retry.
+- A stale `tsconfig.tsbuildinfo` (TypeScript's incremental-build cache)
+  can also throw `TS6053` for files that no longer exist after a rename/
+  delete — safe to `rm tsconfig.tsbuildinfo` and re-run if that happens;
+  it just triggers a full rebuild instead of an incremental one.
+- **A full production build (`npm run build`) has never once been
+  confirmed to complete successfully in this environment** — every prior
+  attempt was still running (not failed, not crashed) when it was
+  eventually stopped for time. If asked to verify the build, expect to
+  need real elapsed time (tens of minutes) and don't edit source files
+  while it's running.
+
+---
+
+## 4. Blocked on the founder — don't attempt these yourself
+
+1. **Two SQL statements need to run in the Supabase dashboard** before
+   bounty-completion or clock-in/out can be tested. Status as of last
+   check: founder was unsure whether these have been run — confirm with
+   them again before assuming either way, and don't claim these features
+   are "tested" until they explicitly confirm it:
 
    ```sql
    alter table submissions add column bounty_id uuid references bounties(id);
@@ -199,131 +230,112 @@ with that same URL passed as `url` to keep the link stable.)
    );
    ```
 
-   Don't try to run these yourself (no DB credentials in this
-   environment, and it's the user's production database) — just remind
-   the user if it comes up, and don't claim those features are "tested"
-   until they confirm it's done.
+   No DB credentials exist in these AI-tool environments, and it's the
+   founder's production database — don't try to run these yourself.
 
-2. **Real content**: the user said they have some real trust content
-   (photos, possibly case studies) and "will send it" — don't fabricate
-   testimonials, case studies, or additional photos in the meantime.
+2. **A third new table will be needed for `/certificates/verify`** (PRD
+   §6.10 / D-005): `certificates` (id/code, contributor codyza_id,
+   program, issued_at, status). Same deal — founder provisions it by hand
+   in Supabase, same pattern as `work_sessions` above.
 
-3. **Pricing for the web-builds service**: explicitly resolved — the
-   user does NOT want a real number shown (case-by-case, volunteer-run)
-   but also explicitly does NOT want to say "free" (undersells the
-   work / invites being judged as low-quality). The current copy
-   ("priced fairly for your budget") is the agreed solution. Don't
-   revisit this unless the user brings it up again.
+3. **Real content**: the founder has real trust content (photos, possibly
+   case studies) and said he'd send it — don't fabricate testimonials,
+   case studies, or additional photos in the meantime.
 
----
-
-## 4. Open question awaiting the user's decision
-
-**Do not unilaterally act on this — ask first if it hasn't been answered
-yet.** While fixing a "duplicate Slack-gate button" item from the
-review (Technical Lead finding), it became clear the issue is bigger
-than a simple duplicate: `/apply`, `/projects`, `/leaderboard`,
-`/contributor/[id]`, `/onboarding`, and `/submit` all render through
-`src/components/shared/public-shell.tsx`, which uses an entirely
-different, older nav/scroll-progress/footer system
-(`src/components/landing/sofi/sofi-nav.tsx`,
-`sofi-scroll.tsx`, `sofi-footer.tsx` — note `sofi-footer.tsx` is what
-actually still uses the "duplicate" `SlackGateButton` component) than
-the homepage's new `Nav`/`ScrollProgress`/`Footer`. This is *why* those
-six pages never got the same design pass as the homepage — they're
-running on a parallel, older shell entirely.
-
-Two options were presented to the user, answer not yet received:
-
-1. **Minimal**: just clean up the literal duplicate component, leave
-   the six pages as-is on the old shell.
-2. **Real fix**: migrate those six pages onto the same `Nav`/`Footer`
-   the homepage now uses, so the whole site is one consistent system.
-
-Given the review specifically penalized inconsistency across pages,
-option 2 is the better fix, but it's a bigger visual change touching
-6 live pages — get explicit confirmation before doing it.
+4. **Pricing for the web-builds service** (if that comes up in Spotlight/
+   CTA copy): already explicitly resolved — no real number, but also
+   explicitly not "free" (undersells the work). Current copy: "priced
+   fairly for your budget." Don't revisit unless the founder brings it up.
 
 ---
 
-## 5. Still open / not started (from the six-role review)
+## 5. Immediate next steps
 
-Go re-read the review artifact for full detail
-(https://claude.ai/code/artifact/4c6fe425-41d2-4a52-932b-1fc474ec20f0),
-but the short version of what's untouched:
-
-- **Zero automated tests exist** — no jest/vitest/playwright installed
-  at all (`package.json` devDependencies confirmed clean of any test
-  runner as of this writing). This was flagged as the QA role's biggest
-  complaint (4/10, the lowest of all six scores).
-- **Production build still unverified** — see §0.
-- **No mobile-viewport testing** has happened at all this session;
-  every visual check was done at desktop widths (1280px).
-- **No Lighthouse/axe accessibility audit** has been run. Manual code
-  inspection found decent signals (alt text on all images,
-  `aria-hidden` on decoratives, `aria-expanded`/`aria-label` on
-  interactive controls, Escape-to-close on menus, `focus-visible`
-  states in CSS) but nothing has been run through an actual tool or a
-  real screen reader.
-- **No rate limiting** visible on public-facing API routes
-  (`/api/submit`, `/api/avatar`, etc.) — flagged as a Backend Developer
-  finding, not yet addressed.
-- **Team, About, Projects, Leaderboard, and contributor-profile pages**
-  never got the same hands-on visual design pass the homepage did this
-  session (tied to the open shell/footer question in §4).
-- **No conversion analytics** on the `/apply` funnel.
+1. Confirm `npx tsc --noEmit` is clean (see §3 for why it may need a
+   warm dev server first) and visually check `/about`, `/join`, and that
+   `/apply` correctly 308s to `/join` — none of this was visually
+   verified before this handoff was written, only typechecked/read.
+2. Continue the build order in §2, item 5 onward (`/community` next).
+3. Whenever `/certificates/verify` comes up, stop and ask the founder to
+   confirm the `certificates` table exists before writing code against it.
+4. Before the nav/footer unification (item 10), get explicit confirmation
+   that all the new pages it will link to are live — don't ship a nav
+   with dead links.
 
 ---
 
-## 6. Working conventions established this session (follow these)
+## 6. Discrepancies found between the PRD's claims and actual current code
 
-- The founder wants **brutal honesty over reassurance** — when
-  something isn't done, say so plainly; don't round up. This whole
-  session has repeatedly caught and corrected optimistic self-reporting
-  ("everything done?" was asked multiple times specifically because
-  the user suspects inflated status reports).
-- **Casing/typography rule (D-007 in `docs/decisions.md`)**: lowercase
-  serif headlines + normal-case Inter body text is the *deliberate*
-  house style almost everywhere. Don't "fix" lowercase headlines
-  thinking they're a bug — they're not, except where the user has
-  explicitly carved out an exception (the Spotlight/"Get your website"
-  section, per §2).
-- Always verify visually via the dev server + `read_console_messages`
-  + DOM inspection (`javascript_tool` with `getComputedStyle` /
-  `getBoundingClientRect`) rather than assuming code changes worked —
-  this environment's screenshot tool has occasionally rendered stale
-  or mis-scaled content after a `resize_window` call; if a screenshot
-  looks wrong (content crammed in a corner, huge black area), check
-  the actual viewport size via JS before assuming the page is broken —
-  it's sometimes a tool rendering glitch, not a real bug. Opening a
-  fresh tab (`tabs_create`) has reliably fixed this when it happens.
-- Lenis (smooth-scroll) intercepts native scrolling; plain
-  `window.scrollTo()` often doesn't trigger Framer Motion's
-  `useScroll`/`whileInView` the way a real user's wheel scroll would.
-  For DOM verification of scroll-linked animation, dispatch synthetic
-  `WheelEvent`s instead of using `scrollTo` directly.
-- Read `docs/decisions.md` before making any brand/design-direction
-  call — it's the founder's authoritative decision log (D-001 through
-  D-010+) and several generic "obvious improvements" (a decorative
-  hero globe/Earth animation, for instance — D-008) have already been
-  explicitly rejected once.
-- The founder proposed a dark/space/galaxy visual theme at one point.
-  Flagged (not refused) as being in real tension with D-006 (light
-  theme, "Codyza Blue") and D-008 (rejects generic decorative SaaS
-  hero elements) — no decision made either way yet. If revisited,
-  push for a version tied to something real about Codyza (e.g. real
-  contributor data), not generic stock space footage, and confirm
-  genuinely copyright-free asset sourcing before committing.
+Worth knowing so you don't propagate PRD claims that turned out to be
+inaccurate when checked against the real codebase:
+
+- **PRD's "P2: Leadership names, roles, photos, GitHub/LinkedIn/portfolio
+  links" preserve item is not actually true today.** Checked
+  `src/constants/team.ts`: `FOUNDING_TEAM`'s social links are placeholder
+  URLs (`https://twitter.com`, `https://linkedin.com` — not real
+  profiles), and `LEADERSHIP_TEAM` entries have no link fields at all.
+  The current live `Team` component doesn't render any social links. The
+  new `/about` page built this session intentionally does **not**
+  fabricate real-looking social links to satisfy the PRD's parity claim —
+  it matches what's actually live (name, role, avatar/initials, bio). If
+  real GitHub/LinkedIn/portfolio links are wanted, that needs real URLs
+  from the founder, not invented ones.
+- **`AGENTS.md` references `node_modules/next/dist/docs/` for
+  "breaking changes" in this project's Next.js — that path does not
+  exist.** The project's `package.json` was already downgraded (in the
+  same uncommitted work later checkpointed at `a2b9ea8`) from a committed
+  Next 16.2.6/React 19.2.4 to a real, standard **Next 15.3.5 / React
+  18.3.1** — confirmed consistent across `package.json`,
+  `package-lock.json`, and installed `node_modules`. Whatever prompted
+  that AGENTS.md note no longer applies to the actually-installed stack;
+  don't go looking for a docs folder that isn't there.
+- **`@clerk/nextjs` is a listed dependency but appears unused** — the
+  entire auth system per the PRD and actual `/login`, `/onboarding`, etc.
+  pages is Supabase Auth. Nobody has explained why Clerk is in
+  `package.json`. Flagged, not removed (wasn't part of any task asked
+  this session) — worth asking the founder about before assuming it's
+  either load-bearing or safe to delete.
+- **`devDependencies` type packages are mismatched with the actual
+  runtime**: `@types/react`/`@types/react-dom` are pinned to `^19` while
+  the installed `react`/`react-dom` are `^18.3.1`. Pre-existing, not
+  something this session caused — flagged in case it's the source of any
+  confusing type errors.
 
 ---
 
-## 7. Suggested immediate next step
+## 7. Working conventions (carry these forward)
 
-Ask the user: (a) which of the two options in §4 they want, and
-(b) whether they've run the SQL migrations in §3 yet. Both are cheap
-yes/no answers that unblock real subsequent work (either a page-shell
-migration, or live end-to-end testing of the bounty/clock-in
-features). While waiting on those, safe unblocked work includes:
-installing a minimal test runner and writing a few smoke tests (QA
-finding, zero risk of breaking anything), or a mobile-viewport visual
-pass of the homepage sections already fixed this session.
+- **Brutal honesty over reassurance.** The founder has repeatedly asked
+  "is everything actually done?" specifically because he suspects
+  inflated status reports. State what's unverified as unverified.
+- **Lowercase serif headlines are intentional** (D-007) — don't "fix"
+  them to sentence case. The one deliberate exception the founder
+  approved: a homepage CTA section using normal-case Inter instead, for a
+  sales-pitch tone.
+- Public pages are light/editorial; member/admin (`/member/*`,
+  `/admin/*`) are dark "Arcade" — this split is a narrative feature, not
+  a user preference, and there's no public dark-mode toggle (PRD §1.4).
+- Lenis (smooth-scroll, `src/components/providers/smooth-scroll.tsx`)
+  intercepts native scrolling and honors `prefers-reduced-motion`. Plain
+  `window.scrollTo()` often won't trigger Framer Motion's `useScroll`/
+  `whileInView` the way real wheel input does — dispatch synthetic
+  `WheelEvent`s if you need to verify scroll-linked animation
+  programmatically.
+- The homepage's `src/components/landing/*` components (Nav, Footer,
+  ScrollProgress, etc.) are already generic/reusable across any public
+  page, not homepage-specific — new pages built this session (`/about`,
+  `/join`) use them directly instead of the old `sofi/` shell
+  (`src/components/shared/public-shell.tsx` + `sofi-nav.tsx` /
+  `sofi-footer.tsx`), specifically to shrink the scope of the eventual
+  nav/footer unification (§2, item 10). New pages going forward should do
+  the same rather than reaching for `PublicShell`.
+- Six existing pages (`/apply`→now redirects, `/projects`,
+  `/leaderboard`, `/contributor/[id]`, `/onboarding`, `/submit`) still
+  render through the old `sofi/` shell and its `sofi-*` CSS classes —
+  visually a different system from the homepage/new pages' `cz-*` classes.
+  This is why they haven't gotten the same visual pass yet — tracked as
+  build-order item 10.
+- All public writes are server-validated; RLS on every Supabase table;
+  admin checks are server-side via `is_admin`, never trusted from the
+  client (PRD §6.0). No secrets in client bundles. No PII in URLs or
+  query strings.

@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from "react"
 import NextImage from "next/image"
 import { Camera, Loader2, Check, X } from "lucide-react"
 import Cropper from "react-easy-crop"
+import { memberFetch } from "@/lib/member-fetch"
 
 interface AvatarUploadProps {
   codyzaId: string
@@ -91,9 +92,7 @@ export function AvatarUpload({ codyzaId, currentUrl, name, onUpload, size = 72 }
 
       const formData = new FormData()
       formData.append("file", file)
-      formData.append("codyza_id", codyzaId)
-
-      const res = await fetch("/api/avatar", { method: "POST", body: formData })
+      const res = await memberFetch("/api/avatar", { method: "POST", body: formData })
       const data = await res.json()
 
       if (!res.ok) {

@@ -2,11 +2,16 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { Menu, X } from "lucide-react"
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { NAV_LINKS } from "@/constants/site"
 import { CodyzaLogo } from "@/components/shared/codyza-logo"
 
 export function Nav() {
+  const pathname = usePathname()
+  const reduceMotion = useReducedMotion()
+  const isActive = (href: string) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`))
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
@@ -43,9 +48,14 @@ export function Nav() {
             <span className="cz-micro tracking-[0.18em]">codyza</span>
           </Link>
 
-          <div className="hidden items-center gap-8 lg:gap-10 md:flex">
+          <div className="hidden items-center gap-6 lg:flex xl:gap-9">
             {NAV_LINKS.map((l) => (
-              <Link key={l.href} href={l.href} className="cz-nav-link">
+              <Link
+                key={l.href}
+                href={l.href}
+                className="cz-nav-link"
+                aria-current={isActive(l.href) ? "page" : undefined}
+              >
                 {l.label.toLowerCase()}
               </Link>
             ))}
@@ -55,13 +65,13 @@ export function Nav() {
             <Link href="/login" className="cz-pill hidden !min-h-10 !px-5 !text-[11px] sm:inline-flex">
               login
             </Link>
-            <Link href="/apply" className="cz-pill cz-pill-solid !min-h-10 !px-5 !text-[11px]">
-              apply
+            <Link href="/join" className="cz-pill cz-pill-solid !min-h-11 !px-5 !text-[11px]">
+              join
             </Link>
             <button
               type="button"
               onClick={() => setMenuOpen(true)}
-              className="flex h-11 w-11 items-center justify-center text-[var(--cz-muted)] transition-colors hover:text-[var(--cz-ink)] md:hidden"
+              className="flex h-11 w-11 items-center justify-center text-[var(--cz-muted)] transition-colors hover:text-[var(--cz-ink)] lg:hidden"
               aria-expanded={menuOpen}
               aria-label="Open menu"
             >
@@ -71,15 +81,28 @@ export function Nav() {
         </nav>
       </header>
 
-      {menuOpen && (
-        <>
-          <button
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            className="fixed inset-0 z-[60]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: reduceMotion ? 0.12 : 0.2 }}
+          >
+            <button
             type="button"
-            className="fixed inset-0 z-[60] bg-black/20 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/20 backdrop-blur-sm"
             aria-label="Close menu"
             onClick={() => setMenuOpen(false)}
           />
-          <aside className="cz-menu-drawer fixed inset-y-0 right-0 z-[70] flex w-full max-w-sm flex-col px-8 py-8">
+          <motion.aside
+            className="cz-menu-drawer absolute inset-y-0 right-0 z-[70] flex w-full max-w-sm flex-col px-8 py-8"
+            initial={{ x: reduceMotion ? 0 : "100%", opacity: reduceMotion ? 0 : 1 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: reduceMotion ? 0 : "100%", opacity: reduceMotion ? 0 : 1 }}
+            transition={{ type: "spring", bounce: 0, duration: reduceMotion ? 0.12 : 0.38 }}
+          >
             <button
               type="button"
               onClick={() => setMenuOpen(false)}
@@ -95,6 +118,7 @@ export function Nav() {
                   href={l.href}
                   onClick={() => setMenuOpen(false)}
                   className="cz-display text-[2.25rem] transition-colors hover:opacity-60"
+                  aria-current={isActive(l.href) ? "page" : undefined}
                 >
                   {l.label.toLowerCase()}
                 </Link>
@@ -106,13 +130,14 @@ export function Nav() {
               >
                 login
               </Link>
-              <Link href="/apply" onClick={() => setMenuOpen(false)} className="cz-pill cz-pill-solid mt-4 self-start">
-                apply to join
+              <Link href="/join" onClick={() => setMenuOpen(false)} className="cz-pill cz-pill-solid mt-4 self-start">
+                join the crew
               </Link>
             </nav>
-          </aside>
-        </>
-      )}
+          </motion.aside>
+        </motion.div>
+        )}
+      </AnimatePresence>
     </>
   )
 }

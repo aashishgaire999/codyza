@@ -27,7 +27,7 @@ export function AuthLayout({
           </div>
           <div className="auth-journal-card">{children}</div>
           <Link href="/" className="sofi-body mt-6 block text-center text-black/45 hover:text-black">
-            ← back home
+            back home
           </Link>
         </FadeIn>
       </div>

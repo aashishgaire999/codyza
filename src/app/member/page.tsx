@@ -8,6 +8,8 @@ import Image from "next/image"
 import { Trophy, Zap, Target, FileText, Award, Settings } from "lucide-react"
 import { RankBadge } from "@/components/shared/rank-badge"
 import { QuestCard } from "@/components/shared/quest-card"
+import { MemberAnnouncements } from "@/components/member/member-announcements"
+import { memberFetch } from "@/lib/member-fetch"
 
 interface Contributor {
   codyza_id: string
@@ -83,8 +85,8 @@ export default function MemberDashboard() {
 
     // Load groups and bounties
     const [groupsRes, bountiesRes] = await Promise.all([
-      fetch("/api/groups").then(r => r.json()),
-      fetch("/api/bounties").then(r => r.json()),
+      memberFetch("/api/groups").then(r => r.json()),
+      memberFetch("/api/bounties").then(r => r.json()),
     ])
     const allGroups = Array.isArray(groupsRes) ? groupsRes : []
     setMyGroups(allGroups.filter((g: any) => g.members?.some((m: any) => m.codyza_id === contrib.codyza_id)))
@@ -102,7 +104,7 @@ export default function MemberDashboard() {
       // Load reactions for feed items
       const ids = feedData.map((f: any) => f.id).filter(Boolean)
       if (ids.length) {
-        const res = await fetch("/api/reactions?ids=" + ids.join(","))
+        const res = await memberFetch("/api/reactions?ids=" + ids.join(","))
         const rData = await res.json()
         setReactions(rData)
       }
@@ -122,10 +124,10 @@ export default function MemberDashboard() {
 
   const toggleReaction = async (submissionId: string, emoji: string) => {
     if (!contributor) return
-    const res = await fetch("/api/reactions", {
+    const res = await memberFetch("/api/reactions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ submission_id: submissionId, codyza_id: contributor.codyza_id, emoji })
+      body: JSON.stringify({ submission_id: submissionId, emoji })
     })
     const data = await res.json()
     setReactions(prev => {
@@ -179,11 +181,13 @@ export default function MemberDashboard() {
         </p>
       </div>
 
+      <MemberAnnouncements />
+
       {/* PROFILE ID CARD */}
       <div className="id-card-glow mb-8">
         <div className="id-card-inner">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col items-start gap-4 sm:flex-row sm:justify-between">
+            <div className="flex min-w-0 items-center gap-4">
               <div className="relative h-[88px] w-[88px] flex-shrink-0 overflow-hidden rounded-full border-2 border-border">
                 {contributor.avatar_url
                   ? <Image src={contributor.avatar_url + "?v=1"} alt={contributor.name} fill sizes="88px" className="object-cover"/>
@@ -192,7 +196,7 @@ export default function MemberDashboard() {
                     </div>
                 }
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xl font-bold text-foreground">{contributor.name}</span>
                   <RankBadge rank={contributor.rank} />
@@ -200,7 +204,7 @@ export default function MemberDashboard() {
                 <div className="mt-1 font-mono text-2xl font-bold tracking-wider text-foreground">
                   CZX-<span className="text-accent">{contributor.codyza_id.replace("CZX-", "")}</span>
                 </div>
-                <div className="mt-1 text-xs text-muted-foreground">{contributor.email}</div>
+                <div className="mt-1 break-all text-xs text-muted-foreground">{contributor.email}</div>
               </div>
             </div>
             {contributor.skills && (contributor.skills as string[]).length > 0 && (
@@ -272,7 +276,7 @@ export default function MemberDashboard() {
             <div className="mb-2 flex items-center justify-between">
               <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">XP to next rank</span>
               <span className="font-mono text-xs text-accent">
-                {next ? `${contributor.xp.toLocaleString()} / ${next.minXP.toLocaleString()} XP → ${next.name}` : "MAX RANK"}
+                {next ? `${contributor.xp.toLocaleString()} / ${next.minXP.toLocaleString()} XP · next: ${next.name}` : "MAX RANK"}
               </span>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-muted xp-track">
@@ -287,7 +291,7 @@ export default function MemberDashboard() {
         <div className="mb-6">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Your Groups</h2>
-            <Link href="/member/groups" className="text-xs text-accent hover:opacity-80">View all →</Link>
+            <Link href="/member/groups" className="text-xs text-accent hover:opacity-80">View all</Link>
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {myGroups.slice(0,2).map((g: any) => (
@@ -315,7 +319,7 @@ export default function MemberDashboard() {
         <div className="mb-6">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Open Bounties</h2>
-            <Link href="/member/bounties" className="text-xs text-accent hover:opacity-80">View all →</Link>
+            <Link href="/member/bounties" className="text-xs text-accent hover:opacity-80">View all</Link>
           </div>
           <div className="space-y-2">
             {openBounties.map((b: any) => (

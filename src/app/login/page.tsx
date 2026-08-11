@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { AuthLayout } from "@/components/shared/auth-layout"
+import { InstallAppButton } from "@/components/shared/install-app-button"
 
 function LoginForm() {
   const router = useRouter()
@@ -120,11 +121,19 @@ function LoginForm() {
           }}
           className="text-black/45 hover:text-black"
         >
-          {magicMode ? "← use password" : "email me a login link →"}
+          {magicMode ? "use password" : "email me a login link"}
         </button>
         <Link href="/forgot-password" className="block text-black/45 hover:text-black">
           forgot password?
         </Link>
+        <div className="pt-2">
+          <InstallAppButton />
+        </div>
+        {process.env.NODE_ENV === "development" && (
+          <Link href="/member-preview" className="mt-4 block rounded-full border border-[var(--journal-rule)] px-4 py-2 text-[var(--journal-sage)] hover:bg-[var(--journal-sage)]/5">
+            preview the member portal without signing in
+          </Link>
+        )}
       </div>
     </AuthLayout>
   )

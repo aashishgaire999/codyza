@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server"
+import { timingSafeEqual } from "node:crypto"
+import { ADMIN_COOKIE, createAdminSessionToken } from "@/lib/admin-auth"
 
 export async function POST(req: Request) {
   try {
@@ -15,18 +17,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ valid: false, error: "Server misconfigured" }, { status: 500 })
     }
 
-    // Constant-time comparison-ish (not perfect but better than ===)
-    if (accessCode.length !== expected.length) {
-      return NextResponse.json({ valid: false })
-    }
-
-    let mismatch = 0
-    for (let i = 0; i < accessCode.length; i++) {
-      mismatch |= accessCode.charCodeAt(i) ^ expected.charCodeAt(i)
-    }
-
-    if (mismatch === 0) {
-      return NextResponse.json({ valid: true })
+    const suppliedBuffer = Buffer.from(accessCode)
+    const expectedBuffer = Buffer.from(expected)
+    if (suppliedBuffer.length === expectedBuffer.length && timingSafeEqual(suppliedBuffer, expectedBuffer)) {
+      const response = NextResponse.json({ valid: true })
+      response.cookies.set(ADMIN_COOKIE, createAdminSessionToken(), {
+        httpOnly: true,
+        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 60 * 60 * 8,
+      })
+      return response
     }
     return NextResponse.json({ valid: false })
   } catch {

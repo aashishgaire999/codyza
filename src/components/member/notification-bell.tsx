@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Bell, CheckCircle, XCircle, Trophy, Flame, Users, Zap, Megaphone, Star } from "lucide-react"
+import { memberFetch } from "@/lib/member-fetch"
 
 interface Notification {
   id: string
@@ -43,7 +44,7 @@ function NotifIcon({ type }: { type: string }) {
   )
 }
 
-export function NotificationBell({ codyzaId }: { codyzaId: string }) {
+export function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [open, setOpen] = useState(false)
   const [now, setNow] = useState(() => Date.now())
@@ -52,11 +53,11 @@ export function NotificationBell({ codyzaId }: { codyzaId: string }) {
   const unread = notifications.filter(n => !n.read).length
 
   const loadNotifications = useCallback(async () => {
-    const res = await fetch(`/api/notifications?codyza_id=${codyzaId}`)
+    const res = await memberFetch("/api/notifications")
     const data = await res.json()
-    setNotifications(data)
+    setNotifications(Array.isArray(data) ? data : [])
     setNow(Date.now())
-  }, [codyzaId])
+  }, [])
 
   useEffect(() => {
     void loadNotifications()
@@ -75,16 +76,16 @@ export function NotificationBell({ codyzaId }: { codyzaId: string }) {
   }, [])
 
   const markAllRead = async () => {
-    await fetch("/api/notifications", {
+    await memberFetch("/api/notifications", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ codyza_id: codyzaId }),
+      body: JSON.stringify({}),
     })
     setNotifications(prev => prev.map(n => ({ ...n, read: true })))
   }
 
   const markRead = async (id: string) => {
-    await fetch("/api/notifications", {
+    await memberFetch("/api/notifications", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),

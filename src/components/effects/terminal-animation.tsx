@@ -122,7 +122,7 @@ export function TerminalAnimation({ label = "codyza — mission control" }: { la
                 }
               >
                 {line.type === "ok" && <span className="text-[#7ee787]">✓ </span>}
-                {line.type === "info" && <span className="text-[#d2a8ff]">→ </span>}
+                {line.type === "info" && <span className="text-[#d2a8ff]">• </span>}
                 {line.text}
               </span>
             )}

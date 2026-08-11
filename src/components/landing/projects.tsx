@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { ArrowUpRight, Globe, Zap } from "lucide-react"
+import { Globe } from "lucide-react"
 import { createClient } from "@/lib/supabase"
 import { FadeInView } from "@/components/effects/fade-in-view"
 
@@ -12,7 +12,6 @@ type Project = {
   live_url?: string | null
   description?: string | null
   tech_stack?: string[] | null
-  ai_score?: number | null
   codyza_id?: string | null
 }
 
@@ -24,12 +23,7 @@ function ProjectCard({ p }: { p: Project }) {
     <>
       <div className="relative z-[1] mb-4 flex items-center justify-between gap-2">
         <span className="cz-micro tracking-[0.18em]">{p.codyza_id || "specimen"}</span>
-        {p.ai_score != null && (
-          <span className="cz-project-score flex items-center gap-1 font-mono text-[10px]">
-            <Zap className="h-3 w-3" />
-            {p.ai_score}/10
-          </span>
-        )}
+        <span className="cz-project-state">shipped</span>
       </div>
       <h3 className="cz-project-title relative z-[1] font-[family-name:var(--font-instrument)] text-2xl lowercase tracking-tight">
         {p.project_name}
@@ -42,12 +36,11 @@ function ProjectCard({ p }: { p: Project }) {
           </span>
         ))}
       </div>
-      <div className="relative z-[1] mt-6 flex items-center justify-between cz-border-t pt-5">
+      <div className="relative z-[1] mt-6 flex items-center cz-border-t pt-5">
         <span className="cz-project-link flex items-center gap-1.5 text-[13px]">
           <Globe className="h-3.5 w-3.5" />
           {p.live_url ? "visit live" : p.github_url ? "view code" : "view profile"}
         </span>
-        <ArrowUpRight className="cz-project-arrow h-4 w-4 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
       </div>
     </>
   )
@@ -82,7 +75,7 @@ export function Projects() {
       const supabase = createClient()
       const { data } = await supabase
         .from("submissions")
-        .select("project_name, github_url, live_url, description, tech_stack, ai_score, codyza_id")
+        .select("project_name, github_url, live_url, description, tech_stack, codyza_id")
         .eq("status", "approved")
         .order("created_at", { ascending: false })
         .limit(6)
@@ -95,18 +88,10 @@ export function Projects() {
   return (
     <section id="projects" className="cz-section scroll-mt-24 cz-border-t px-5 sm:px-8 lg:px-10">
       <div className="mx-auto max-w-[1320px]">
-        <div className="grid gap-10 lg:grid-cols-[1fr_0.55fr] lg:items-end lg:gap-16">
+        <div className="cz-projects-heading">
           <FadeInView variant="headline">
-            <p className="cz-micro mb-8">006 / currently shipping</p>
-            <h2 className="cz-display max-w-2xl">
-              real things,
-              <span className="block cz-headline-muted">built right now.</span>
-            </h2>
-          </FadeInView>
-          <FadeInView variant="subtle" delay={150}>
-            <p className="cz-body max-w-sm lg:pb-2 lg:text-right">
-              Live deployments from people inside the community.
-            </p>
+            <p className="cz-kicker">proof of work</p>
+            <h2>work becomes public.</h2>
           </FadeInView>
         </div>
 
@@ -118,12 +103,30 @@ export function Projects() {
           </div>
         ) : projects.length === 0 ? (
           <FadeInView delay={180}>
-            <div className="mt-16 md:mt-24">
-              <p className="cz-display cz-empty-mark">—</p>
-              <p className="cz-body mt-6 max-w-md text-[16px]">Nothing live yet — you could fix that.</p>
-              <Link href="/apply" className="cz-pill cz-pill-solid mt-10 inline-flex">
-                be the first to ship →
-              </Link>
+            <div className="cz-home-workbench">
+              <div className="cz-workbench-bar">
+                <span className="cz-live-dot" />
+                <span>the Codyza workbench</span>
+                <strong>live</strong>
+              </div>
+              <div className="cz-workbench-flow" aria-label="Codyza project workflow">
+                {[
+                  ["01", "claim", "a real need"],
+                  ["02", "build", "with the crew"],
+                  ["03", "ship", "public proof"],
+                ].map(([num, title, note]) => (
+                  <div key={num} className="cz-workbench-card">
+                    <span>{num}</span>
+                    <strong>{title}</strong>
+                    <small>{note}</small>
+                    <i aria-hidden><b /><b /><b /></i>
+                  </div>
+                ))}
+              </div>
+              <div className="cz-workbench-foot">
+                <span>first public launch is being prepared</span>
+                <Link href="/join">join the build</Link>
+              </div>
             </div>
           </FadeInView>
         ) : (

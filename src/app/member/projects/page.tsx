@@ -5,6 +5,7 @@ import Image from "next/image"
 import { createClient } from "@/lib/supabase"
 import { ExternalLink, GitBranch, FileText, Send, ChevronDown, ChevronUp, Plus } from "lucide-react"
 import { MemberPageHeader } from "@/components/member/member-page-header"
+import { memberFetch } from "@/lib/member-fetch"
 
 const TECH_OPTIONS = [
   "Next.js","React","TypeScript","Python","Node.js","Tailwind CSS",
@@ -73,7 +74,7 @@ export default function ProjectsPage() {
     setLoading(false)
 
     if (contrib) {
-      const res = await fetch("/api/bounties")
+      const res = await memberFetch("/api/bounties")
       const bounties = await res.json()
       const mine = Array.isArray(bounties)
         ? bounties.filter((b: any) => b.status === "claimed" && b.claimed_by === contrib.codyza_id)
@@ -101,11 +102,10 @@ export default function ProjectsPage() {
     setSubmitting(true)
     setSubmitError("")
     try {
-      const res = await fetch("/api/submit", {
+      const res = await memberFetch("/api/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          codyza_id: contributor.codyza_id,
           project_name: projectName,
           github_url: githubUrl,
           live_url: liveUrl,
@@ -281,7 +281,7 @@ export default function ProjectsPage() {
               <p className="font-medium text-muted-foreground">No projects yet</p>
               <p className="mt-1 text-sm text-muted-foreground">Be the first to ship something.</p>
               <button onClick={() => setSubmitOpen(true)} className="btn-accent mt-4 rounded-full px-4 py-2 text-sm">
-                Submit your project →
+                Submit your project
               </button>
             </div>
           ) : (

@@ -29,8 +29,9 @@ export const SOCIAL_LINKS = {
 } as const
 
 export const NAV_LINKS: { label: string; href: string }[] = [
-  { label: "About", href: "/#about" },
   { label: "Projects", href: "/projects" },
-  { label: "Leaderboard", href: "/leaderboard" },
-  { label: "Team", href: "/#team" },
+  { label: "Community", href: "/community" },
+  { label: "News", href: "/news" },
+  { label: "About", href: "/about" },
+  { label: "Quest", href: "/quest" },
 ]

@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { createClient } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Save, Check } from "lucide-react"
+import { Save, Check } from "lucide-react"
 import { MemberPageHeader } from "@/components/member/member-page-header"
 import { AvatarUpload } from "@/components/member/avatar-upload"
+import { memberFetch } from "@/lib/member-fetch"
 
 const SKILL_OPTIONS = [
   "React","Next.js","TypeScript","JavaScript","Python","Node.js",
@@ -31,9 +32,7 @@ export default function SettingsPage() {
   const [skills, setSkills] = useState<string[]>([])
   const [avatarUrl, setAvatarUrl] = useState<string>("")
 
-  useEffect(() => { loadUser() }, [])
-
-  const loadUser = async () => {
+  const loadUser = useCallback(async () => {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push("/login"); return }
@@ -48,7 +47,9 @@ export default function SettingsPage() {
       setAvatarUrl(data.avatar_url || "")
     }
     setLoading(false)
-  }
+  }, [router])
+
+  useEffect(() => { void loadUser() }, [loadUser])
 
   const toggleSkill = (skill: string) => {
     if (skills.includes(skill)) setSkills(skills.filter(s => s !== skill))
@@ -58,10 +59,10 @@ export default function SettingsPage() {
   const handleSave = async () => {
     setSaving(true); setError(""); setSaved(false)
     try {
-      const res = await fetch("/api/member/update", {
+      const res = await memberFetch("/api/member/update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ codyza_id: contributor.codyza_id, name, github, role, bio, skills }),
+        body: JSON.stringify({ name, github, role, bio, skills }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error || "Failed to save"); setSaving(false); return }
@@ -80,7 +81,7 @@ export default function SettingsPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <Link href="/member" className="btn-ghost mb-8 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm text-muted-foreground">
-        <ArrowLeft className="h-4 w-4" /> Back to Hub
+        Back to Hub
       </Link>
 
       <MemberPageHeader

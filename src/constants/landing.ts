@@ -6,25 +6,25 @@ export const LANDING_MARQUEE_WORDS = [
 
 export const FEATURED_IN = [
   {
-    name: "LinkedIn",
-    logo: "/press/linkedin.svg",
-    logoWidth: 32,
-    logoHeight: 32,
-    href: "https://www.linkedin.com/company/codyza",
-  },
-  {
-    name: "Marshall Area Chamber",
-    logo: "/press/marshall-area-chamber.jpg",
-    logoWidth: 800,
-    logoHeight: 230,
-    href: "https://marshallmn.org",
-  },
-  {
     name: "Marshall Independent",
     logo: "/press/marshall-independent.png",
     logoWidth: 430,
     logoHeight: 61,
-    href: "https://www.marshallindependent.com",
+    href: "https://www.marshallindependent.com/?s=Codyza",
+  },
+  {
+    name: "Marshall Area Chamber of Commerce",
+    logo: "/press/marshall-area-chamber.jpg",
+    logoWidth: 800,
+    logoHeight: 230,
+    href: "https://business.marshallmn.org/list/member/codyza-3727?fl=2",
+  },
+  {
+    name: "LinkedIn",
+    logo: "/press/linkedin.svg",
+    logoWidth: 32,
+    logoHeight: 32,
+    href: "https://www.linkedin.com/company/codyza/",
   },
 ] as const
 
@@ -67,36 +67,36 @@ export const CHAPTER_WORDS = [
 
 export const CHAPTER_PANELS = [
   {
-    id: "learn",
+    id: "claim",
     num: "002",
-    word: "learn",
-    headline: "grow skills alongside the crew.",
-    accent: "learn by doing, together.",
+    word: "claim",
+    headline: "pick work with a clear outcome.",
+    accent: "real needs · clear ownership.",
     body:
-      "No lectures in a vacuum. Pair on features, get feedback on your PRs, and level up through the rhythm of building — not binge-watching courses.",
-    highlights: ["pair programming", "honest feedback", "ship to learn"],
-    visual: "skills",
+      "Choose an open bounty, understand the goal, and take responsibility for getting it over the line.",
+    highlights: ["open bounties", "clear XP", "claim ownership"],
+    visual: "bounty",
   },
   {
-    id: "grow",
+    id: "build",
     num: "003",
-    word: "grow",
-    headline: "earn your place in the community.",
-    accent: "xp · leaderboard · network.",
+    word: "build",
+    headline: "work with a small crew.",
+    accent: "people · roles · shared missions.",
     body:
-      "Show up, ship work, and climb the board. Codyza connects you with contributors worldwide — references, collabs, and a crew that remembers your name.",
-    highlights: ["earn XP", "public profile", "global crew"],
-    visual: "community",
+      "Join a focused group, see who owns what, and keep the work moving without building alone.",
+    highlights: ["project groups", "shared mission", "visible activity"],
+    visual: "group",
   },
   {
     id: "ship",
     num: "004",
     word: "ship",
-    headline: "build things people actually use.",
-    accent: "you ship. we deploy.",
+    headline: "turn finished work into proof.",
+    accent: "submit · review · verify.",
     body:
-      "Skip the tutorial treadmill. At Codyza you work on real products with a crew — standups, pull requests, and live URLs that prove you can ship.",
-    highlights: ["live deploys", "code review", "production URLs"],
-    visual: "deploy",
+      "Submit the repository and live URL. Once reviewed, the work becomes part of your public Codyza record.",
+    highlights: ["GitHub + live URL", "crew review", "verified profile"],
+    visual: "submission",
   },
 ] as const

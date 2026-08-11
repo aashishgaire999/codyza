@@ -1,10 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { createClient, RANKS as RANK_LADDER, getRankFromXP } from "@/lib/supabase"
+import { useState, useEffect, useRef } from "react"
+import { RANKS as RANK_LADDER } from "@/lib/ranks"
 import { Shield, Users, FileText, TrendingUp, CheckCircle, XCircle, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { CodyzaLogo } from "@/components/shared/codyza-logo"
+import { CosmicBackdrop } from "@/components/effects/cosmic-backdrop"
+import { ThemeToggle } from "@/components/shared/theme-toggle"
 
 
 interface Contributor {
@@ -18,6 +20,12 @@ interface Submission {
 }
 
 const RANKS = RANK_LADDER.map((r) => r.name)
+
+function adminFetch(input: RequestInfo | URL, init: RequestInit = {}, code = "") {
+  const headers = new Headers(init.headers)
+  if (code) headers.set("x-admin-code", code)
+  return fetch(input, { ...init, headers })
+}
 
 function EditModal({ contributor, onClose, onSave, saving }: { contributor: Contributor; onClose: () => void; onSave: (_u: Partial<Contributor>) => void; saving: boolean }) {
   const [name, setName] = useState(contributor.name)
@@ -48,7 +56,7 @@ function EditModal({ contributor, onClose, onSave, saving }: { contributor: Cont
               {RANKS.map(r => <option key={r} value={r} className="bg-card">{r}</option>)}
             </select>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">XP</label>
               <input type="number" value={xp} onChange={e => setXp(Number(e.target.value))} className="glass-input w-full rounded-xl px-3 py-2 text-sm focus:outline-none"/>
@@ -98,40 +106,36 @@ export default function AdminDashboard() {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [bulkActioning, setBulkActioning] = useState(false)
   const [processingApp, setProcessingApp] = useState<string | null>(null)
+  const loadRequestRef = useRef(0)
 
-  const loadApplications = async () => {
-    const supabase = createClient()
-    const { data } = await supabase.from("applications").select("*").order("applied_at", { ascending: false })
-    if (data) setApplications(data)
-  }
-
-  const loadData = async () => {
+  const loadData = async (code?: string) => {
+    const requestId = ++loadRequestRef.current
     setLoading(true)
-    const supabase = createClient()
-    const { data: contribData } = await supabase.from("contributors").select("*").order("xp", { ascending: false })
-    const { data: subData } = await supabase.from("submissions").select("*").order("submitted_at", { ascending: false })
-    setContributors(contribData || [])
-    setAllContribs(contribData || [])
-    setSubmissions(subData || [])
-    const [gr, bo, { data: sessionsData }] = await Promise.all([
-      fetch("/api/groups").then(r => r.json()),
-      fetch("/api/bounties").then(r => r.json()),
-      supabase.from("work_sessions").select("*").order("started_at", { ascending: false }),
-    ])
-    setGroups(Array.isArray(gr) ? gr : [])
-    setBounties(Array.isArray(bo) ? bo : [])
-    const nameMap = new Map((contribData || []).map((c: any) => [c.codyza_id, c.name]))
-    setWorkSessions((sessionsData || []).map((s: any) => ({ ...s, member_name: nameMap.get(s.codyza_id) || s.codyza_id })))
+    const response = await adminFetch("/api/admin/dashboard", {}, code)
+    if (requestId !== loadRequestRef.current) return
+    if (!response.ok) {
+      if (response.status === 401) setIsAuthenticated(false)
+      else {
+        const data = await response.json().catch(() => null)
+        setError(data?.error || "Could not load the admin dashboard")
+      }
+      setLoading(false)
+      return
+    }
+    const data = await response.json()
+    setIsAuthenticated(true)
+    setContributors(data.contributors || [])
+    setAllContribs(data.contributors || [])
+    setSubmissions(data.submissions || [])
+    setApplications(data.applications || [])
+    setGroups(data.groups || [])
+    setBounties(data.bounties || [])
+    setWorkSessions(data.workSessions || [])
     setLoading(false)
-    loadApplications()
   }
 
   useEffect(() => {
-    if (sessionStorage.getItem("admin_auth") === "true") {
-      setIsAuthenticated(true)
-      void loadData()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    void loadData()
   }, [])
 
   const handleLogin = async () => {
@@ -139,99 +143,52 @@ export default function AdminDashboard() {
     try {
       const res = await fetch("/api/admin/verify", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ accessCode }) })
       const data = await res.json()
-      if (data.valid) { setIsAuthenticated(true); sessionStorage.setItem("admin_auth", "true"); loadData() }
+      if (data.valid) await loadData(accessCode)
       else setError("Invalid access code")
     } catch { setError("Network error. Please try again.") }
     finally { setVerifying(false) }
   }
 
   const updateSubStatus = async (id: string, status: "approved"|"rejected") => {
-    const supabase = createClient()
-    await supabase.from("submissions").update({ status }).eq("id", id)
-
-    // Get submission details
-    const { data: sub } = await supabase
-      .from("submissions")
-      .select("codyza_id, project_name, xp_earned, bounty_id")
-      .eq("id", id)
-      .single()
-
-    if (sub) {
-      // Mark the linked bounty as completed when its submission is approved
-      if (status === "approved" && sub.bounty_id) {
-        await supabase.from("bounties").update({ status: "completed" }).eq("id", sub.bounty_id)
-      }
-
-      // Award XP to contributor when approved
-      if (status === "approved" && sub.xp_earned > 0) {
-        const { data: contrib } = await supabase
-          .from("contributors")
-          .select("xp")
-          .eq("codyza_id", sub.codyza_id)
-          .single()
-
-        if (contrib) {
-          const newXP = (contrib.xp || 0) + sub.xp_earned
-          const newRank = getRankFromXP(newXP).name
-          await supabase.from("contributors").update({ xp: newXP, rank: newRank }).eq("codyza_id", sub.codyza_id)
-        }
-      }
-
-      // Fire notification
-      await fetch("/api/notifications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          codyza_id: sub.codyza_id,
-          type: status === "approved" ? "submission_approved" : "submission_rejected",
-          message: status === "approved"
-            ? `Your project "${sub.project_name}" was approved! +${sub.xp_earned} XP added.`
-            : `Your project "${sub.project_name}" was not approved this time.`,
-          link: "/member/projects",
-        }),
-      })
-    }
-    loadData()
+    await adminFetch("/api/admin/dashboard", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "submission_status", payload: { id, status } }) })
+    void loadData()
   }
 
   const deleteSub = async (id: string) => {
     if (!confirm("Delete this submission?")) return
-    const supabase = createClient()
-    await supabase.from("submissions").delete().eq("id", id)
-    loadData()
+    await adminFetch("/api/admin/dashboard", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ entity: "submission", id }) })
+    void loadData()
   }
 
   const saveContributor = async (updates: Partial<Contributor>) => {
     if (!editingContributor) return
     setSavingEdit(true)
-    const supabase = createClient()
-    const { error } = await supabase.from("contributors").update(updates).eq("id", editingContributor.id)
+    const response = await adminFetch("/api/admin/dashboard", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "contributor_update", payload: { id: editingContributor.id, updates } }) })
     setSavingEdit(false)
-    if (error) { alert("Failed: " + error.message); return }
-    setEditingContributor(null); loadData()
+    if (!response.ok) { const data = await response.json(); alert("Failed: " + data.error); return }
+    setEditingContributor(null); void loadData()
   }
 
   const deleteContributor = async (id: string) => {
     if (!confirm("Delete this contributor and all their submissions?")) return
-    const supabase = createClient()
-    await supabase.from("contributors").delete().eq("codyza_id", id)
-    await supabase.from("submissions").delete().eq("codyza_id", id)
-    loadData()
+    const contributor = contributors.find((person) => person.codyza_id === id)
+    if (!contributor) return
+    await adminFetch("/api/admin/dashboard", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ entity: "contributor", id: contributor.id }) })
+    void loadData()
   }
 
   const bulkUpdate = async (status: "approved"|"rejected") => {
     if (selected.size === 0) return
     if (status === "rejected" && !confirm(`Reject ${selected.size} submissions?`)) return
     setBulkActioning(true)
-    const supabase = createClient()
-    await supabase.from("submissions").update({ status }).in("id", Array.from(selected))
-    setBulkActioning(false); setSelected(new Set()); loadData()
+    await adminFetch("/api/admin/dashboard", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "bulk_submission_status", payload: { ids: Array.from(selected), status } }) })
+    setBulkActioning(false); setSelected(new Set()); void loadData()
   }
 
   const handleApplication = async (id: string, action: "approve"|"decline") => {
     setProcessingApp(id)
     try {
-      const res = await fetch("/api/admin/invite", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ application_id: id, action }) })
+      const res = await adminFetch("/api/admin/invite", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ application_id: id, action }) })
       if (res.ok) setApplications(prev => prev.map(a => a.id === id ? { ...a, status: action === "approve" ? "approved" : "declined" } : a))
     } catch(e) { console.error(e) }
     setProcessingApp(null)
@@ -239,8 +196,11 @@ export default function AdminDashboard() {
 
   if (!isAuthenticated) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background p-4 font-sans text-foreground antialiased">
-        <div className="surface-card w-full max-w-md p-8">
+      <div className="cosmic-workspace cosmic-admin min-h-screen font-sans text-foreground antialiased" data-cosmic-zone="command">
+        <CosmicBackdrop variant="command" />
+        <ThemeToggle className="fixed right-4 top-4 z-50 bg-card/80 shadow-sm backdrop-blur-xl" />
+        <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
+        <div className="surface-card w-full max-w-md p-6 sm:p-8">
           <div className="mb-6 flex items-center gap-3">
             <Shield className="h-8 w-8 text-accent" />
             <h1 className="font-[family-name:var(--font-heading)] text-2xl font-bold lowercase">admin dashboard</h1>
@@ -254,7 +214,8 @@ export default function AdminDashboard() {
             className="btn-primary w-full rounded-full px-4 py-3 text-sm font-medium disabled:opacity-50">
             {verifying ? "Checking..." : "Continue"}
           </button>
-          <Link href="/" className="mt-4 block text-center text-sm text-muted-foreground transition-colors hover:text-foreground">← back home</Link>
+          <Link href="/" className="mt-4 block text-center text-sm text-muted-foreground transition-colors hover:text-foreground">back home</Link>
+        </div>
         </div>
       </div>
     )
@@ -265,7 +226,8 @@ export default function AdminDashboard() {
   const pendingApps = applications.filter(a => a.status === "pending").length
 
   return (
-    <div className="min-h-screen bg-background font-sans text-foreground antialiased">
+    <div className="cosmic-workspace cosmic-admin min-h-screen font-sans text-foreground antialiased" data-cosmic-zone="command">
+      <CosmicBackdrop variant="command" />
       <nav className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-card/80 px-6 backdrop-blur-md">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2 no-underline">
@@ -273,13 +235,13 @@ export default function AdminDashboard() {
           </Link>
           <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Admin</span>
         </div>
-        <Link href="/member" className="btn-ghost rounded-full px-3 py-1.5 text-xs">← Member Hub</Link>
+        <div className="flex items-center gap-2"><Link href="/admin/content" className="btn-ghost rounded-full px-3 py-1.5 text-xs">Content studio</Link><Link href="/member" className="btn-ghost rounded-full px-3 py-1.5 text-xs">Member Hub</Link><ThemeToggle className="shrink-0 bg-card/80" /></div>
       </nav>
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="cosmic-admin-content relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center gap-3">
           <Shield className="h-6 w-6 text-accent" />
           <h1 className="font-[family-name:var(--font-heading)] text-2xl font-bold lowercase">admin dashboard</h1>
-          <Link href="/admin/analytics" className="ml-auto text-sm text-accent transition-colors hover:opacity-80">Analytics →</Link>
+          <Link href="/admin/analytics" className="ml-auto text-sm text-accent transition-colors hover:opacity-80">Analytics</Link>
         </div>
 
         <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -301,7 +263,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="mb-6 flex gap-1 border-b border-border pb-0">
+        <div className="admin-tab-rail mb-6 flex gap-1 overflow-x-auto border-b border-border pb-0">
           {(["overview","contributors","submissions","applications","groups","bounties","sessions"] as const).map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}
               className={`px-4 py-2 text-sm font-medium capitalize transition-colors ${activeTab === tab ? "border-b-2 border-accent text-accent" : "text-muted-foreground hover:text-foreground"}`}>
@@ -402,8 +364,8 @@ export default function AdminDashboard() {
                   {sub.tech_stack?.map(t => <span key={t} className="rounded-full border border-border bg-muted px-2 py-0.5 font-mono text-[10px] text-muted-foreground">{t}</span>)}
                 </div>
                 <div className="flex items-center gap-4">
-                  <a href={sub.github_url} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground transition-colors hover:text-foreground">GitHub →</a>
-                  {sub.live_url && <a href={sub.live_url} target="_blank" rel="noopener noreferrer" className="text-sm text-accent transition-colors hover:opacity-80">Live →</a>}
+                  <a href={sub.github_url} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground transition-colors hover:text-foreground">GitHub</a>
+                  {sub.live_url && <a href={sub.live_url} target="_blank" rel="noopener noreferrer" className="text-sm text-accent transition-colors hover:opacity-80">Live</a>}
                   <div className="ml-auto flex gap-2">
                     {sub.status === "pending" && (
                       <>
@@ -426,7 +388,7 @@ export default function AdminDashboard() {
                 applications
                 <span className="rounded-full border border-border bg-muted px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{pendingApps} pending</span>
               </h2>
-              <button onClick={loadApplications} className="btn-ghost rounded-full px-3 py-1.5 text-xs">Refresh</button>
+              <button onClick={() => void loadData()} className="btn-ghost rounded-full px-3 py-1.5 text-xs">Refresh</button>
             </div>
             {applications.length === 0 ? (
               <div className="py-16 text-center text-muted-foreground">No applications yet.</div>
@@ -481,7 +443,7 @@ export default function AdminDashboard() {
           <div className="mt-0">
             <div className="surface-card mb-5 p-5">
               <h3 className="mb-4 font-[family-name:var(--font-heading)] text-sm font-semibold lowercase">create new group</h3>
-              <div className="grid grid-cols-2 gap-3 mb-3">
+              <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                   <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Group Name *</label>
                   <input value={newGroupName} onChange={e => setNewGroupName(e.target.value)} placeholder="e.g. Team Alpha" className="glass-input w-full rounded-xl px-3 py-2 text-sm focus:outline-none"/>
@@ -524,10 +486,9 @@ export default function AdminDashboard() {
               <button disabled={creatingGroup || !newGroupName}
                 onClick={async () => {
                   setCreatingGroup(true)
-                  const adm = contributors.find((c: any) => c.is_admin)
-                  await fetch("/api/groups", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:newGroupName,description:newGroupDesc,member_ids:selectedMembers.map((m:any)=>m.id),roles:selectedMembers.map((m:any)=>m.role),created_by:adm?.codyza_id})})
+                  await adminFetch("/api/groups", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:newGroupName,description:newGroupDesc,member_ids:selectedMembers.map((m:any)=>m.id),roles:selectedMembers.map((m:any)=>m.role)})})
                   setNewGroupName(""); setNewGroupDesc(""); setSelectedMembers([])
-                  const r = await fetch("/api/groups"); setGroups(await r.json()); setCreatingGroup(false)
+                  await loadData(); setCreatingGroup(false)
                 }}
                 className="btn-primary rounded-full px-5 py-2 text-sm font-medium disabled:opacity-50">
                 {creatingGroup ? "Creating..." : "Create Group"}
@@ -552,12 +513,12 @@ export default function AdminDashboard() {
           <div className="mt-0">
             <div className="surface-card mb-5 p-5">
               <h3 className="mb-4 font-[family-name:var(--font-heading)] text-sm font-semibold lowercase">post new bounty</h3>
-              <div className="grid grid-cols-2 gap-3 mb-3">
+              <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                     <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Title *</label>
                     <input value={newBountyTitle} onChange={e => setNewBountyTitle(e.target.value)} placeholder="e.g. Add GitHub activity chart" className="glass-input w-full rounded-xl px-3 py-2 text-sm focus:outline-none"/>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <div>
                       <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">XP Reward</label>
                       <input type="number" value={newBountyXP} onChange={e => setNewBountyXP(Number(e.target.value))} className="glass-input w-full rounded-xl px-3 py-2 text-sm focus:outline-none"/>
@@ -575,10 +536,9 @@ export default function AdminDashboard() {
               <button disabled={creatingBounty || !newBountyTitle || !newBountyDesc}
                 onClick={async () => {
                   setCreatingBounty(true)
-                  const adm = contributors.find((c: any) => c.is_admin)
-                  await fetch("/api/bounties", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:newBountyTitle,description:newBountyDesc,xp_reward:newBountyXP,tech_tags:newBountyTags.split(",").map((t:string)=>t.trim()).filter(Boolean),posted_by:adm?.codyza_id})})
+                  await adminFetch("/api/bounties", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:newBountyTitle,description:newBountyDesc,xp_reward:newBountyXP,tech_tags:newBountyTags.split(",").map((t:string)=>t.trim()).filter(Boolean)})})
                   setNewBountyTitle(""); setNewBountyDesc(""); setNewBountyXP(100); setNewBountyTags("")
-                  const r = await fetch("/api/bounties"); setBounties(await r.json()); setCreatingBounty(false)
+                  await loadData(); setCreatingBounty(false)
                 }}
                 className="btn-accent rounded-full px-5 py-2 text-sm font-medium disabled:opacity-50">
                 {creatingBounty ? "Posting..." : "Post Bounty"}

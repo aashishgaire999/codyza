@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { GitBranch, Globe, Zap } from "lucide-react"
+import { GitBranch, Globe } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export type SpecimenProject = {
@@ -8,7 +8,6 @@ export type SpecimenProject = {
   live_url?: string | null
   description?: string | null
   tech_stack?: string[] | null
-  ai_score?: number | null
   codyza_id?: string | null
 }
 
@@ -23,12 +22,7 @@ export function SpecimenCard({ project, className }: SpecimenCardProps) {
     <article className={cn("journal-specimen flex flex-col", className)}>
       <div className="mb-3 flex items-center justify-between gap-2">
         <span className="journal-label">{p.codyza_id || "specimen"}</span>
-        {p.ai_score != null && (
-          <span className="flex items-center gap-1 font-mono text-[10px] text-[var(--journal-terracotta)]">
-            <Zap className="h-3 w-3" />
-            {p.ai_score}/10
-          </span>
-        )}
+        <span className="cz-project-state">approved</span>
       </div>
       <h2 className="font-[family-name:var(--font-instrument)] text-2xl font-normal lowercase tracking-tight text-black">
         {p.project_name}
@@ -70,7 +64,7 @@ export function SpecimenCard({ project, className }: SpecimenCardProps) {
             href={`/contributor/${p.codyza_id.toLowerCase()}`}
             className="ml-auto text-[13px] text-black/40 transition-colors hover:text-black"
           >
-            profile →
+            profile
           </Link>
         )}
       </div>

@@ -103,7 +103,7 @@ export default function AboutPage() {
           <div className="mx-auto max-w-[1320px] text-center">
             <FadeInView variant="subtle">
               <p className="cz-body mb-8 text-[15px]">ready to build with us?</p>
-              <Link href="/apply" className="cz-pill cz-pill-solid !min-h-11 !px-7 !text-[12px]">
+              <Link href="/join" className="cz-pill cz-pill-solid !min-h-11 !px-7 !text-[12px]">
                 apply to join
               </Link>
             </FadeInView>

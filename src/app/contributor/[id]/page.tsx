@@ -3,7 +3,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { createServerSupabase } from "@/lib/supabase-server"
 import { notFound } from "next/navigation"
-import { ArrowLeft, GitBranch, Zap, Flame, Trophy, Calendar } from "lucide-react"
+import { GitBranch, Zap, Flame, Trophy, Calendar } from "lucide-react"
 import { PublicShell } from "@/components/shared/public-shell"
 import { RankBadge } from "@/components/shared/rank-badge"
 import { SpecimenCard } from "@/components/shared/specimen-card"
@@ -29,12 +29,16 @@ export default async function ContributorProfile({ params }: Props) {
   const id = rawId.toUpperCase()
   const supabase = createServerSupabase()
 
-  const { data: contributor, error } = await supabase.from("contributors").select("*").eq("codyza_id", id).single()
+  const { data: contributor, error } = await supabase
+    .from("contributors")
+    .select("codyza_id, name, github, xp, rank, streak, role, avatar_url, skills, joined_at")
+    .eq("codyza_id", id)
+    .single()
   if (error || !contributor) notFound()
 
   const { data: submissions } = await supabase
     .from("submissions")
-    .select("project_name, github_url, live_url, description, tech_stack, ai_score, xp_earned, status, created_at")
+    .select("project_name, github_url, live_url, description, tech_stack, xp_earned, status, created_at")
     .eq("codyza_id", id)
     .eq("status", "approved")
     .order("created_at", { ascending: false })
@@ -51,10 +55,10 @@ export default async function ContributorProfile({ params }: Props) {
     <PublicShell>
       <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 md:px-8 md:py-16">
         <Link
-          href="/leaderboard"
+          href="/community"
           className="sofi-body mb-8 inline-flex items-center gap-2 text-black/50 transition-colors hover:text-black"
         >
-          <ArrowLeft className="h-4 w-4" /> back to leaderboard
+          back to community
         </Link>
 
         <div className="journal-form-card mb-6">
@@ -167,7 +171,6 @@ export default async function ContributorProfile({ params }: Props) {
                     live_url: sub.live_url,
                     description: sub.description,
                     tech_stack: sub.tech_stack,
-                    ai_score: sub.ai_score,
                     codyza_id: contributor.codyza_id,
                   }}
                 />

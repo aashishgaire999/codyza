@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { Sparkles, ArrowRight, ArrowLeft, Check, Loader2, Mail, GitBranch as Github, X } from "lucide-react"
+import { Sparkles, Check, Loader2, Mail, GitBranch as Github, X } from "lucide-react"
 import Image from "next/image"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -712,7 +712,6 @@ export function ApplySection() {
                     disabled={step === 0}
                     className="inline-flex items-center gap-1.5 rounded-md border border-black/10 bg-white px-3.5 py-2 text-xs text-black/50 transition-colors hover:text-black disabled:opacity-30"
                   >
-                    <ArrowLeft className="h-3.5 w-3.5" />
                     Back
                   </button>
                   {step < STEPS.length - 1 ? (
@@ -722,7 +721,6 @@ export function ApplySection() {
                       className="group inline-flex items-center gap-1.5 rounded-md bg-black px-5 py-2 text-xs font-medium text-white transition-opacity hover:opacity-90"
                     >
                       Next
-                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                     </button>
                   ) : (
                     <button
@@ -738,7 +736,6 @@ export function ApplySection() {
                       ) : (
                         <>
                           Submit application
-                          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                         </>
                       )}
                     </button>

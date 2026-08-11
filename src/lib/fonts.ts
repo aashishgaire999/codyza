@@ -1,23 +1,17 @@
-import { Inter, JetBrains_Mono, Instrument_Serif } from "next/font/google"
+/**
+ * Font variable classes used by the root layout.
+ *
+ * Keep development and production builds independent of Google Fonts network
+ * requests. The CSS variables resolve to native system stacks in globals.css.
+ */
+export const inter = {
+  variable: "font-inter-system",
+} as const
 
-export const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-inter",
-  display: "swap",
-})
+export const jetbrainsMono = {
+  variable: "font-jetbrains-mono-system",
+} as const
 
-export const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  variable: "--font-jetbrains-mono",
-  display: "swap",
-})
-
-export const instrumentSerif = Instrument_Serif({
-  subsets: ["latin"],
-  weight: "400",
-  style: ["normal", "italic"],
-  variable: "--font-instrument",
-  display: "swap",
-})
+export const instrumentSerif = {
+  variable: "font-instrument-system",
+} as const

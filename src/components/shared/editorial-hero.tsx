@@ -1,13 +1,18 @@
 import { cn } from "@/lib/utils"
+import { getSiteContent } from "@/lib/site-content"
 
-export function EditorialHero({ num, title, description, className }: {
-  num: string; title: React.ReactNode; description?: string; className?: string
+export async function EditorialHero({ num, title, description, className, contentKey }: {
+  num: string; title: React.ReactNode; description?: string; className?: string; contentKey?: string
 }) {
+  const pageKey = contentKey || num.split("/")[0].trim().replace(/\s+/g, "-")
+  const managed = await getSiteContent<{ label: string; title: string; description: string }>(pageKey, "hero")
   return (
-    <div className={cn("journal-hero mx-auto max-w-[1600px] px-4 py-16 sm:px-6 md:px-8 md:py-20", className)}>
-      <p className="sofi-micro mb-6">{num}</p>
-      <h1 className="sofi-display-section max-w-4xl text-black">{title}</h1>
-      {description && <p className="sofi-body mt-6 max-w-xl">{description}</p>}
-    </div>
+    <section className={cn("cz-page-hero px-5 sm:px-8 lg:px-10", className)}>
+      <div className="mx-auto max-w-[1320px]">
+        <p className="cz-micro mb-8">{managed.label || num}</p>
+        <h1 className="cz-display max-w-4xl">{managed.title || title}</h1>
+        {(managed.description || description) && <p className="cz-body mt-7 max-w-xl">{managed.description || description}</p>}
+      </div>
+    </section>
   )
 }

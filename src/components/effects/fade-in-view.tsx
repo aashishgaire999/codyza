@@ -1,24 +1,22 @@
 "use client"
 
-import { useEffect, useRef, type ReactNode, type CSSProperties } from "react"
+import { useEffect, useRef, useState, type ReactNode, type CSSProperties } from "react"
+import { motion, useReducedMotion } from "framer-motion"
 
 type FadeInVariant = "default" | "headline" | "subtle"
 
-const VARIANTS: Record<FadeInVariant, { from: string; duration: string; easing: string }> = {
+const VARIANTS: Record<FadeInVariant, { distance: number; duration: number }> = {
   headline: {
-    from: "translateY(56px)",
-    duration: "0.95s",
-    easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+    distance: 28,
+    duration: 0.7,
   },
   default: {
-    from: "translateY(36px)",
-    duration: "0.8s",
-    easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+    distance: 20,
+    duration: 0.58,
   },
   subtle: {
-    from: "translateY(18px)",
-    duration: "0.7s",
-    easing: "cubic-bezier(0.25, 1, 0.4, 1)",
+    distance: 10,
+    duration: 0.42,
   },
 }
 
@@ -35,49 +33,47 @@ export function FadeInView({
   variant?: FadeInVariant
   style?: CSSProperties
 }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const { from, duration, easing } = VARIANTS[variant]
+  const elementRef = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+  const reduceMotion = useReducedMotion()
+  const { distance, duration } = VARIANTS[variant]
 
   useEffect(() => {
-    const el = ref.current
-    if (!el) return
+    const checkPosition = () => {
+      const element = elementRef.current
+      if (!element) return
 
-    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      el.style.opacity = "1"
-      el.style.transform = "none"
-      return
+      // Checking the element's top instead of relying only on IntersectionObserver
+      // means a fast scroll cannot skip the reveal and leave a blank section behind.
+      if (element.getBoundingClientRect().top <= window.innerHeight * 0.94) {
+        setVisible(true)
+      }
     }
 
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setTimeout(() => {
-            el.style.opacity = "1"
-            el.style.transform = "translateY(0)"
-          }, delay)
-          obs.disconnect()
-        }
-      },
-      { threshold: 0.08, rootMargin: "0px 0px -40px 0px" }
-    )
+    checkPosition()
+    window.addEventListener("scroll", checkPosition, { passive: true })
+    window.addEventListener("resize", checkPosition)
 
-    obs.observe(el)
-    return () => obs.disconnect()
-  }, [delay, from])
+    return () => {
+      window.removeEventListener("scroll", checkPosition)
+      window.removeEventListener("resize", checkPosition)
+    }
+  }, [])
 
   return (
-    <div
-      ref={ref}
+    <motion.div
+      ref={elementRef}
       className={className}
-      style={{
-        opacity: 0,
-        transform: from,
-        transition: `opacity ${duration} ${easing}, transform ${duration} ${easing}`,
-        willChange: "opacity, transform",
-        ...style,
+      initial={{ opacity: 0, y: reduceMotion ? 0 : distance }}
+      animate={visible || reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: distance }}
+      transition={{
+        duration: reduceMotion ? 0.2 : duration,
+        delay: delay / 1000,
+        ease: [0.16, 1, 0.3, 1] as const,
       }}
+      style={style}
     >
       {children}
-    </div>
+    </motion.div>
   )
 }

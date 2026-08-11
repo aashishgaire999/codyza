@@ -1,20 +1,15 @@
 import { Metadata } from "next"
-import { createClient } from "@supabase/supabase-js"
 import Link from "next/link"
+import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
 import { CodyzaLogo } from "@/components/shared/codyza-logo"
 import { TrendingUp, Users, Zap, FileText, CheckCircle, Clock } from "lucide-react"
+import { CosmicBackdrop } from "@/components/effects/cosmic-backdrop"
+import { ADMIN_COOKIE, createServiceSupabase, isAdminSessionToken } from "@/lib/admin-auth"
+import { ThemeToggle } from "@/components/shared/theme-toggle"
 
 export const metadata: Metadata = {
   title: "Analytics — Admin",
-}
-
-export const revalidate = 60
-
-function createSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
 }
 
 function ProgressBar({ value, max, className }: { value: number; max: number; className?: string }) {
@@ -30,7 +25,9 @@ function ProgressBar({ value, max, className }: { value: number; max: number; cl
 }
 
 export default async function AnalyticsPage() {
-  const supabase = createSupabase()
+  const cookieStore = await cookies()
+  if (!isAdminSessionToken(cookieStore.get(ADMIN_COOKIE)?.value || "")) redirect("/admin")
+  const supabase = createServiceSupabase()
 
   const [
     { data: contributors },
@@ -76,7 +73,8 @@ export default async function AnalyticsPage() {
   const recent7 = allSubs.slice(0, 7)
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="cosmic-workspace cosmic-admin min-h-screen text-foreground" data-cosmic-zone="analytics">
+      <CosmicBackdrop variant="analytics" />
       <nav className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-card/80 px-6 backdrop-blur-md">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2 no-underline">
@@ -84,10 +82,10 @@ export default async function AnalyticsPage() {
           </Link>
           <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Admin · Analytics</span>
         </div>
-        <Link href="/admin" className="btn-ghost rounded-full px-3 py-1.5 text-xs">← Admin</Link>
+        <div className="flex items-center gap-2"><Link href="/admin" className="btn-ghost rounded-full px-3 py-1.5 text-xs">Admin</Link><ThemeToggle className="shrink-0 bg-card/80" /></div>
       </nav>
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="cosmic-admin-content relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
           <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.35em] text-muted-foreground">admin · stats</p>
           <h1 className="font-[family-name:var(--font-heading)] text-2xl font-bold lowercase">overview</h1>

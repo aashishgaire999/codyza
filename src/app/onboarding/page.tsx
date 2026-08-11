@@ -9,6 +9,7 @@ import Cropper from "react-easy-crop"
 import { PublicShell } from "@/components/shared/public-shell"
 import { CodyzaLogo } from "@/components/shared/codyza-logo"
 import { FadeIn } from "@/components/motion/fade-in"
+import { memberFetch } from "@/lib/member-fetch"
 
 async function getCroppedImg(imageSrc: string, croppedAreaPixels: any): Promise<Blob> {
   const image = new Image()
@@ -45,9 +46,7 @@ export default function OnboardingPage() {
     setCroppedAreaPixels(pixels)
   }, [])
 
-  useEffect(() => { init() }, [])
-
-  const init = async () => {
+  const init = useCallback(async () => {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user || !user.email) { router.push("/login"); return }
@@ -67,7 +66,9 @@ export default function OnboardingPage() {
     }
     setNextCodyzaId(`CZX-${String(previewNumber).padStart(4, "0")}`)
     setLoading(false)
-  }
+  }, [router])
+
+  useEffect(() => { void init() }, [init])
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -109,7 +110,7 @@ export default function OnboardingPage() {
         const formData = new FormData()
         formData.append("file", file)
         formData.append("codyza_id", data.codyza_id)
-        await fetch("/api/avatar", { method: "POST", body: formData })
+        await memberFetch("/api/avatar", { method: "POST", body: formData })
       }
 
       setSuccess(true)
@@ -286,14 +287,14 @@ export default function OnboardingPage() {
               disabled={submitting || name.trim().length < 2}
               className="journal-btn-primary disabled:cursor-not-allowed"
             >
-              {submitting ? "Setting up..." : "Finish setup →"}
+              {submitting ? "Setting up..." : "Finish setup"}
             </button>
           </form>
           <p className="sofi-body mt-5 text-center text-black/45">Then straight to your hub.</p>
         </div>
 
         <Link href="/" className="sofi-body mt-6 block text-center text-black/50 hover:text-black">
-          ← back to codyza
+          back to codyza
         </Link>
       </FadeIn>
       </div>

@@ -2,13 +2,24 @@
 
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { MemberNavbar } from "@/components/member/member-navbar"
 import { useScrollReveal } from "@/hooks/use-scroll-reveal"
 import { SiteShell } from "@/components/shared/site-shell"
+import { CosmicBackdrop, type CosmicVariant } from "@/components/effects/cosmic-backdrop"
+
+function getCosmicVariant(pathname: string): CosmicVariant {
+  if (pathname.includes("/projects")) return "projects"
+  if (pathname.includes("/groups")) return "groups"
+  if (pathname.includes("/bounties")) return "bounties"
+  if (pathname.includes("/standup")) return "standup"
+  if (pathname.includes("/settings")) return "settings"
+  return "hub"
+}
 
 export default function MemberLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
+  const pathname = usePathname()
   const [auth, setAuth] = useState<boolean | null>(null)
   useScrollReveal()
 
@@ -31,8 +42,13 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
 
   return (
     <SiteShell showProgress={false} className="codyza-member">
-      <MemberNavbar />
-      <main className="mx-auto max-w-7xl px-6 py-10 md:px-8">{children}</main>
+      <div className="cosmic-workspace" data-cosmic-zone={getCosmicVariant(pathname)}>
+        <CosmicBackdrop variant={getCosmicVariant(pathname)} />
+        <div className="cosmic-workspace-content">
+          <MemberNavbar />
+          <main className="cosmic-main mx-auto max-w-7xl px-4 py-8 sm:px-6 md:px-8 md:py-10">{children}</main>
+        </div>
+      </div>
     </SiteShell>
   )
 }

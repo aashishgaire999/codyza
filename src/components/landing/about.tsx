@@ -1,15 +1,25 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Image from "next/image"
 import { createClient, getRankFromXP, getNextRank } from "@/lib/supabase"
-import { APPLY_ROADMAP, CREW_PILLARS, MANIFESTO_COPY } from "@/constants/landing"
 import { CzxIdCard } from "@/components/shared/czx-id-card"
 import { FadeInView } from "@/components/effects/fade-in-view"
+
+const CREW_PATH = ["apply", "meet the crew", "build", "ship"] as const
+
+type FeaturedContributor = {
+  codyza_id: string
+  name: string
+  rank: string
+  xp: number
+  joined_at: string | null
+}
 
 export function About() {
   const [liveCount, setLiveCount] = useState(0)
   const [memberCount, setMemberCount] = useState(0)
-  const [featured, setFeatured] = useState<any>(null)
+  const [featured, setFeatured] = useState<FeaturedContributor | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -23,89 +33,75 @@ export function About() {
       setMemberCount(members || 0)
       setFeatured(top?.[0] || null)
     }
-    load()
+    void load()
   }, [])
 
   return (
-    <section id="about" className="cz-section scroll-mt-24 cz-border-t px-5 sm:px-8 lg:px-10">
-      <div className="mx-auto max-w-[1320px]">
-        <FadeInView variant="subtle">
-          <p className="cz-micro mb-10">005 / what is codyza</p>
-        </FadeInView>
-
-        <div className="grid grid-cols-1 gap-16 lg:grid-cols-[1.15fr_0.85fr] lg:gap-24">
-          <div>
-            <FadeInView variant="headline" delay={80}>
-              <h2 className="cz-display max-w-4xl">
-                you don&apos;t need another course.
-                <br />
-                <span className="cz-headline-muted">you need a crew.</span>
-              </h2>
-            </FadeInView>
-
-            <FadeInView variant="subtle" delay={200}>
-              <p className="cz-body mt-9 max-w-xl">{MANIFESTO_COPY}</p>
-            </FadeInView>
-
-            <div className="mt-16 grid gap-6 sm:grid-cols-3">
-              {CREW_PILLARS.map((pillar, i) => (
-                <FadeInView key={pillar.title} delay={i * 80}>
-                  <div className="cz-border-t pt-5">
-                    <p className="cz-pillar-title">{pillar.title}</p>
-                    <p className="cz-body mt-2 text-[13px]">{pillar.desc}</p>
-                  </div>
-                </FadeInView>
-              ))}
+    <section id="about" className="cz-home-story scroll-mt-24 cz-border-t px-5 sm:px-8 lg:px-10">
+      <div className="relative z-[1] mx-auto max-w-[1320px]">
+        <div className="cz-home-story-head">
+          <FadeInView variant="headline">
+            <div>
+              <p className="cz-kicker">who we are</p>
+              <h2>real people. useful work.</h2>
             </div>
+          </FadeInView>
+          <FadeInView variant="subtle" delay={100}>
+            <p>We find useful work, form small crews, and help members ship it.</p>
+          </FadeInView>
+        </div>
 
-            <FadeInView delay={200}>
-              <div className="mt-16 grid grid-cols-3 gap-6 cz-border-t pt-10">
-                <div>
-                  <p className="cz-stat-value">{liveCount}</p>
-                  <p className="cz-micro mt-3">live projects</p>
-                </div>
-                <div>
-                  <p className="cz-stat-value">{memberCount}</p>
-                  <p className="cz-micro mt-3">members</p>
-                </div>
-                <div>
-                  <p className="cz-stat-value">$0</p>
-                  <p className="cz-micro mt-3">fees ever</p>
-                </div>
+        <div className="cz-home-story-grid">
+          <FadeInView variant="subtle" className="cz-home-photo-wrap">
+            <figure className="cz-home-photo">
+              <Image
+                src="/press/codyza-founders-illustrated.jpg"
+                alt="Illustration of three Codyza founders holding their First Dollar Award"
+                fill
+                priority={false}
+                sizes="(max-width: 900px) 100vw, 64vw"
+                className="cz-home-photo-illustration object-cover"
+              />
+              <figcaption>
+                <span>Marshall, Minnesota</span>
+                <strong>the crew, in real life</strong>
+              </figcaption>
+              <div className="cz-home-photo-stats" aria-label="Codyza at a glance">
+                <div><strong>{memberCount}</strong><span>members</span></div>
+                <div><strong>{liveCount}</strong><span>launches</span></div>
+                <div><strong>$0</strong><span>to join</span></div>
+              </div>
+            </figure>
+          </FadeInView>
+
+          <div className="cz-home-story-side">
+            <FadeInView variant="subtle" delay={80} className="cz-home-id-card">
+              <CzxIdCard
+                variant="dark"
+                id={featured?.codyza_id?.replace(/^CZX-/i, "") || "0042"}
+                name={featured?.name || "your name here"}
+                rank={featured?.rank || getRankFromXP(0).name}
+                xp={featured?.xp || 0}
+                xpMax={featured ? getNextRank(featured.xp || 0)?.minXP ?? featured.xp : getRankFromXP(0).minXP + 500}
+                joined={
+                  featured?.joined_at
+                    ? new Date(featured.joined_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })
+                    : "—"
+                }
+              />
+            </FadeInView>
+
+            <FadeInView variant="subtle" delay={150}>
+              <div className="cz-home-path" aria-label="The Codyza path">
+                {CREW_PATH.map((step, index) => (
+                  <div key={step}>
+                    <span>{String(index + 1).padStart(2, "0")}</span>
+                    <strong>{step}</strong>
+                  </div>
+                ))}
               </div>
             </FadeInView>
-
-            <div className="mt-16 grid gap-8 sm:grid-cols-2">
-              {APPLY_ROADMAP.map((step, i) => (
-                <FadeInView key={step.num} delay={i * 70}>
-                  <div className="cz-border-t pt-5">
-                    <p className="cz-micro">{step.num}</p>
-                    <p className="mt-3 cz-pillar-title">{step.title}</p>
-                    <p className="cz-body mt-1 text-[13px]">{step.desc}</p>
-                  </div>
-                </FadeInView>
-              ))}
-            </div>
           </div>
-
-          <FadeInView className="flex flex-col items-center gap-8 lg:items-end lg:pt-6">
-            <CzxIdCard
-              variant="dark"
-              id={featured?.codyza_id?.replace(/^CZX-/i, "") || "0042"}
-              name={featured?.name || "your name here"}
-              rank={featured?.rank || getRankFromXP(0).name}
-              xp={featured?.xp || 0}
-              xpMax={featured ? getNextRank(featured.xp || 0)?.minXP ?? featured.xp : getRankFromXP(0).minXP + 500}
-              joined={
-                featured?.joined_at
-                  ? new Date(featured.joined_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })
-                  : "—"
-              }
-            />
-            <p className="cz-body max-w-xs text-center text-[13px] lg:text-right">
-              Every contributor gets a CZX ID — your passport inside the crew.
-            </p>
-          </FadeInView>
         </div>
       </div>
     </section>

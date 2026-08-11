@@ -2,14 +2,15 @@
 
 import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase"
-import { Users, GitBranch, Globe, ChevronRight, Clock, CheckCircle, Zap, Hammer, Eye } from "lucide-react"
+import { Users, GitBranch, Globe, Send, Clock, CheckCircle, Zap, Hammer, Eye } from "lucide-react"
 import { MemberPageHeader } from "@/components/member/member-page-header"
+import { memberFetch } from "@/lib/member-fetch"
 
 const STATUS_CONFIG: Record<string, { label: string; badge: string; icon: any }> = {
   planning:  { label: "Planning",  badge: "bg-muted text-muted-foreground", icon: Clock },
   building:  { label: "Building",  badge: "bg-accent/10 text-accent", icon: Hammer },
   review:    { label: "In Review", badge: "bg-accent/10 text-accent", icon: Eye },
-  submitted: { label: "Submitted", badge: "bg-accent/10 text-accent", icon: ChevronRight },
+  submitted: { label: "Submitted", badge: "bg-accent/10 text-accent", icon: Send },
   live:      { label: "Live",      badge: "bg-success/10 text-success", icon: CheckCircle },
 }
 
@@ -58,7 +59,7 @@ export default function GroupsPage() {
 
     setContributor(contrib)
 
-    const res = await fetch("/api/groups")
+    const res = await memberFetch("/api/groups")
     const data = await res.json()
     setGroups(Array.isArray(data) ? data : [])
     setLoading(false)

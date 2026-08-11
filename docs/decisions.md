@@ -250,3 +250,66 @@ Maintained by all roles; the Product Manager keeps it consistent.
   repo). If usage data later suggests time-based incentives are worth it, that would
   be a new, separate decision — not a reversal of this one.
 - **Owner:** Founder; implementation tracked outside the decision log.
+
+---
+
+## D-011 — Homepage hero is frozen (DECIDED)
+
+- **Date:** 2026-08-06
+- **Status:** DECIDED by founder
+- **Context:** The homepage hero has been iterated into its approved state: the
+  full-bleed supplied video, the “building alone gets lonely.” headline, supporting
+  copy, “join the crew” primary action, “see what we build” secondary action, current
+  typography, positioning, sizing, animation, responsive behavior, and navigation
+  relationship. The founder explicitly requested that this hero never be redesigned
+  or altered during future UI/UX work.
+- **Decision:** Freeze the homepage hero exactly as implemented in
+  `src/components/landing/codyza-hero-section.tsx` and its associated `.cz-hero*`
+  rules in `src/app/globals.css`. Future design work may change every section below
+  the hero, but must not modify the hero’s content, video source or playback behavior,
+  layout, colors, type treatment, CTAs, motion, spacing, layering, or responsive
+  presentation.
+- **Supersedes:** D-001/PRD §6.1 only where they require a terminal object in the
+  homepage hero. The approved video hero is now the binding implementation.
+- **Change control:** Any hero change, including a seemingly small polish or technical
+  adjustment, requires a new explicit founder instruction that clearly reverses or
+  amends this decision. Do not infer permission from a broader homepage redesign.
+- **Owner:** Founder.
+
+---
+
+## D-013 — Codyza becomes an admin-managed publishing platform (DECIDED)
+
+- **Date:** 2026-08-08
+- **Status:** DECIDED by founder
+- **Context:** Repository-authored news and fixed public copy make regular publishing dependent on code changes. The founder wants the website to operate as a tool: admins manage site content, images, news, and member announcements; authenticated members can comment on news; chat and board-meeting workflows will follow.
+- **Decision:** Add a Supabase-backed content layer for editable site blocks, media assets, news posts, member comments, and announcements. Admin writes remain server-only and require the admin access credential; public reads expose only published content; comment writes require an authenticated contributor. Keep repository news as a fallback during migration.
+- **Supersedes:** D-002 and D-004 where they prohibit a CMS and comments. Their remaining scope and information-architecture decisions still apply.
+- **Clock-in/out:** D-010 remains binding. Work sessions are accountability records, not an XP source, and must enforce one active session per member.
+- **Galaxy direction:** Cosmic visuals belong to the persistent site background and member/admin atmosphere, not a boxed decorative section or a standalone image.
+- **Owner:** Founder.
+
+---
+
+## D-012 — Public site uses a page-by-page design synthesis (DECIDED)
+
+- **Date:** 2026-08-07
+- **Status:** DECIDED by founder
+- **Context:** Three exploratory directions were reviewed: an editorial journal,
+  a proof-first project ledger, and a people-first crew studio, followed by a
+  cinematic application-page study. The founder chose to take the strongest idea
+  from each direction rather than force one layout pattern across every page.
+- **Decision:** Codyza's public experience is one shared visual system with
+  purpose-specific page expressions: the homepage uses the editorial story; Projects
+  uses the public proof ledger; Community/About use the crew studio and named-person
+  storytelling; Join uses the cinematic dark video treatment; Quest visualizes the
+  dark Arcade operating system. Navigation, footer, Codyza Blue, warm paper,
+  typography, spacing, interaction feedback, and motion rules remain consistent so
+  the result reads as one brand rather than a collage.
+- **Constraint:** D-011 remains fully binding. The approved homepage hero is not part
+  of this synthesis and stays frozen exactly as implemented.
+- **Rejected alternatives:** (1) apply one mockup wholesale to every route — weakens
+  each page's purpose; (2) combine every decorative idea on every page — produces a
+  template-like, incoherent result; (3) replace the approved homepage hero with the
+  cinematic experiment — contradicts D-011.
+- **Owner:** Founder.

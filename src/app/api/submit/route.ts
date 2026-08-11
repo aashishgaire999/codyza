@@ -1,32 +1,26 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
 import { GoogleGenerativeAI } from "@google/generative-ai"
-import { getRankFromXP } from "@/lib/supabase"
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+import { createServiceSupabase } from "@/lib/admin-auth"
+import { getRequestMember } from "@/lib/member-auth"
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
-function getRank(xp: number) {
-  return getRankFromXP(xp).name
-}
-
 export async function POST(req: Request) {
   try {
+    const member = await getRequestMember(req)
+    if (!member) return NextResponse.json({ error: "Member sign-in required" }, { status: 401 })
     const body = await req.json()
-    const { codyza_id, project_name, github_url, live_url, description, tech_stack, bounty_id } = body
+    const { project_name, github_url, live_url, description, tech_stack, bounty_id } = body
 
-    if (!codyza_id || !project_name || !github_url || !description) {
+    if (!project_name || !github_url || !description) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
+    const supabase = createServiceSupabase()
     const { data: contributor, error: fetchError } = await supabase
       .from("contributors")
       .select("*")
-      .eq("codyza_id", codyza_id.toUpperCase())
+      .eq("id", member.id)
       .single()
 
     if (fetchError || !contributor) {
@@ -88,18 +82,14 @@ Score: 1-4 needs major work, 5-6 decent start, 7-8 solid, 9 excellent, 10 except
     const streak_xp = streak_new >= 4 ? 200 : streak_new >= 2 ? 50 : 0
 
     const total_xp = base_xp + deploy_xp + quality_xp + streak_xp
-    const new_total_xp = (contributor.xp || 0) + total_xp
-    const new_rank = getRank(new_total_xp)
-    const rank_up = new_rank !== contributor.rank
-
-    await supabase.from("submissions").insert({
+    const { error: insertError } = await supabase.from("submissions").insert({
       contributor_id: contributor.id,
-      codyza_id: codyza_id.toUpperCase(),
-      project_name,
-      github_url,
-      live_url: live_url || null,
-      description,
-      tech_stack: tech_stack || [],
+      codyza_id: contributor.codyza_id,
+      project_name: String(project_name).slice(0, 180),
+      github_url: String(github_url).slice(0, 500),
+      live_url: live_url ? String(live_url).slice(0, 500) : null,
+      description: String(description).slice(0, 5000),
+      tech_stack: Array.isArray(tech_stack) ? tech_stack.slice(0, 30) : [],
       ai_score,
       ai_feedback,
       ai_review,
@@ -107,20 +97,7 @@ Score: 1-4 needs major work, 5-6 decent start, 7-8 solid, 9 excellent, 10 except
       status: "pending",
       bounty_id: bounty_id || null,
     })
-
-    await supabase.from("contributors").update({
-      xp: new_total_xp,
-      rank: new_rank,
-      streak: streak_new,
-      last_submission: today,
-    }).eq("codyza_id", codyza_id.toUpperCase())
-
-    await supabase.from("xp_history").insert({
-      contributor_id: contributor.id,
-      codyza_id: codyza_id.toUpperCase(),
-      action: `Submitted: ${project_name}`,
-      xp_change: total_xp,
-    })
+    if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 })
 
     return NextResponse.json({
       success: true,
@@ -129,10 +106,7 @@ Score: 1-4 needs major work, 5-6 decent start, 7-8 solid, 9 excellent, 10 except
       ai_feedback,
       ai_review,
       xp_breakdown: { base: base_xp, deploy: deploy_xp, quality: quality_xp, streak: streak_xp, total: total_xp },
-      new_total_xp,
-      new_rank,
-      rank_up,
-      streak: streak_new,
+      status: "pending",
     })
 
   } catch (error) {

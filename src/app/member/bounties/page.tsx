@@ -5,6 +5,7 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase"
 import { Zap, CheckCircle, Clock, User } from "lucide-react"
 import { MemberPageHeader } from "@/components/member/member-page-header"
+import { memberFetch } from "@/lib/member-fetch"
 
 const STATUS_CONFIG: Record<string, { label: string; badge: string }> = {
   open:      { label: "Open",      badge: "bg-success/10 text-success" },
@@ -26,7 +27,7 @@ export default function BountiesPage() {
     if (!user?.email) { window.location.href = "/login"; return }
     const { data: contrib } = await supabase.from("contributors").select("*").eq("email", user.email).maybeSingle()
     setContributor(contrib)
-    const res = await fetch("/api/bounties")
+    const res = await memberFetch("/api/bounties")
     const data = await res.json()
     setBounties(Array.isArray(data) ? data : [])
     setLoading(false)
@@ -37,10 +38,10 @@ export default function BountiesPage() {
   async function claimBounty(bountyId: string) {
     if (!contributor) return
     setClaiming(bountyId)
-    await fetch("/api/bounties", {
+    await memberFetch("/api/bounties", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ bounty_id: bountyId, codyza_id: contributor.codyza_id, action: "claim" }),
+      body: JSON.stringify({ bounty_id: bountyId, action: "claim" }),
     })
     await loadData()
     setClaiming(null)
@@ -106,7 +107,7 @@ export default function BountiesPage() {
 
                 return (
                   <div key={bounty.id} className={`surface-card p-5 transition-all ${isClaimed ? "border-accent/20" : ""}`}>
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex flex-col items-start justify-between gap-4 sm:flex-row">
                       <div className="min-w-0 flex-1">
                         <div className="mb-2 flex flex-wrap items-center gap-3">
                           <h3 className="text-sm font-bold text-foreground">{bounty.title}</h3>
@@ -132,7 +133,7 @@ export default function BountiesPage() {
                           <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{new Date(bounty.posted_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
                         </div>
                       </div>
-                      <div className="flex flex-shrink-0 flex-col items-end gap-3">
+                      <div className="flex w-full flex-shrink-0 flex-row items-center justify-between gap-3 sm:w-auto sm:flex-col sm:items-end">
                         <div className="flex items-center gap-1.5 rounded-xl border border-accent/20 bg-accent/10 px-3 py-1.5">
                           <Zap className="h-3.5 w-3.5 text-accent" />
                           <span className="text-sm font-bold text-accent">+{bounty.xp_reward} XP</span>
@@ -148,7 +149,7 @@ export default function BountiesPage() {
                         )}
                         {isClaimed && (
                           <Link href={`/member/projects?bounty=${bounty.id}`} className="text-xs font-medium text-accent hover:underline">
-                            Submit via Projects →
+                            Submit via Projects
                           </Link>
                         )}
                       </div>
@@ -168,7 +169,7 @@ export default function BountiesPage() {
                 { step: "1", text: "Browse open bounties and find one that fits your skills" },
                 { step: "2", text: "Claim it — it's locked to you for 7 days" },
                 { step: "3", text: "Build it and submit via the Projects page" },
-                { step: "4", text: "Admin approves → XP auto-awarded to your profile" },
+                { step: "4", text: "Admin approval awards XP to your profile" },
               ].map(({ step, text }) => (
                 <div key={step} className="flex items-start gap-3">
                   <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border border-accent/20 bg-accent/10 text-xs font-bold text-accent">

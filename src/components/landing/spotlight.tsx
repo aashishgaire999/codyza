@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowUpRight, Mail } from "lucide-react"
+import { Mail } from "lucide-react"
 import { SITE_CONFIG } from "@/constants/site"
 
 export function Spotlight() {
@@ -40,7 +40,6 @@ export function Spotlight() {
           <p className="cz-spotlight-cta-email">{SITE_CONFIG.email}</p>
           <span className="cz-spotlight-cta-button">
             Send an email
-            <ArrowUpRight className="h-4 w-4" />
           </span>
         </a>
       </div>

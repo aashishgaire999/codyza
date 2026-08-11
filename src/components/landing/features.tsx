@@ -122,7 +122,7 @@ export function Features() {
     <section className="cz-section scroll-mt-24 cz-border-t px-5 sm:px-8 lg:px-10">
       <div className="mx-auto max-w-[1320px]">
         <FadeInView variant="subtle">
-          <p className="cz-micro mb-8">004 / the platform</p>
+          <p className="cz-kicker mb-8">the platform</p>
         </FadeInView>
         <FadeInView variant="headline" delay={80}>
           <h2 className="cz-display max-w-3xl">
