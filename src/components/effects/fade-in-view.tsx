@@ -20,6 +20,30 @@ const VARIANTS: Record<FadeInVariant, { distance: number; duration: number }> = 
   },
 }
 
+const revealCallbacks = new WeakMap<Element, () => void>()
+let revealObserver: IntersectionObserver | null = null
+
+function getRevealObserver() {
+  if (revealObserver) return revealObserver
+
+  revealObserver = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue
+        revealCallbacks.get(entry.target)?.()
+        revealCallbacks.delete(entry.target)
+        revealObserver?.unobserve(entry.target)
+      }
+    },
+    {
+      rootMargin: "0px 0px -6% 0px",
+      threshold: 0.01,
+    },
+  )
+
+  return revealObserver
+}
+
 export function FadeInView({
   children,
   delay = 0,
@@ -39,24 +63,20 @@ export function FadeInView({
   const { distance, duration } = VARIANTS[variant]
 
   useEffect(() => {
-    const checkPosition = () => {
-      const element = elementRef.current
-      if (!element) return
+    const element = elementRef.current
+    if (!element) return
 
-      // Checking the element's top instead of relying only on IntersectionObserver
-      // means a fast scroll cannot skip the reveal and leave a blank section behind.
-      if (element.getBoundingClientRect().top <= window.innerHeight * 0.94) {
-        setVisible(true)
-      }
+    if (!("IntersectionObserver" in window)) {
+      setVisible(true)
+      return
     }
 
-    checkPosition()
-    window.addEventListener("scroll", checkPosition, { passive: true })
-    window.addEventListener("resize", checkPosition)
-
+    const observer = getRevealObserver()
+    revealCallbacks.set(element, () => setVisible(true))
+    observer.observe(element)
     return () => {
-      window.removeEventListener("scroll", checkPosition)
-      window.removeEventListener("resize", checkPosition)
+      revealCallbacks.delete(element)
+      observer.unobserve(element)
     }
   }, [])
 

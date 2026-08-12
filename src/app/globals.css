@@ -2324,7 +2324,12 @@ html:has(.cz-landing) {
   justify-content: space-between;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
-.cz-workbench-foot a { color: white; }
+.cz-workbench-foot a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: white;
+}
 
 @media (min-width: 760px) {
   .cz-workbench-flow { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -2774,6 +2779,9 @@ html:has(.cz-landing) {
 /* --- Footer & misc surfaces -------------------------------- */
 .cz-footer-link {
   position: relative;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
   color: var(--cz-muted);
   transition: color 0.2s ease, transform 0.15s ease;
 }
@@ -2803,7 +2811,7 @@ html:has(.cz-landing) {
 
 .cz-footer-activity-row {
   display: flex;
-  min-height: 42px;
+  min-height: 44px;
   align-items: center;
   gap: 0.65rem;
   border-radius: 0.75rem;
@@ -2821,7 +2829,7 @@ html:has(.cz-landing) {
 
 .cz-footer-join {
   display: inline-flex;
-  min-height: 42px;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
   border-radius: 999px;

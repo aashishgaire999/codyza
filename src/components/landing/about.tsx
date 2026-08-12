@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
+import foundersIllustration from "../../../public/press/codyza-founders-illustrated.jpg"
 import { createClient, getRankFromXP, getNextRank } from "@/lib/supabase"
 import { CzxIdCard } from "@/components/shared/czx-id-card"
 import { FadeInView } from "@/components/effects/fade-in-view"
@@ -55,10 +56,11 @@ export function About() {
           <FadeInView variant="subtle" className="cz-home-photo-wrap">
             <figure className="cz-home-photo">
               <Image
-                src="/press/codyza-founders-illustrated.jpg"
+                src={foundersIllustration}
                 alt="Illustration of three Codyza founders holding their First Dollar Award"
                 fill
                 priority={false}
+                placeholder="blur"
                 sizes="(max-width: 900px) 100vw, 64vw"
                 className="cz-home-photo-illustration object-cover"
               />

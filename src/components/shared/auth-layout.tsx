@@ -26,7 +26,7 @@ export function AuthLayout({
             {subtitle && <p className="sofi-body mt-3 text-black/55">{subtitle}</p>}
           </div>
           <div className="auth-journal-card">{children}</div>
-          <Link href="/" className="sofi-body mt-6 block text-center text-black/45 hover:text-black">
+          <Link href="/" className="sofi-body mt-6 flex min-h-11 items-center justify-center text-center text-black/45 hover:text-black">
             back home
           </Link>
         </FadeIn>
