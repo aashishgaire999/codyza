@@ -91,6 +91,12 @@
   padding: 1.5rem 2rem;
 }
 
+@media (max-width: 639px) {
+  .journal-form-card { padding: 1.25rem; }
+  .journal-form-card h1 { font-size: clamp(2rem, 10vw, 2.5rem); }
+  .journal-ledger-stat .value { letter-spacing: -0.05em; }
+}
+
 /* Public community constellation — a meaningful galaxy, not wallpaper */
 .cz-community-cosmos {
   display: grid;
