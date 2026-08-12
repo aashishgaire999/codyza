@@ -63,7 +63,7 @@ function LoginForm() {
             setMagicLinkSent(false)
             setMagicOverride(false)
           }}
-          className="mt-4 w-full text-sm text-[var(--journal-sage)]"
+          className="mt-4 inline-flex min-h-11 w-full items-center justify-center text-sm text-[var(--journal-sage)]"
         >
           use password instead
         </button>
@@ -119,11 +119,11 @@ function LoginForm() {
             setMagicOverride(!magicMode)
             setError("")
           }}
-          className="text-black/45 hover:text-black"
+          className="inline-flex min-h-11 w-full items-center justify-center text-black/45 hover:text-black"
         >
           {magicMode ? "use password" : "email me a login link"}
         </button>
-        <Link href="/forgot-password" className="block text-black/45 hover:text-black">
+        <Link href="/forgot-password" className="flex min-h-11 items-center justify-center text-black/45 hover:text-black">
           forgot password?
         </Link>
         <div className="pt-2">

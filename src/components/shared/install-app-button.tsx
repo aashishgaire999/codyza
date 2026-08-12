@@ -79,8 +79,8 @@ export function InstallAppButton({ compact = false, className }: { compact?: boo
         onClick={() => void install()}
         className={cn(
           compact
-            ? "flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:text-foreground active:scale-[0.96]"
-            : "inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-[var(--journal-rule)] px-4 py-2 text-sm text-[var(--journal-sage)] transition-colors hover:bg-[var(--journal-sage)]/5 active:scale-[0.98]",
+            ? "flex h-11 w-11 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:text-foreground active:scale-[0.96]"
+            : "inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[var(--journal-rule)] px-4 py-2 text-sm text-[var(--journal-sage)] transition-colors hover:bg-[var(--journal-sage)]/5 active:scale-[0.98]",
           className
         )}
         aria-label="Install Codyza app"
@@ -104,7 +104,7 @@ export function InstallAppButton({ compact = false, className }: { compact?: boo
                   <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#8b87ff]">free · no app store</p>
                   <h2 id="install-codyza-title" className="mt-2 text-xl font-semibold tracking-[-0.025em]">Add Codyza to your phone</h2>
                 </div>
-                <button type="button" onClick={() => setInstructionsOpen(false)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/8 text-white/60 active:scale-[0.96]" aria-label="Close install instructions"><X className="h-4 w-4" /></button>
+                <button type="button" onClick={() => setInstructionsOpen(false)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/8 text-white/60 active:scale-[0.96]" aria-label="Close install instructions"><X className="h-4 w-4" /></button>
               </div>
 
               <ol className="mt-5 space-y-4">
