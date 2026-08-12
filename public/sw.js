@@ -1,4 +1,4 @@
-const CACHE_VERSION = "codyza-static-v1"
+const CACHE_VERSION = "codyza-static-v2"
 const OFFLINE_URL = "/offline.html"
 const PRECACHE = [
   OFFLINE_URL,
@@ -41,7 +41,7 @@ self.addEventListener("fetch", (event) => {
     return
   }
 
-  const safeStaticAsset = ["/_next/static/", "/icons/", "/logo/", "/decor/"].some((prefix) => url.pathname.startsWith(prefix))
+  const safeStaticAsset = ["/_next/static/", "/icons/", "/logo/", "/decor/", "/press/"].some((prefix) => url.pathname.startsWith(prefix))
   if (!safeStaticAsset || !["style", "script", "font", "image"].includes(request.destination)) return
 
   event.respondWith(

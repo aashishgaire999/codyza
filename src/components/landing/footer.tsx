@@ -197,7 +197,7 @@ export function Footer() {
             href={SOCIAL_LINKS.developer}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--cz-line)] px-3 py-1 text-[11px] transition-colors hover:border-[var(--cz-line-strong)]"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-[var(--cz-line)] px-3 py-1 text-[11px] transition-colors hover:border-[var(--cz-line-strong)]"
           >
             <span className="cz-footer-muted">built by</span>
             <span className="font-medium text-[var(--cz-ink)]">@aashishgaire999</span>

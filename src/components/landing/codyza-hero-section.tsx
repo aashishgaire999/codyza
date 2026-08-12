@@ -19,7 +19,8 @@ export function CodyzaHeroSection() {
           loop
           muted
           playsInline
-          preload="auto"
+          preload="metadata"
+          disablePictureInPicture
         />
       </div>
 
