@@ -15,6 +15,15 @@ export default function HomePage() {
   return (
     <SmoothScroll>
       <main className="cz-landing min-h-screen overflow-x-clip">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Codyza",
+          url: "https://codyza.com",
+          logo: "https://codyza.com/logo/codyza-mark-v2.png",
+          description: "A working community for developers, designers, and ambitious builders shipping useful software together.",
+          sameAs: ["https://www.linkedin.com/company/codyza/", "https://github.com/codyza-com", "https://www.instagram.com/codyza_"],
+        }) }} />
         <HomeAuthRedirect />
         <ScrollProgress />
         <Nav />

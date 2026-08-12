@@ -235,7 +235,7 @@ export default function AdminDashboard() {
           </Link>
           <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Admin</span>
         </div>
-        <div className="flex items-center gap-2"><Link href="/admin/content" className="btn-ghost rounded-full px-3 py-1.5 text-xs">Content studio</Link><Link href="/member" className="btn-ghost rounded-full px-3 py-1.5 text-xs">Member Hub</Link><ThemeToggle className="shrink-0 bg-card/80" /></div>
+        <div className="flex items-center gap-2"><Link href="/admin/content" className="btn-ghost rounded-full px-3 py-1.5 text-xs">Creator Studio</Link><Link href="/member" className="btn-ghost rounded-full px-3 py-1.5 text-xs">Member Hub</Link><ThemeToggle className="shrink-0 bg-card/80" /></div>
       </nav>
       <div className="cosmic-admin-content relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center gap-3">

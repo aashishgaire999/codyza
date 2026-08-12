@@ -13,6 +13,10 @@ export const metadata: Metadata = {
   },
   description: SITE_CONFIG.description,
   keywords: [
+    "Codyza",
+    "codyza.com",
+    "Codyza community",
+    "Codyza members",
     "developer ecosystem",
     "startup incubator",
     "open source",
@@ -23,6 +27,7 @@ export const metadata: Metadata = {
     "TypeScript",
   ],
   authors: [{ name: "Codyza" }],
+  alternates: { canonical: SITE_CONFIG.url },
   creator: "Codyza",
   applicationName: "Codyza",
   manifest: "/manifest.webmanifest",
@@ -48,6 +53,11 @@ export const metadata: Metadata = {
     title: SITE_CONFIG.name,
     description: SITE_CONFIG.description,
     images: [SITE_CONFIG.ogImage],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 },
   },
   icons: {
     icon: [

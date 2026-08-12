@@ -5,7 +5,7 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase"
 import { CodyzaLogo } from "@/components/shared/codyza-logo"
 import { ThemeToggle } from "@/components/shared/theme-toggle"
-import { Clock3, House, LogOut, Rocket, Settings, Target, Users } from "lucide-react"
+import { Clock3, House, LogOut, Rocket, Settings, ShieldCheck, SquarePen, Target, Users } from "lucide-react"
 import { useRouter, usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { memberFetch } from "@/lib/member-fetch"
@@ -18,6 +18,12 @@ const LINKS = [
   { href: "/member/bounties", label: "Bounties", icon: Target },
   { href: "/member/standup", label: "Time", icon: Clock3 },
   { href: "/member/settings", label: "Settings", icon: Settings },
+]
+
+const STAFF_MEMBER_IDS = new Set(["CZX-0001", "CZX-0002"])
+const STAFF_LINKS = [
+  { href: "/admin", label: "Admin", icon: ShieldCheck },
+  { href: "/admin/content", label: "Creator Studio", icon: SquarePen },
 ]
 
 function useElapsed(startedAt: string | null) {
@@ -37,7 +43,7 @@ type SessionSummary = { status: string; started_at: string }
 export function MemberNavbar() {
   const router = useRouter()
   const pathname = usePathname()
-  const [isAdmin, setIsAdmin] = useState(false)
+  const [hasStaffAccess, setHasStaffAccess] = useState(false)
   const [codyzaId, setCodyzaId] = useState("")
   const [activeSessionStart, setActiveSessionStart] = useState<string | null>(null)
   const elapsed = useElapsed(activeSessionStart)
@@ -50,12 +56,13 @@ export function MemberNavbar() {
       if (!user?.email) return
       const { data } = await supabase
         .from("contributors")
-        .select("is_admin, codyza_id")
+        .select("codyza_id")
         .eq("email", user.email)
         .maybeSingle()
       if (cancelled) return
-      setIsAdmin(Boolean(data?.is_admin))
-      setCodyzaId(data?.codyza_id || "")
+      const memberId = String(data?.codyza_id || "").trim().toUpperCase()
+      setHasStaffAccess(STAFF_MEMBER_IDS.has(memberId))
+      setCodyzaId(memberId)
 
       if (data?.codyza_id) {
         const res = await memberFetch("/api/work-sessions")
@@ -109,11 +116,17 @@ export function MemberNavbar() {
               {link.label}
             </Link>
           ))}
-          {isAdmin && (
-            <Link href="/admin" className="rounded-full px-3 py-1.5 text-sm text-accent hover:opacity-80">
-              Admin
-            </Link>
-          )}
+          {hasStaffAccess
+            ? STAFF_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="member-staff-link rounded-full px-3 py-1.5 text-sm"
+                >
+                  {link.label}
+                </Link>
+              ))
+            : null}
         </div>
 
         <div className="flex items-center gap-2">
@@ -139,6 +152,19 @@ export function MemberNavbar() {
         </div>
       </nav>
     </header>
+    {hasStaffAccess ? (
+      <nav className="member-staff-dock lg:hidden" aria-label="Staff tools">
+        {STAFF_LINKS.map((link) => {
+          const Icon = link.icon
+          return (
+            <Link key={link.href} href={link.href} className="member-staff-dock-link">
+              <Icon aria-hidden className="h-4 w-4" />
+              <span>{link.label}</span>
+            </Link>
+          )
+        })}
+      </nav>
+    ) : null}
     <nav className="member-mobile-dock lg:hidden" aria-label="Member navigation">
       {LINKS.map((link) => {
         const Icon = link.icon

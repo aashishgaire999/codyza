@@ -62,8 +62,8 @@ export default async function ContributorProfile({ params }: Props) {
         </Link>
 
         <div className="journal-form-card mb-6">
-          <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-            <div className="flex items-center gap-5">
+          <div className="mb-6 flex flex-col gap-5 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+            <div className="flex min-w-0 items-center gap-4 sm:gap-5">
               <div className="flex h-24 w-24 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-black/10 bg-[#f7f7f7] text-2xl font-bold">
                 {contributor.avatar_url ? (
                   <Image
@@ -77,11 +77,11 @@ export default async function ContributorProfile({ params }: Props) {
                   initials
                 )}
               </div>
-              <div>
+              <div className="min-w-0">
                 <h1 className="font-[family-name:var(--font-instrument)] text-3xl lowercase tracking-tight text-black">
                   {contributor.name}
                 </h1>
-                <div className="mt-1 font-mono text-lg font-bold tracking-wider text-black">
+                <div className="mt-1 font-mono text-[clamp(1rem,5vw,1.125rem)] font-bold tracking-wider text-black">
                   CZX-<span className="text-[var(--journal-terracotta)]">{contributor.codyza_id.replace("CZX-", "")}</span>
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -95,7 +95,7 @@ export default async function ContributorProfile({ params }: Props) {
               </div>
             </div>
 
-            <div className="flex flex-col items-end gap-2">
+            <div className="flex flex-row flex-wrap items-center gap-3 sm:flex-col sm:items-end sm:gap-2">
               <div className="flex items-center gap-2 text-black/50">
                 <Calendar className="h-3 w-3" />
                 <span className="sofi-micro">joined {joinedDate}</span>
@@ -140,16 +140,16 @@ export default async function ContributorProfile({ params }: Props) {
           )}
         </div>
 
-        <div className="mb-6 grid grid-cols-3 gap-3">
+        <div className="mb-6 grid grid-cols-3 gap-2 sm:gap-3">
           {[
             { icon: <Zap className="h-4 w-4" />, value: contributor.xp.toLocaleString(), label: "total xp" },
             { icon: <Trophy className="h-4 w-4" />, value: contributor.rank.replace(" Engineer", "").replace("Associate ", "Assoc. "), label: "rank" },
             { icon: <Flame className="h-4 w-4" />, value: contributor.streak, label: "streak" },
           ].map(({ icon, value, label }) => (
-            <div key={label} className="journal-ledger-stat">
+            <div key={label} className="journal-ledger-stat min-w-0 px-2 py-4 sm:px-6">
               <div className="mb-2 flex justify-center text-[var(--journal-sage)]">{icon}</div>
-              <p className="value text-xl">{value}</p>
-              <p className="sofi-micro mt-2">{label}</p>
+              <p className="value min-w-0 truncate text-[clamp(1.15rem,6vw,2.5rem)]">{value}</p>
+              <p className="sofi-micro mt-2 truncate text-[9px]">{label}</p>
             </div>
           ))}
         </div>
@@ -179,9 +179,9 @@ export default async function ContributorProfile({ params }: Props) {
           )}
         </div>
 
-        <div className="journal-form-card flex items-center justify-between">
+        <div className="journal-form-card flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
           <span className="sofi-body text-sm">public link</span>
-          <span className="sofi-micro text-[var(--journal-terracotta)]">{profileUrl}</span>
+          <span className="sofi-micro max-w-full break-all text-[var(--journal-terracotta)]">{profileUrl}</span>
         </div>
       </main>
     </PublicShell>

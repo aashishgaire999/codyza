@@ -91,6 +91,12 @@
   padding: 1.5rem 2rem;
 }
 
+@media (max-width: 639px) {
+  .journal-form-card { padding: 1.25rem; }
+  .journal-form-card h1 { font-size: clamp(2rem, 10vw, 2.5rem); }
+  .journal-ledger-stat .value { letter-spacing: -0.05em; }
+}
+
 /* Public community constellation — a meaningful galaxy, not wallpaper */
 .cz-community-cosmos {
   display: grid;
@@ -532,6 +538,57 @@
 .member-mobile-link:active { transform: scale(0.94); }
 .member-mobile-link-active { color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--card)); }
 
+.member-staff-link {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent);
+  transition: color 160ms ease, background-color 160ms ease, transform 100ms ease;
+}
+
+.member-staff-link:hover {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.member-staff-link:active { transform: scale(0.97); }
+
+.member-staff-dock {
+  position: fixed;
+  z-index: 69;
+  bottom: calc(max(0.75rem, env(safe-area-inset-bottom)) + 4.35rem);
+  left: 50%;
+  display: flex;
+  transform: translateX(-50%);
+  gap: 0.25rem;
+  padding: 0.35rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--background) 88%, transparent);
+  box-shadow: 0 12px 32px rgba(9, 7, 35, 0.18);
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+}
+
+.member-staff-dock-link {
+  display: flex;
+  min-height: 2.35rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding-inline: 0.8rem;
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: color 160ms ease, background-color 160ms ease, transform 100ms ease;
+}
+
+.member-staff-dock-link:hover {
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+}
+
+.member-staff-dock-link:active { transform: scale(0.96); }
+
 .surface-card,
 .dashboard-stat,
 .id-card-inner {
@@ -693,10 +750,11 @@ a.surface-card:hover,
 
 @media (max-width: 1023px) {
   .cosmic-main { padding-bottom: 6.5rem; }
+  .cosmic-workspace-content:has(.member-staff-dock) .cosmic-main { padding-bottom: 9.75rem; }
 }
 
 @media (min-width: 1024px) {
-  .member-mobile-dock { display: none; }
+  .member-mobile-dock, .member-staff-dock { display: none; }
 }
 
 @media (max-width: 767px) {
@@ -731,16 +789,16 @@ a.surface-card:hover,
   .cosmic-scan,
   .cosmic-signal-path { animation: none; }
   .cosmic-meteor, .cosmic-scan { display: none; }
-  .surface-card, .arcade-stat, .quest-card, .member-mobile-link { transition: opacity 200ms ease, color 200ms ease, background-color 200ms ease; }
+  .surface-card, .arcade-stat, .quest-card, .member-mobile-link, .member-staff-link, .member-staff-dock-link { transition: opacity 200ms ease, color 200ms ease, background-color 200ms ease; }
   a.surface-card:hover, .quest-card:hover { transform: none; }
 }
 
 @media (prefers-reduced-transparency: reduce) {
-  .member-navbar, .member-mobile-dock, .surface-card, .dashboard-stat, .id-card-inner, .glass-input { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--card); }
+  .member-navbar, .member-mobile-dock, .member-staff-dock, .surface-card, .dashboard-stat, .id-card-inner, .glass-input { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--card); }
 }
 
 @media (prefers-contrast: more) {
-  .surface-card, .dashboard-stat, .id-card-inner, .member-mobile-dock { border-color: currentColor; }
+  .surface-card, .dashboard-stat, .id-card-inner, .member-mobile-dock, .member-staff-dock { border-color: currentColor; }
   .cosmic-backdrop { opacity: 0.34; }
 }
 
