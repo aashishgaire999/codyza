@@ -1,4 +1,4 @@
-const CACHE_VERSION = "codyza-static-v2"
+const CACHE_VERSION = "codyza-static-v3"
 const OFFLINE_URL = "/offline.html"
 const PRECACHE = [
   OFFLINE_URL,

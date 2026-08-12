@@ -1,9 +1,8 @@
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 
-const LOGO_SRC = "/logo/codyza-logo.png"
-const LOGO_MARK_SRC = "/logo/codyza-mark.png"
-const LOGO_SIZE = 500
+const LOGO_SRC = "/logo/codyza-mark-v2.png"
+const LOGO_SIZE = 512
 
 type CodyzaLogoVariant = "full" | "nav" | "mark"
 
@@ -31,12 +30,12 @@ function LogoIconMark({
 
   return (
     <span
-      className={cn("relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-[11px]", className)}
+      className={cn("relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-[22%]", className)}
       style={{ width: clip, height: clip }}
       aria-hidden
     >
       <Image
-        src={LOGO_MARK_SRC}
+        src={LOGO_SRC}
         alt=""
         width={clip}
         height={clip}
@@ -113,15 +112,19 @@ export function CodyzaLogo({
           style={{ background: "color-mix(in srgb, var(--color-codyza-blue, #302bfb) 40%, transparent)" }}
         />
       )}
-      <Image
-        src={LOGO_SRC}
-        alt="Codyza"
-        width={LOGO_SIZE}
-        height={LOGO_SIZE}
-        priority={priority}
-        className="h-auto w-auto shrink-0 object-contain"
-        style={{ height: `${height}px`, width: "auto" }}
-      />
+      <span
+        className="relative inline-flex shrink-0 overflow-hidden rounded-[22%]"
+        style={{ height: `${height}px`, width: `${height}px` }}
+      >
+        <Image
+          src={LOGO_SRC}
+          alt="Codyza"
+          width={LOGO_SIZE}
+          height={LOGO_SIZE}
+          priority={priority}
+          className="h-full w-full object-contain"
+        />
+      </span>
     </span>
   )
 }

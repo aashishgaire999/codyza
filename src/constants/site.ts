@@ -5,7 +5,7 @@ export const SITE_CONFIG = {
   tagline: "Build. Learn. Deploy. Grow Together.",
   description:
     "A community of devs, designers, and dreamers shipping real projects together. Not a bootcamp. Not another chat server. Free to join, built to last.",
-  ogImage: "/logo/codyza-logo.png",
+  ogImage: "/logo/codyza-mark-v2.png",
   email: "team@codyza.com",
   hrEmail: "hiring@codyza.com",
   standupDay: "Tuesday",
