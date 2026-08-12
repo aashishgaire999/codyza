@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     title: SITE_CONFIG.name,
     description: SITE_CONFIG.description,
     siteName: SITE_CONFIG.name,
-    images: [{ url: SITE_CONFIG.ogImage, width: 500, height: 500, alt: SITE_CONFIG.name }],
+    images: [{ url: SITE_CONFIG.ogImage, width: 512, height: 512, alt: SITE_CONFIG.name }],
   },
   twitter: {
     card: "summary_large_image",
@@ -51,10 +51,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/favicon.png", sizes: "32x32", type: "image/png" },
-      { url: "/logo/codyza-logo.png", type: "image/png" },
+      { url: "/favicon.png?v=3", sizes: "64x64", type: "image/png" },
+      { url: "/logo/codyza-mark-v2.png", sizes: "512x512", type: "image/png" },
     ],
-    apple: "/icons/apple-touch-icon.png",
+    apple: "/icons/apple-touch-icon.png?v=3",
   },
 }
 
