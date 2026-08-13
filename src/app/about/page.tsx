@@ -1,4 +1,3 @@
-import { Metadata } from "next"
 import Link from "next/link"
 import { ScrollProgress } from "@/components/landing/scroll-progress"
 import { Nav } from "@/components/landing/nav"
@@ -8,11 +7,9 @@ import { FadeInView } from "@/components/effects/fade-in-view"
 import { MANIFESTO_COPY, CREW_PILLARS, APPLY_ROADMAP } from "@/constants/landing"
 import { FOUNDING_TEAM, LEADERSHIP_TEAM } from "@/constants/team"
 import { getSiteContentState } from "@/lib/site-content"
+import { publicMetadata } from "@/lib/public-metadata"
 
-export const metadata: Metadata = {
-  title: "About",
-  description: "Why Codyza exists, how it works, and the people who lead it.",
-}
+export const metadata = publicMetadata("About", "Why Codyza exists, how it works, and the people who lead it.", "/about")
 
 const LEADERSHIP = [...FOUNDING_TEAM, ...LEADERSHIP_TEAM]
 

@@ -1,15 +1,12 @@
-import type { Metadata } from "next"
 import Link from "next/link"
 import { GitBranch, Globe } from "lucide-react"
 import { createClient } from "@/lib/supabase"
 import { PublicShell } from "@/components/shared/public-shell"
 import { FadeInView } from "@/components/effects/fade-in-view"
 import { getSiteContentState } from "@/lib/site-content"
+import { publicMetadata } from "@/lib/public-metadata"
 
-export const metadata: Metadata = {
-  title: "Projects",
-  description: "The public record of work shipped by Codyza builders.",
-}
+export const metadata = publicMetadata("Projects", "The public record of work shipped by Codyza builders.", "/projects")
 
 export const revalidate = 60
 
@@ -21,17 +18,18 @@ type ProjectRecord = {
   tech_stack: string[] | null
   xp_earned: number | null
   codyza_id: string | null
-  created_at: string | null
+  submitted_at: string | null
 }
 
 async function getProjects(): Promise<ProjectRecord[]> {
   const supabase = createClient()
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("submissions")
-    .select("project_name, github_url, live_url, description, tech_stack, xp_earned, codyza_id, created_at")
+    .select("project_name, github_url, live_url, description, tech_stack, xp_earned, codyza_id, submitted_at")
     .eq("status", "approved")
-    .order("created_at", { ascending: false })
+    .order("submitted_at", { ascending: false })
 
+  if (error) console.error("Unable to load public projects:", error.message)
   return data || []
 }
 

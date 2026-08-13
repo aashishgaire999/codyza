@@ -11,6 +11,7 @@ export function CodyzaHeroSection({ content }: { content?: { headline?: string; 
   const reduceMotion = useReducedMotion()
   const videoRef = useRef<HTMLVideoElement>(null)
   const [videoUnavailable, setVideoUnavailable] = useState(false)
+  const [firstFrameReady, setFirstFrameReady] = useState(false)
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const playPendingRef = useRef(false)
   const retryCountRef = useRef(0)
@@ -39,6 +40,13 @@ export function CodyzaHeroSection({ content }: { content?: { headline?: string; 
       if (retryCountRef.current >= 4) setVideoUnavailable(true)
     } finally {
       playPendingRef.current = false
+    }
+  }, [])
+
+  const revealFirstFrame = useCallback(() => {
+    const video = videoRef.current
+    if (video && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+      setFirstFrameReady(true)
     }
   }, [])
 
@@ -100,6 +108,7 @@ export function CodyzaHeroSection({ content }: { content?: { headline?: string; 
   return (
     <section className="cz-hero cz-hero--cinematic" aria-labelledby="home-title">
       <div className="cz-hero-media">
+        <div className="cz-hero-placeholder" aria-hidden="true" />
         <video
           aria-hidden="true"
           ref={videoRef}
@@ -109,10 +118,18 @@ export function CodyzaHeroSection({ content }: { content?: { headline?: string; 
           loop
           muted
           playsInline
-          preload="auto"
-          onCanPlay={() => schedulePlayback(0)}
-          onLoadedData={() => schedulePlayback(0)}
+          preload="metadata"
+          style={{ opacity: firstFrameReady ? 1 : 0 }}
+          onCanPlay={() => {
+            revealFirstFrame()
+            schedulePlayback(0)
+          }}
+          onLoadedData={() => {
+            revealFirstFrame()
+            schedulePlayback(0)
+          }}
           onPlaying={() => {
+            revealFirstFrame()
             retryCountRef.current = 0
             lastPlaybackTimeRef.current = videoRef.current?.currentTime ?? 0
             frozenChecksRef.current = 0
@@ -146,9 +163,8 @@ export function CodyzaHeroSection({ content }: { content?: { headline?: string; 
       <div className="mx-auto flex min-h-[calc(100dvh-4.25rem)] max-w-[1320px]">
         <motion.div
           className="relative z-20 flex-1 px-8 md:px-16 pt-12 md:pt-16 flex flex-col items-start"
-          initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
-          transition={reduceMotion ? { duration: 0 } : { duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
         >
           <div className="cz-hero-copy">
           <h1 id="home-title" className="cz-hero-title">{content?.headline || "building alone gets lonely."}</h1>

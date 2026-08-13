@@ -5,6 +5,7 @@ import { PublicShell } from "@/components/shared/public-shell"
 import { PublicPageCta } from "@/components/shared/public-page-cta"
 import { getNewsEntries, getNewsEntry, newsBodyBlocks } from "@/lib/news"
 import { NewsComments } from "@/components/news/news-comments"
+import { publicMetadata } from "@/lib/public-metadata"
 
 export async function generateStaticParams() {
   return (await getNewsEntries()).map((entry) => ({ slug: entry.slug }))
@@ -13,7 +14,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const entry = await getNewsEntry(slug)
-  return entry ? { title: entry.title, description: entry.summary } : { title: "News" }
+  return entry ? publicMetadata(entry.title, entry.summary, `/news/${entry.slug}`) : { title: "News" }
 }
 
 export default async function NewsEntryPage({ params }: { params: Promise<{ slug: string }> }) {

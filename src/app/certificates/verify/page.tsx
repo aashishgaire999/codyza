@@ -1,10 +1,10 @@
-import type { Metadata } from "next"
 import Link from "next/link"
 import { ShieldCheck } from "lucide-react"
 import { PublicShell } from "@/components/shared/public-shell"
 import { EditorialHero } from "@/components/shared/editorial-hero"
+import { publicMetadata } from "@/lib/public-metadata"
 
-export const metadata: Metadata = { title: "Verify a certificate", description: "Verify a Codyza credential by its certificate code." }
+export const metadata = publicMetadata("Verify a certificate", "Verify a Codyza credential by its certificate code.", "/certificates/verify")
 
 export default function VerifyCertificatePage() {
   return (

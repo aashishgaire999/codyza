@@ -1,14 +1,11 @@
-import type { Metadata } from "next"
 import { Camera, Code2, Mail } from "lucide-react"
 import { PublicShell } from "@/components/shared/public-shell"
 import { EditorialHero } from "@/components/shared/editorial-hero"
 import { SlackGateButton } from "@/components/landing/slack-gate-button"
 import { SITE_CONFIG, SOCIAL_LINKS } from "@/constants/site"
+import { publicMetadata } from "@/lib/public-metadata"
 
-export const metadata: Metadata = {
-  title: "Contact",
-  description: "Talk to the Codyza crew about partnerships, hiring, or the community.",
-}
+export const metadata = publicMetadata("Contact", "Talk to the Codyza crew about partnerships, hiring, or the community.", "/contact")
 
 export default function ContactPage() {
   return (

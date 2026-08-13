@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Menu, X } from "lucide-react"
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { NAV_LINKS } from "@/constants/site"
@@ -10,6 +10,7 @@ import { CodyzaLogo } from "@/components/shared/codyza-logo"
 
 export function Nav() {
   const pathname = usePathname()
+  const router = useRouter()
   const reduceMotion = useReducedMotion()
   const isActive = (href: string) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`))
   const [menuOpen, setMenuOpen] = useState(false)
@@ -34,6 +35,13 @@ export function Nav() {
       document.removeEventListener("keydown", onKeyDown)
     }
   }, [menuOpen])
+
+  useEffect(() => {
+    const destinations = [...NAV_LINKS.map((link) => link.href), "/login", "/join"]
+    const warmRoutes = () => destinations.forEach((href) => router.prefetch(href))
+    const timer = globalThis.setTimeout(warmRoutes, 250)
+    return () => window.clearTimeout(timer)
+  }, [router])
 
   return (
     <>

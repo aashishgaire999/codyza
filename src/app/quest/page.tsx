@@ -1,15 +1,12 @@
-import type { Metadata } from "next"
 import Link from "next/link"
 import { PublicShell } from "@/components/shared/public-shell"
 import { EditorialHero } from "@/components/shared/editorial-hero"
 import { PublicPageCta } from "@/components/shared/public-page-cta"
 import { FadeInView } from "@/components/effects/fade-in-view"
 import { getSiteContentState } from "@/lib/site-content"
+import { publicMetadata } from "@/lib/public-metadata"
 
-export const metadata: Metadata = {
-  title: "Quest",
-  description: "Inside Codyza Quest—the operating system where the crew tracks progress and ships together.",
-}
+export const metadata = publicMetadata("Quest", "Inside Codyza Quest—the operating system where the crew tracks progress and ships together.", "/quest")
 
 const STAGES = [
   ["Apply", "Tell us what you want to build and why Codyza is the right room."],

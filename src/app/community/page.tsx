@@ -1,4 +1,3 @@
-import type { Metadata } from "next"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase"
 import { PublicShell } from "@/components/shared/public-shell"
@@ -6,11 +5,9 @@ import { EditorialHero } from "@/components/shared/editorial-hero"
 import { PublicPageCta } from "@/components/shared/public-page-cta"
 import { FadeInView } from "@/components/effects/fade-in-view"
 import { getSiteContentState } from "@/lib/site-content"
+import { publicMetadata } from "@/lib/public-metadata"
 
-export const metadata: Metadata = {
-  title: "Community",
-  description: "Meet the Codyza builders learning, collaborating, and shipping in public.",
-}
+export const metadata = publicMetadata("Community", "Meet the Codyza builders learning, collaborating, and shipping in public.", "/community")
 
 export const revalidate = 60
 

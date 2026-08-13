@@ -1,9 +1,9 @@
-import type { Metadata } from "next"
 import Link from "next/link"
 import { PublicShell } from "@/components/shared/public-shell"
 import { EditorialHero } from "@/components/shared/editorial-hero"
+import { publicMetadata } from "@/lib/public-metadata"
 
-export const metadata: Metadata = { title: "Terms", description: "The terms for using Codyza and participating in the community." }
+export const metadata = publicMetadata("Terms", "The terms for using Codyza and participating in the community.", "/legal/terms")
 
 export default function TermsPage() {
   return (

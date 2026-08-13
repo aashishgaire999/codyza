@@ -1,14 +1,11 @@
-import type { Metadata } from "next"
 import Link from "next/link"
 import { PublicShell } from "@/components/shared/public-shell"
 import { EditorialHero } from "@/components/shared/editorial-hero"
 import { PublicPageCta } from "@/components/shared/public-page-cta"
 import { getNewsEntries } from "@/lib/news"
+import { publicMetadata } from "@/lib/public-metadata"
 
-export const metadata: Metadata = {
-  title: "News",
-  description: "Launches, updates, and announcements from the Codyza crew.",
-}
+export const metadata = publicMetadata("News", "Launches, updates, and announcements from the Codyza crew.", "/news")
 
 export default async function NewsPage() {
   const entries = await getNewsEntries()

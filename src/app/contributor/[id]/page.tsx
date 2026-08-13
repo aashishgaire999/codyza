@@ -36,12 +36,13 @@ export default async function ContributorProfile({ params }: Props) {
     .single()
   if (error || !contributor) notFound()
 
-  const { data: submissions } = await supabase
+  const { data: submissions, error: submissionsError } = await supabase
     .from("submissions")
-    .select("project_name, github_url, live_url, description, tech_stack, xp_earned, status, created_at")
+    .select("project_name, github_url, live_url, description, tech_stack, xp_earned, status, submitted_at")
     .eq("codyza_id", id)
     .eq("status", "approved")
-    .order("created_at", { ascending: false })
+    .order("submitted_at", { ascending: false })
+  if (submissionsError) console.error("Unable to load approved contributor projects:", submissionsError.message)
 
   const currentRankIdx = RANK_XP.findIndex(r => r.name === contributor.rank)
   const nextRank = RANK_XP[currentRankIdx + 1]

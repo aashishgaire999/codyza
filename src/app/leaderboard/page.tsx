@@ -1,15 +1,12 @@
-import type { Metadata } from "next"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase"
 import { PublicShell } from "@/components/shared/public-shell"
 import { EditorialHero } from "@/components/shared/editorial-hero"
 import { PublicPageCta } from "@/components/shared/public-page-cta"
 import { FadeInView } from "@/components/effects/fade-in-view"
+import { publicMetadata } from "@/lib/public-metadata"
 
-export const metadata: Metadata = {
-  title: "Leaderboard",
-  description: "The Codyza proof-of-work ranking, ordered by XP earned from approved contributions.",
-}
+export const metadata = publicMetadata("Leaderboard", "The Codyza proof-of-work ranking, ordered by XP earned from approved contributions.", "/leaderboard")
 
 export const revalidate = 60
 

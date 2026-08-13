@@ -89,6 +89,7 @@ export function ApplySection() {
   const [ghError, setGhError] = useState(false)
   const [ghLoading, setGhLoading] = useState(false)
   const [replyByDate, setReplyByDate] = useState<string>("")
+  const [submitError, setSubmitError] = useState("")
   const [skillInput, setSkillInput] = useState("")
   const [emailDomainPicked, setEmailDomainPicked] = useState(false)
   const ghDebounceRef = useRef<NodeJS.Timeout | null>(null)
@@ -181,14 +182,22 @@ export function ApplySection() {
   }
 
   const onSubmit = async (data: FormData) => {
-    // Fire the email in the background - don't block the UI
-    fetch("/api/apply", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    }).catch((e) => console.error("Apply email failed:", e))
-    calcReplyDate()
-    setSubmitted(true)
+    setSubmitError("")
+    try {
+      const response = await fetch("/api/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+      const result = await response.json().catch(() => null)
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.error || "We could not submit your application.")
+      }
+      calcReplyDate()
+      setSubmitted(true)
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "We could not submit your application. Please try again.")
+    }
   }
 
   async function nextStep() {
@@ -400,15 +409,18 @@ export function ApplySection() {
                           Your name and email. We won&apos;t share or sell it.
                         </p>
                         <div className="space-y-3">
-                          <Input placeholder="Your name" autoFocus {...register("name")} />
+                          <label htmlFor="application-name" className="sr-only">Your name</label>
+                          <Input id="application-name" placeholder="Your name" autoFocus autoComplete="name" {...register("name")} />
                           {errors.name && (
                             <p className="text-xs text-red-400">{errors.name.message}</p>
                           )}
                           <div className="relative">
+                            <label htmlFor="application-email" className="sr-only">Email address</label>
                             <Input
+                              id="application-email"
                               type="email"
                               placeholder="you@example.com"
-                              autoComplete="off"
+                              autoComplete="email"
                               {...register("email")}
                             />
                             {showEmailSuggestions && filteredEmailDomains.length > 0 && (
@@ -705,12 +717,17 @@ export function ApplySection() {
                 </AnimatePresence>
 
                 {/* NAV */}
+                {submitError ? (
+                  <div role="alert" className="mt-6 rounded-xl border border-red-500/20 bg-red-500/[0.06] px-4 py-3 text-sm text-red-700">
+                    {submitError} Your answers are still here—please try again.
+                  </div>
+                ) : null}
                 <div className="mt-7 flex items-center justify-between">
                   <button
                     type="button"
                     onClick={backStep}
                     disabled={step === 0}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-black/10 bg-white px-3.5 py-2 text-xs text-black/50 transition-colors hover:text-black disabled:opacity-30"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-black/10 bg-white px-3.5 py-2 text-xs text-black/50 transition-colors hover:text-black disabled:opacity-30"
                   >
                     Back
                   </button>
@@ -718,7 +735,7 @@ export function ApplySection() {
                     <button
                       type="button"
                       onClick={nextStep}
-                      className="group inline-flex items-center gap-1.5 rounded-md bg-black px-5 py-2 text-xs font-medium text-white transition-opacity hover:opacity-90"
+                      className="group inline-flex min-h-11 items-center gap-1.5 rounded-md bg-black px-5 py-2 text-xs font-medium text-white transition-opacity hover:opacity-90"
                     >
                       Next
                     </button>
@@ -726,7 +743,7 @@ export function ApplySection() {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="group inline-flex items-center gap-1.5 rounded-md bg-black px-5 py-2 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                      className="group inline-flex min-h-11 items-center gap-1.5 rounded-md bg-black px-5 py-2 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
                     >
                       {isSubmitting ? (
                         <>
