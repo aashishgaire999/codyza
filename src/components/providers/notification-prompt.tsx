@@ -1,46 +1,38 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { Bell, Check, LockKeyhole, X } from "lucide-react"
 import { CodyzaLogo } from "@/components/shared/codyza-logo"
 
 type PromptState = "invite" | "blocked" | "success"
 
-const sheetSpring = { type: "spring", bounce: 0, duration: 0.38 } as const
+const VISIBLE_TIME = 5000
+const toastSpring = { type: "spring", bounce: 0, duration: 0.38 } as const
 
 export function NotificationPrompt() {
   const reduceMotion = useReducedMotion()
   const [visible, setVisible] = useState(false)
   const [working, setWorking] = useState(false)
   const [state, setState] = useState<PromptState>("invite")
-  const primaryActionRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (!("Notification" in window) || !("serviceWorker" in navigator)) return
     if (Notification.permission === "granted") return
 
-    const timer = window.setTimeout(() => {
+    const showTimer = window.setTimeout(() => {
       setState(Notification.permission === "denied" ? "blocked" : "invite")
       setVisible(true)
     }, 3200)
 
-    return () => window.clearTimeout(timer)
+    return () => window.clearTimeout(showTimer)
   }, [])
 
   useEffect(() => {
-    if (!visible) return
-
-    const focusTimer = window.setTimeout(() => primaryActionRef.current?.focus(), 420)
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setVisible(false)
-    }
-    window.addEventListener("keydown", closeOnEscape)
-    return () => {
-      window.clearTimeout(focusTimer)
-      window.removeEventListener("keydown", closeOnEscape)
-    }
-  }, [visible, state])
+    if (!visible || working) return
+    const hideTimer = window.setTimeout(() => setVisible(false), VISIBLE_TIME)
+    return () => window.clearTimeout(hideTimer)
+  }, [visible, state, working])
 
   const close = () => setVisible(false)
 
@@ -61,140 +53,111 @@ export function NotificationPrompt() {
 
   const isInvite = state === "invite"
   const isSuccess = state === "success"
-  const title = isSuccess ? "You’re all set." : state === "blocked" ? "Notifications are off." : "Don’t miss what’s next."
+  const title = isSuccess ? "Notifications are on" : state === "blocked" ? "Notifications are off" : "Stay in the loop"
   const description = isSuccess
-    ? "Codyza will let you know when something important happens."
+    ? "We’ll only send the Codyza updates that matter."
     : state === "blocked"
-      ? "Allow notifications for Codyza from this site’s browser settings whenever you’re ready."
-      : "Get a quiet heads-up for new bounties, crew updates, launches, and meeting reminders."
-
-  const icon = isSuccess
-    ? <Check className="h-6 w-6" strokeWidth={2.25} />
-    : state === "blocked"
-      ? <LockKeyhole className="h-[1.35rem] w-[1.35rem]" strokeWidth={1.8} />
-      : <Bell className="h-[1.4rem] w-[1.4rem]" strokeWidth={1.8} />
+      ? "You can allow Codyza later from your browser settings."
+      : "New bounties, crew updates, launches, and reminders."
 
   return (
     <AnimatePresence>
       {visible ? (
-        <motion.div
-          className="fixed inset-0 z-[120] flex items-center justify-center overflow-y-auto bg-black/35 px-4 py-8 dark:bg-black/60"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: reduceMotion ? 0.12 : 0.22, ease: "easeOut" }}
-          onPointerDown={(event) => {
-            if (event.target === event.currentTarget) close()
-          }}
+        <motion.aside
+          role="region"
+          aria-live="polite"
+          aria-labelledby="notification-toast-title"
+          aria-describedby="notification-toast-description"
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)+0.85rem)] left-3 right-3 z-[120] overflow-hidden rounded-[1.4rem] border border-white/90 bg-white/[0.92] text-[#111113] shadow-[0_1px_2px_rgba(0,0,0,0.05),0_18px_55px_rgba(0,0,0,0.18)] backdrop-blur-[22px] backdrop-saturate-[180%] sm:bottom-5 sm:left-auto sm:right-5 sm:w-[390px]"
+          initial={reduceMotion ? { opacity: 0 } : { opacity: 0, x: 14, y: 18, scale: 0.975 }}
+          animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+          exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: 10, y: 12, scale: 0.985 }}
+          transition={reduceMotion ? { duration: 0.14 } : toastSpring}
         >
-          <motion.section
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="notification-prompt-title"
-            aria-describedby="notification-prompt-description"
-            className="relative w-full max-w-[390px] overflow-hidden rounded-[1.75rem] border border-white/80 bg-[#f7f7f7]/[0.98] text-[#111113] shadow-[0_2px_8px_rgba(0,0,0,0.08),0_28px_80px_rgba(0,0,0,0.28)] dark:border-white/[0.12] dark:bg-[#1c1c1e]/[0.98] dark:text-[#f5f5f7]"
-            initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.975, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.985, y: 6 }}
-            transition={reduceMotion ? { duration: 0.14 } : sheetSpring}
-          >
+          <div className="flex items-start gap-3.5 px-4 pb-3.5 pt-4">
+            <motion.div
+              key={state}
+              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.9rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_5px_16px_rgba(0,0,0,0.08)] ${isSuccess ? "bg-[#34c759] text-white" : "bg-white/80 text-[#111113] ring-1 ring-black/[0.055]"}`}
+              initial={reduceMotion ? false : { opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={reduceMotion ? { duration: 0 } : toastSpring}
+              aria-hidden="true"
+            >
+              {isSuccess ? (
+                <Check className="h-5 w-5" strokeWidth={2.25} />
+              ) : state === "blocked" ? (
+                <LockKeyhole className="h-[1.15rem] w-[1.15rem]" strokeWidth={1.8} />
+              ) : (
+                <Bell className="h-5 w-5" strokeWidth={1.8} />
+              )}
+            </motion.div>
+
+            <div className="min-w-0 flex-1 pr-7 font-sans">
+              <div className="flex items-center gap-2">
+                <CodyzaLogo size={17} variant="mark" />
+                <p className="text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-black/42">Codyza</p>
+              </div>
+              <h2 id="notification-toast-title" className="mt-1.5 text-[0.98rem] font-semibold leading-tight tracking-[-0.025em]">
+                {title}
+              </h2>
+              <p id="notification-toast-description" className="mt-1 text-[0.8rem] leading-[1.4] tracking-[-0.005em] text-black/52">
+                {description}
+              </p>
+            </div>
+
             <button
               type="button"
               onClick={close}
-              className="absolute right-3.5 top-3.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/[0.055] text-black/45 transition-colors hover:bg-black/[0.09] hover:text-black/75 active:bg-black/[0.13] dark:bg-white/[0.08] dark:text-white/45 dark:hover:bg-white/[0.13] dark:hover:text-white/75"
-              aria-label="Close notification invitation"
+              className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-black/35 transition-colors hover:bg-black/[0.055] hover:text-black/65 active:bg-black/[0.09]"
+              aria-label="Dismiss notification invitation"
             >
               <X className="h-4 w-4" strokeWidth={2} />
             </button>
+          </div>
 
-            <div className="px-7 pb-6 pt-8 sm:px-8 sm:pb-7">
-              <motion.div
-                className={`mx-auto flex h-14 w-14 items-center justify-center rounded-[1.05rem] ${isSuccess ? "bg-[#34c759] text-white" : "bg-[#111113] text-white dark:bg-[#f5f5f7] dark:text-[#111113]"}`}
-                key={state}
-                initial={reduceMotion ? false : { opacity: 0, scale: 0.92 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={reduceMotion ? { duration: 0 } : { ...sheetSpring, delay: 0.04 }}
+          <div className="flex items-center gap-2.5 border-t border-black/[0.055] bg-white/35 px-3 py-2.5">
+            {isInvite ? (
+              <motion.button
+                type="button"
+                onClick={enable}
+                disabled={working}
+                whileTap={reduceMotion ? undefined : { scale: 0.975 }}
+                className="cz-liquid-button flex min-h-10 flex-1 items-center justify-center rounded-[0.85rem] px-4 font-sans text-[0.82rem] font-semibold text-[#111113] outline-none focus-visible:ring-2 focus-visible:ring-black/20 disabled:cursor-wait disabled:opacity-55"
               >
-                {icon}
-              </motion.div>
-
-              <motion.div
-                className="mx-auto mt-5 max-w-[19rem] text-center"
-                initial={reduceMotion ? false : { opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: reduceMotion ? 0 : 0.28, delay: reduceMotion ? 0 : 0.08 }}
+                {working ? "Waiting…" : "Enable notifications"}
+              </motion.button>
+            ) : (
+              <motion.button
+                type="button"
+                onClick={close}
+                whileTap={reduceMotion ? undefined : { scale: 0.975 }}
+                className="cz-liquid-button min-h-10 flex-1 rounded-[0.85rem] px-4 font-sans text-[0.82rem] font-semibold text-[#111113] outline-none focus-visible:ring-2 focus-visible:ring-black/20"
               >
-                <h2
-                  id="notification-prompt-title"
-                  className="font-sans text-[1.42rem] font-semibold leading-[1.15] tracking-[-0.035em]"
-                >
-                  {title}
-                </h2>
-                <p
-                  id="notification-prompt-description"
-                  className="mt-2.5 font-sans text-[0.92rem] font-normal leading-[1.45] tracking-[-0.01em] text-black/55 dark:text-white/55"
-                >
-                  {description}
-                </p>
-              </motion.div>
+                {isSuccess ? "Done" : "Got it"}
+              </motion.button>
+            )}
+            {isInvite ? (
+              <motion.button
+                type="button"
+                onClick={close}
+                whileTap={reduceMotion ? undefined : { scale: 0.975 }}
+                className="min-h-10 rounded-[0.85rem] px-3.5 font-sans text-[0.8rem] font-medium text-black/45 outline-none transition-colors hover:bg-black/[0.04] hover:text-black/70 focus-visible:ring-2 focus-visible:ring-black/20"
+              >
+                Later
+              </motion.button>
+            ) : null}
+          </div>
 
-              {isInvite ? (
-                <motion.div
-                  className="mt-6 flex items-center gap-3 rounded-[1.15rem] border border-black/[0.055] bg-white/75 p-3 shadow-[0_1px_2px_rgba(0,0,0,0.04)] dark:border-white/[0.07] dark:bg-white/[0.055]"
-                  initial={reduceMotion ? false : { opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: reduceMotion ? 0 : 0.28, delay: reduceMotion ? 0 : 0.12 }}
-                >
-                  <CodyzaLogo size={34} variant="mark" />
-                  <div className="min-w-0 flex-1 font-sans">
-                    <div className="flex items-baseline justify-between gap-3">
-                      <p className="text-[0.78rem] font-semibold leading-4">Codyza</p>
-                      <span className="text-[0.68rem] text-black/35 dark:text-white/35">now</span>
-                    </div>
-                    <p className="mt-0.5 truncate text-[0.77rem] leading-4 text-black/60 dark:text-white/58">
-                      A new bounty is ready to build.
-                    </p>
-                  </div>
-                </motion.div>
-              ) : null}
-            </div>
-
-            <div className="border-t border-black/[0.07] bg-white/55 p-3 dark:border-white/[0.08] dark:bg-black/10">
-              {isInvite ? (
-                <div className="grid gap-2">
-                  <motion.button
-                    ref={primaryActionRef}
-                    type="button"
-                    onClick={enable}
-                    disabled={working}
-                    whileTap={reduceMotion ? undefined : { scale: 0.985 }}
-                    className="min-h-12 w-full rounded-[0.95rem] bg-[#111113] px-5 font-sans text-[0.91rem] font-semibold text-white outline-none transition-colors hover:bg-black/80 focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-55 dark:bg-[#f5f5f7] dark:text-[#111113] dark:hover:bg-white/85 dark:focus-visible:ring-white/30 dark:focus-visible:ring-offset-[#1c1c1e]"
-                  >
-                    {working ? "Waiting for your browser…" : "Turn on notifications"}
-                  </motion.button>
-                  <motion.button
-                    type="button"
-                    onClick={close}
-                    whileTap={reduceMotion ? undefined : { scale: 0.985 }}
-                    className="min-h-11 w-full rounded-[0.95rem] font-sans text-[0.9rem] font-medium text-black/48 outline-none transition-colors hover:bg-black/[0.045] hover:text-black/75 focus-visible:ring-2 focus-visible:ring-black/20 dark:text-white/42 dark:hover:bg-white/[0.06] dark:hover:text-white/72 dark:focus-visible:ring-white/25"
-                  >
-                    Maybe later
-                  </motion.button>
-                </div>
-              ) : (
-                <motion.button
-                  ref={primaryActionRef}
-                  type="button"
-                  onClick={close}
-                  whileTap={reduceMotion ? undefined : { scale: 0.985 }}
-                  className="min-h-12 w-full rounded-[0.95rem] bg-[#111113] px-5 font-sans text-[0.91rem] font-semibold text-white outline-none transition-colors hover:bg-black/80 focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2 dark:bg-[#f5f5f7] dark:text-[#111113] dark:hover:bg-white/85 dark:focus-visible:ring-white/30 dark:focus-visible:ring-offset-[#1c1c1e]"
-                >
-                  {isSuccess ? "Done" : "Continue"}
-                </motion.button>
-              )}
-            </div>
-          </motion.section>
-        </motion.div>
+          <div className="h-[3px] bg-black/[0.055]" aria-hidden="true">
+            <motion.div
+              key={`${state}-${visible}-${working}`}
+              className="h-full origin-left rounded-r-full bg-black/35"
+              initial={{ scaleX: 1 }}
+              animate={{ scaleX: working ? 1 : 0 }}
+              transition={{ duration: working ? 0 : VISIBLE_TIME / 1000, ease: "linear" }}
+            />
+          </div>
+        </motion.aside>
       ) : null}
     </AnimatePresence>
   )
