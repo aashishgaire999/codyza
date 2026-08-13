@@ -7,7 +7,7 @@ import { CodyzaLogo } from "@/components/shared/codyza-logo"
 
 type PromptState = "invite" | "blocked" | "success"
 
-const VISIBLE_TIME = 5000
+const VISIBLE_TIME = 10000
 const toastSpring = { type: "spring", bounce: 0, duration: 0.38 } as const
 
 export function NotificationPrompt() {
@@ -53,12 +53,12 @@ export function NotificationPrompt() {
 
   const isInvite = state === "invite"
   const isSuccess = state === "success"
-  const title = isSuccess ? "Notifications are on" : state === "blocked" ? "Notifications are off" : "Stay in the loop"
+  const title = isSuccess ? "Notifications enabled" : state === "blocked" ? "Notifications unavailable" : "Keep up with Codyza"
   const description = isSuccess
-    ? "We’ll only send the Codyza updates that matter."
+    ? "You’ll receive important Codyza updates as they happen."
     : state === "blocked"
-      ? "You can allow Codyza later from your browser settings."
-      : "New bounties, crew updates, launches, and reminders."
+      ? "Notifications are blocked in this browser. You can enable them anytime in site settings."
+      : "Receive timely updates about new bounties, project launches, crew activity, and upcoming meetings."
 
   return (
     <AnimatePresence>
@@ -143,7 +143,7 @@ export function NotificationPrompt() {
                 whileTap={reduceMotion ? undefined : { scale: 0.975 }}
                 className="min-h-10 rounded-[0.85rem] px-3.5 font-sans text-[0.8rem] font-medium text-black/45 outline-none transition-colors hover:bg-black/[0.04] hover:text-black/70 focus-visible:ring-2 focus-visible:ring-black/20"
               >
-                Later
+                Not now
               </motion.button>
             ) : null}
           </div>
