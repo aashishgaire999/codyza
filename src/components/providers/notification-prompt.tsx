@@ -8,13 +8,16 @@ export function NotificationPrompt() {
   const [working, setWorking] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [done, setDone] = useState(false)
+  const [blocked, setBlocked] = useState(false)
 
   useEffect(() => {
     if (!("Notification" in window) || !("serviceWorker" in navigator)) return
-    // A denied permission can only be changed from browser/site settings. Do
-    // not trap visitors in a modal they cannot resolve from the page.
-    if (Notification.permission !== "default") return
+    if (Notification.permission === "granted") return
     const timer = window.setTimeout(() => {
+      if (Notification.permission === "denied") {
+        setBlocked(true)
+        setMessage("Notifications are blocked. Open this site’s browser settings, allow notifications for Codyza, then refresh.")
+      }
       setVisible(true)
     }, 4200)
     return () => window.clearTimeout(timer)
@@ -51,7 +54,7 @@ export function NotificationPrompt() {
               {done ? "Announcements, crew updates, and meeting reminders will find you here." : "Get the moments that matter: new crew, fresh bounties, launches, and meeting reminders."}
             </p>
             {message ? <p className="mt-2 text-xs font-medium text-[#302bfb] dark:text-[#a78bfa]">{message}</p> : null}
-            {!message ? (
+            {!message && !blocked ? (
               <div className="mt-3 flex items-center gap-2">
                 <button type="button" onClick={enable} disabled={working} className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200">
                   {working ? "Enabling…" : "Enable notifications"}
@@ -60,6 +63,7 @@ export function NotificationPrompt() {
               </div>
             ) : null}
             {message ? <button type="button" onClick={() => setVisible(false)} className="mt-3 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/10">Continue exploring</button> : null}
+            {message ? <button type="button" onClick={() => setVisible(false)} className="mt-3 ml-2 rounded-full px-3 py-1.5 text-xs font-medium text-slate-500 transition hover:bg-black/5 hover:text-slate-900 dark:hover:bg-white/10 dark:hover:text-white">Maybe later</button> : null}
           </div>
         </div>
       </div>
