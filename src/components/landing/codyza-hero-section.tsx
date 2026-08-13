@@ -126,7 +126,7 @@ export function CodyzaHeroSection({ content }: { content?: { headline?: string; 
             {content?.copy || "Codyza is the crew for developers, designers, and ambitious builders who want to turn skills into real, shipped work."}
           </p>
           <div className="cz-hero-actions">
-            <Link href={content?.cta_href || "/join"} className="cz-pill cz-pill-solid">
+            <Link href={content?.cta_href || "/join#join-top"} className="cz-pill cz-pill-solid">
               {content?.cta || "join the crew"}
             </Link>
             <Link href="/projects" className="cz-hero-text-link">

@@ -65,7 +65,7 @@ export function Nav() {
             <Link href="/login" className="cz-pill hidden !min-h-10 !px-5 !text-[11px] sm:inline-flex">
               login
             </Link>
-            <Link href="/join" className="cz-pill cz-pill-solid !min-h-11 !px-5 !text-[11px]">
+            <Link href="/join#join-top" className="cz-pill cz-pill-solid !min-h-11 !px-5 !text-[11px]">
               join
             </Link>
             <button
@@ -130,7 +130,7 @@ export function Nav() {
               >
                 login
               </Link>
-              <Link href="/join" onClick={() => setMenuOpen(false)} className="cz-pill cz-pill-solid mt-4 self-start">
+              <Link href="/join#join-top" onClick={() => setMenuOpen(false)} className="cz-pill cz-pill-solid mt-4 self-start">
                 join the crew
               </Link>
             </nav>

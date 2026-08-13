@@ -15,7 +15,7 @@ export default function JoinPage() {
       <ScrollProgress />
       <Nav />
 
-      <section className="cz-join-hero" aria-labelledby="join-title">
+      <section id="join-top" className="cz-join-hero" aria-labelledby="join-title">
         <video className="cz-join-hero-video" src={JOIN_VIDEO} autoPlay loop muted playsInline aria-hidden />
         <div className="cz-join-hero-blur" aria-hidden />
         <div className="cz-join-hero-content">
