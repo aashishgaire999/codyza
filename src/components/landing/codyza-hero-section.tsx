@@ -48,9 +48,14 @@ export function CodyzaHeroSection({ content }: { content?: { headline?: string; 
       video.load()
       void tryPlayVideo()
     }
-    const idle = "requestIdleCallback" in window
-      ? window.requestIdleCallback(attachVideo, { timeout: 350 })
-      : window.setTimeout(attachVideo, 80)
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number
+      cancelIdleCallback?: (handle: number) => void
+    }
+    let idleCallbackId: number | null = null
+    let idleTimerId: ReturnType<typeof setTimeout> | null = null
+    if (idleWindow.requestIdleCallback) idleCallbackId = idleWindow.requestIdleCallback(attachVideo, { timeout: 350 })
+    else idleTimerId = setTimeout(attachVideo, 80)
 
     const resume = () => {
       if (document.visibilityState === "visible") {
@@ -61,8 +66,8 @@ export function CodyzaHeroSection({ content }: { content?: { headline?: string; 
     document.addEventListener("visibilitychange", resume)
     window.addEventListener("pageshow", resume)
     return () => {
-      if ("cancelIdleCallback" in window && typeof idle === "number") window.cancelIdleCallback(idle)
-      else window.clearTimeout(idle)
+      if (idleCallbackId !== null) idleWindow.cancelIdleCallback?.(idleCallbackId)
+      if (idleTimerId !== null) clearTimeout(idleTimerId)
       document.removeEventListener("visibilitychange", resume)
       window.removeEventListener("pageshow", resume)
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
