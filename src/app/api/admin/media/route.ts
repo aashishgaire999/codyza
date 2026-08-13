@@ -21,3 +21,12 @@ export async function POST(request: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ item: data })
 }
+
+export async function PATCH(request: Request) {
+  if (!isAdminRequest(request)) return NextResponse.json({ error: "Admin authorization required" }, { status: 401 })
+  const { id, alt_text } = await request.json() as { id?: string; alt_text?: string }
+  if (!id || typeof alt_text !== "string") return NextResponse.json({ error: "Media id and alt text are required" }, { status: 400 })
+  const { data, error } = await createServiceSupabase().from("media_assets").update({ alt_text }).eq("id", id).select().single()
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ item: data })
+}
