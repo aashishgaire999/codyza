@@ -36,12 +36,33 @@ export function CodyzaHeroSection({ content }: { content?: { headline?: string; 
 
   useEffect(() => {
     if (reduceMotion) return
+    const video = videoRef.current
+    if (!video) return
+
+    // Let the poster and hero text paint first. The remote MP4 is intentionally
+    // attached after the first frame so a slow CDN cannot delay the page's LCP.
+    const attachVideo = () => {
+      const source = video.dataset.src
+      if (!source || video.src) return
+      video.src = source
+      video.load()
+      void tryPlayVideo()
+    }
+    const idle = "requestIdleCallback" in window
+      ? window.requestIdleCallback(attachVideo, { timeout: 350 })
+      : window.setTimeout(attachVideo, 80)
+
     const resume = () => {
-      if (document.visibilityState === "visible") void tryPlayVideo()
+      if (document.visibilityState === "visible") {
+        attachVideo()
+        void tryPlayVideo()
+      }
     }
     document.addEventListener("visibilitychange", resume)
     window.addEventListener("pageshow", resume)
     return () => {
+      if ("cancelIdleCallback" in window && typeof idle === "number") window.cancelIdleCallback(idle)
+      else window.clearTimeout(idle)
       document.removeEventListener("visibilitychange", resume)
       window.removeEventListener("pageshow", resume)
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
@@ -55,12 +76,12 @@ export function CodyzaHeroSection({ content }: { content?: { headline?: string; 
           aria-hidden="true"
           ref={videoRef}
           className="w-full h-full object-cover scale-105 transition-transform duration-1000"
-          src={HERO_VIDEO}
+          data-src={HERO_VIDEO}
           autoPlay
           loop
           muted
           playsInline
-          preload="auto"
+          preload="none"
           poster="/press/codyza-founders-illustrated.jpg"
           onCanPlay={tryPlayVideo}
           onLoadedData={tryPlayVideo}
