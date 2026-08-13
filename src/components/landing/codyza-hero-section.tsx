@@ -87,7 +87,6 @@ export function CodyzaHeroSection({ content }: { content?: { headline?: string; 
           muted
           playsInline
           preload="none"
-          poster="/press/codyza-founders-illustrated.jpg"
           onCanPlay={tryPlayVideo}
           onLoadedData={tryPlayVideo}
           onLoadedMetadata={tryPlayVideo}

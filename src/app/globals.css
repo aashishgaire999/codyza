@@ -368,7 +368,9 @@ html:has(.cz-landing) {
   inset: 4.25rem 0 0;
   z-index: 0;
   overflow: hidden;
-  background: var(--cz-paper);
+  background:
+    radial-gradient(circle at 76% 42%, color-mix(in srgb, var(--cz-accent) 18%, transparent), transparent 34%),
+    linear-gradient(135deg, var(--cz-canvas-alt), var(--cz-canvas));
 }
 
 .cz-hero-media video {
@@ -376,7 +378,7 @@ html:has(.cz-landing) {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  background: var(--cz-paper);
+  background: transparent;
 }
 
 .cz-hero-video-retry {
@@ -418,8 +420,9 @@ html:has(.cz-landing) {
   z-index: -1;
   inset: -3rem -4rem -3rem -3rem;
   pointer-events: none;
-  background: radial-gradient(ellipse at 38% 42%, color-mix(in srgb, var(--cz-paper) 94%, transparent) 0%, color-mix(in srgb, var(--cz-paper) 78%, transparent) 42%, transparent 76%);
-  filter: blur(2px);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--cz-canvas) 94%, transparent) 0%, color-mix(in srgb, var(--cz-canvas) 86%, transparent) 62%, transparent 100%);
+  border-radius: 1.5rem;
+  filter: blur(1px);
 }
 
 .cz-hero-title {
