@@ -58,7 +58,7 @@ export function NotificationPrompt() {
     <AnimatePresence>
       {visible ? (
         <motion.div
-          className="fixed inset-0 z-[120] flex items-center justify-center overflow-y-auto bg-black/25 p-4 backdrop-blur-[10px] dark:bg-black/50"
+          className="fixed inset-0 z-[120] flex items-center justify-center overflow-y-auto bg-black/30 p-4 dark:bg-black/55"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

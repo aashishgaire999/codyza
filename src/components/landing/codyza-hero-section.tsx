@@ -12,30 +12,41 @@ export function CodyzaHeroSection({ content }: { content?: { headline?: string; 
   const videoRef = useRef<HTMLVideoElement>(null)
   const [videoUnavailable, setVideoUnavailable] = useState(false)
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const playPendingRef = useRef(false)
+  const retryCountRef = useRef(0)
+  const lastPlaybackTimeRef = useRef(0)
+  const frozenChecksRef = useRef(0)
 
   const tryPlayVideo = useCallback(async () => {
     const video = videoRef.current
-    if (!video) return
+    if (!video || document.visibilityState !== "visible" || playPendingRef.current) return
 
+    video.muted = true
+    video.defaultMuted = true
+    video.playsInline = true
+
+    // Calling play before Safari has decoded a frame can reject even though
+    // autoplay is allowed. The media events below will try again when ready.
+    if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return
+
+    playPendingRef.current = true
     try {
-      video.muted = true
-      video.defaultMuted = true
-      video.playsInline = true
       await video.play()
+      retryCountRef.current = 0
       setVideoUnavailable(false)
     } catch {
-      // Some desktop browsers pause remote media until the connection is ready.
-      // Keep the poster/fallback visible and let the user opt into playback.
-      setVideoUnavailable(true)
+      retryCountRef.current += 1
+      if (retryCountRef.current >= 4) setVideoUnavailable(true)
+    } finally {
+      playPendingRef.current = false
     }
   }, [])
 
-  const retryPlayback = useCallback(() => {
+  const schedulePlayback = useCallback((delay = 250) => {
     if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
     retryTimerRef.current = setTimeout(() => {
-      const video = videoRef.current
-      if (document.visibilityState === "visible" && video?.paused) void tryPlayVideo()
-    }, 900)
+      void tryPlayVideo()
+    }, delay)
   }, [tryPlayVideo])
 
   useEffect(() => {
@@ -43,25 +54,48 @@ export function CodyzaHeroSection({ content }: { content?: { headline?: string; 
     if (!video) return
 
     const resume = () => {
-      if (document.visibilityState === "visible") void tryPlayVideo()
+      if (document.visibilityState === "visible") schedulePlayback(0)
     }
-    void tryPlayVideo()
+
+    // A small watchdog makes playback independent of unrelated clicks or
+    // overlays. It also recovers from Safari occasionally reporting "playing"
+    // while leaving the decoded frame frozen after a tab/focus transition.
+    const watchdog = window.setInterval(() => {
+      if (document.visibilityState !== "visible") return
+
+      if (video.paused || video.ended) {
+        schedulePlayback(0)
+        return
+      }
+
+      if (Math.abs(video.currentTime - lastPlaybackTimeRef.current) < 0.01) {
+        frozenChecksRef.current += 1
+      } else {
+        frozenChecksRef.current = 0
+        lastPlaybackTimeRef.current = video.currentTime
+      }
+
+      if (frozenChecksRef.current >= 3 && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+        frozenChecksRef.current = 0
+        video.pause()
+        schedulePlayback(0)
+      }
+    }, 1200)
+
+    schedulePlayback(0)
     document.addEventListener("visibilitychange", resume)
-    document.addEventListener("pointerdown", resume, { passive: true })
-    document.addEventListener("touchstart", resume, { passive: true })
     window.addEventListener("pageshow", resume)
     window.addEventListener("focus", resume)
     window.addEventListener("online", resume)
     return () => {
       document.removeEventListener("visibilitychange", resume)
-      document.removeEventListener("pointerdown", resume)
-      document.removeEventListener("touchstart", resume)
       window.removeEventListener("pageshow", resume)
       window.removeEventListener("focus", resume)
       window.removeEventListener("online", resume)
+      window.clearInterval(watchdog)
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
     }
-  }, [tryPlayVideo])
+  }, [schedulePlayback])
 
   return (
     <section className="cz-hero cz-hero--cinematic" aria-labelledby="home-title">
@@ -76,13 +110,21 @@ export function CodyzaHeroSection({ content }: { content?: { headline?: string; 
           muted
           playsInline
           preload="auto"
-          onCanPlay={tryPlayVideo}
-          onLoadedData={tryPlayVideo}
-          onLoadedMetadata={tryPlayVideo}
-          onPlaying={() => setVideoUnavailable(false)}
-          onPause={retryPlayback}
-          onStalled={retryPlayback}
-          onError={() => { setVideoUnavailable(true); retryPlayback() }}
+          onCanPlay={() => schedulePlayback(0)}
+          onLoadedData={() => schedulePlayback(0)}
+          onPlaying={() => {
+            retryCountRef.current = 0
+            lastPlaybackTimeRef.current = videoRef.current?.currentTime ?? 0
+            frozenChecksRef.current = 0
+            setVideoUnavailable(false)
+          }}
+          onPause={() => schedulePlayback()}
+          onWaiting={() => schedulePlayback(500)}
+          onStalled={() => schedulePlayback(500)}
+          onError={() => {
+            setVideoUnavailable(true)
+            schedulePlayback(1000)
+          }}
           disablePictureInPicture
         />
         {videoUnavailable && !reduceMotion ? (
@@ -91,7 +133,8 @@ export function CodyzaHeroSection({ content }: { content?: { headline?: string; 
             className="cz-hero-video-retry"
             onClick={() => {
               setVideoUnavailable(false)
-              void tryPlayVideo()
+              retryCountRef.current = 0
+              schedulePlayback(0)
             }}
             aria-label="Play hero background video"
           >
