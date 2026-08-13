@@ -32,6 +32,12 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
     })()
   }, [router])
 
+  useEffect(() => {
+    // Mobile browsers can preserve an accidental horizontal scroll position
+    // between navigations. The member shell is intentionally viewport-bound.
+    window.scrollTo({ left: 0, top: window.scrollY, behavior: "instant" })
+  }, [pathname])
+
   if (!auth) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -46,7 +52,7 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
         <CosmicBackdrop variant={getCosmicVariant(pathname)} />
         <div className="cosmic-workspace-content">
           <MemberNavbar />
-          <main className="cosmic-main mx-auto max-w-7xl px-4 py-8 sm:px-6 md:px-8 md:py-10">{children}</main>
+          <main className="cosmic-main mx-auto w-full min-w-0 max-w-7xl px-4 py-8 sm:px-6 md:px-8 md:py-10">{children}</main>
         </div>
       </div>
     </SiteShell>
