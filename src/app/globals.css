@@ -368,9 +368,7 @@ html:has(.cz-landing) {
   inset: 4.25rem 0 0;
   z-index: 0;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 76% 42%, color-mix(in srgb, var(--cz-accent) 18%, transparent), transparent 34%),
-    linear-gradient(135deg, var(--cz-canvas-alt), var(--cz-canvas));
+  background: var(--cz-paper);
 }
 
 .cz-hero-media video {
@@ -378,7 +376,7 @@ html:has(.cz-landing) {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  background: transparent;
+  background: var(--cz-paper);
 }
 
 .cz-hero-video-retry {
@@ -408,27 +406,14 @@ html:has(.cz-landing) {
 }
 
 .cz-hero--cinematic .cz-hero-copy {
-  isolation: isolate;
   margin-top: clamp(2.5rem, 8vh, 5.5rem);
-  padding: clamp(1.25rem, 2.5vw, 2.25rem);
   padding-bottom: 4rem;
-}
-
-.cz-hero--cinematic .cz-hero-copy::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: -3rem -4rem -3rem -3rem;
-  pointer-events: none;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--cz-canvas) 94%, transparent) 0%, color-mix(in srgb, var(--cz-canvas) 86%, transparent) 62%, transparent 100%);
-  border-radius: 1.5rem;
-  filter: blur(1px);
 }
 
 .cz-hero-title {
   margin-top: 1.5rem;
   font-family: var(--font-instrument);
-  max-width: 8ch;
+  max-width: 9ch;
   font-size: clamp(3.25rem, 5vw, 5.5rem);
   font-weight: 400;
   line-height: 0.9;
@@ -487,9 +472,7 @@ html:has(.cz-landing) {
 }
 
 @media (max-width: 767px) {
-  .cz-hero--cinematic .cz-hero-copy { padding-inline: 0.5rem; }
-  .cz-hero--cinematic .cz-hero-copy::before { inset: -1.5rem -2rem; }
-  .cz-hero-title { max-width: 7ch; font-size: clamp(3.4rem, 15vw, 5rem); }
+  .cz-hero-title { max-width: 8ch; font-size: clamp(3.4rem, 15vw, 5rem); }
   .cz-hero--cinematic .cz-hero-copy { margin-top: 1.5rem; }
 }
 
