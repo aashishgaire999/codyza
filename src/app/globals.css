@@ -1428,10 +1428,10 @@ html:has(.cz-landing) {
   align-items: center;
   gap: clamp(1.75rem, 4vw, 4rem);
   animation: cz-press-slide 26s linear infinite;
+  will-change: transform;
 }
 
-.cz-press-window:hover .cz-press-track,
-.cz-press-window:focus-within .cz-press-track {
+.cz-press-window:hover .cz-press-track {
   animation-play-state: paused;
 }
 
@@ -1866,6 +1866,7 @@ html:has(.cz-landing) {
   .cz-press-label { width: 3.75rem; line-height: 1.4; }
   .cz-press-logo { width: 4.5rem; }
   .cz-press-item { font-size: 10px; }
+  .cz-press-track { animation-duration: 20s; }
   .cz-story-photo figcaption { align-items: flex-start; flex-direction: column; gap: 0.2rem; }
 }
 
