@@ -10,11 +10,10 @@ export function NotificationPrompt() {
 
   useEffect(() => {
     if (!("Notification" in window) || !("serviceWorker" in navigator)) return
-    if (Notification.permission === "granted") return
+    // A denied permission can only be changed from browser/site settings. Do
+    // not trap visitors in a modal they cannot resolve from the page.
+    if (Notification.permission !== "default") return
     const timer = window.setTimeout(() => {
-      if (Notification.permission === "denied") {
-        setMessage("Notifications are blocked. Open this site’s browser settings, allow notifications for Codyza, then refresh.")
-      }
       setVisible(true)
     }, 4200)
     return () => window.clearTimeout(timer)
@@ -31,7 +30,7 @@ export function NotificationPrompt() {
         setMessage("You’re in — Codyza will keep you posted.")
         window.setTimeout(() => setVisible(false), 2200)
       } else {
-        setMessage("Notifications are blocked. Open your browser’s site settings and allow notifications for Codyza, then try again.")
+        setVisible(false)
       }
     } finally {
       setWorking(false)
@@ -39,7 +38,7 @@ export function NotificationPrompt() {
   }
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/35 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/20 p-4">
       <div role="dialog" aria-modal="true" aria-labelledby="notification-prompt-title" className="w-full max-w-md rounded-2xl border border-black/10 bg-white/95 p-5 shadow-[0_24px_90px_rgba(15,23,42,0.3)] backdrop-blur-xl dark:border-white/10 dark:bg-[#11111a]/95">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#302bfb]/10 text-[#302bfb] dark:bg-[#8b5cf6]/15 dark:text-[#a78bfa]">
@@ -51,10 +50,10 @@ export function NotificationPrompt() {
               Get Codyza announcements, meeting reminders, and crew updates.
             </p>
             {message ? <p className="mt-2 text-xs font-medium text-[#302bfb] dark:text-[#a78bfa]">{message}</p> : null}
-            {!message || Notification.permission === "default" ? (
+            {!message ? (
               <div className="mt-3 flex items-center gap-2">
                 <button type="button" onClick={enable} disabled={working} className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200">
-                  {working ? "Enabling…" : message ? "Try again" : "Enable notifications"}
+                  {working ? "Enabling…" : "Enable notifications"}
                 </button>
               </div>
             ) : null}
