@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { motion, useReducedMotion } from "framer-motion"
 
 const HERO_VIDEO =
@@ -11,6 +11,7 @@ export function CodyzaHeroSection({ content }: { content?: { headline?: string; 
   const reduceMotion = useReducedMotion()
   const videoRef = useRef<HTMLVideoElement>(null)
   const [videoUnavailable, setVideoUnavailable] = useState(false)
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const tryPlayVideo = useCallback(async () => {
     const video = videoRef.current
@@ -18,6 +19,7 @@ export function CodyzaHeroSection({ content }: { content?: { headline?: string; 
 
     try {
       video.muted = true
+      if (video.readyState < HTMLMediaElement.HAVE_METADATA) video.load()
       await video.play()
       setVideoUnavailable(false)
     } catch {
@@ -26,6 +28,25 @@ export function CodyzaHeroSection({ content }: { content?: { headline?: string; 
       setVideoUnavailable(true)
     }
   }, [reduceMotion])
+
+  const retryAfterBuffering = useCallback(() => {
+    if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
+    retryTimerRef.current = setTimeout(() => void tryPlayVideo(), 1200)
+  }, [tryPlayVideo])
+
+  useEffect(() => {
+    if (reduceMotion) return
+    const resume = () => {
+      if (document.visibilityState === "visible") void tryPlayVideo()
+    }
+    document.addEventListener("visibilitychange", resume)
+    window.addEventListener("pageshow", resume)
+    return () => {
+      document.removeEventListener("visibilitychange", resume)
+      window.removeEventListener("pageshow", resume)
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
+    }
+  }, [reduceMotion, tryPlayVideo])
 
   return (
     <section className="cz-hero cz-hero--cinematic" aria-labelledby="home-title">
@@ -40,9 +61,15 @@ export function CodyzaHeroSection({ content }: { content?: { headline?: string; 
           muted
           playsInline
           preload="auto"
+          poster="/press/codyza-founders-illustrated.jpg"
           onCanPlay={tryPlayVideo}
+          onLoadedData={tryPlayVideo}
           onLoadedMetadata={tryPlayVideo}
-          onError={() => setVideoUnavailable(true)}
+          onPlaying={() => setVideoUnavailable(false)}
+          onWaiting={retryAfterBuffering}
+          onStalled={retryAfterBuffering}
+          onSuspend={retryAfterBuffering}
+          onError={() => { setVideoUnavailable(true); retryAfterBuffering() }}
           disablePictureInPicture
         />
         {videoUnavailable && !reduceMotion ? (
