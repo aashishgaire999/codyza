@@ -402,7 +402,7 @@ html:has(.cz-landing) {
 .cz-hero-copy {
   position: relative;
   z-index: 1;
-  max-width: min(38rem, 100%);
+  max-width: min(32rem, 100%);
 }
 
 .cz-hero--cinematic .cz-hero-copy {
@@ -413,7 +413,8 @@ html:has(.cz-landing) {
 .cz-hero-title {
   margin-top: 1.5rem;
   font-family: var(--font-instrument);
-  font-size: clamp(3.75rem, 7.6vw, 7rem);
+  max-width: 9ch;
+  font-size: clamp(3.25rem, 5vw, 5.5rem);
   font-weight: 400;
   line-height: 0.9;
   letter-spacing: -0.045em;
@@ -471,7 +472,7 @@ html:has(.cz-landing) {
 }
 
 @media (max-width: 767px) {
-  .cz-hero-title { font-size: clamp(4.1rem, 21vw, 6.25rem); }
+  .cz-hero-title { max-width: 8ch; font-size: clamp(3.4rem, 15vw, 5rem); }
   .cz-hero--cinematic .cz-hero-copy { margin-top: 1.5rem; }
 }
 
