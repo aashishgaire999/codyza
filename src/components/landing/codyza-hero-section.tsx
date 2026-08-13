@@ -15,11 +15,12 @@ export function CodyzaHeroSection({ content }: { content?: { headline?: string; 
 
   const tryPlayVideo = useCallback(async () => {
     const video = videoRef.current
-    if (!video || reduceMotion) return
+    if (!video) return
 
     try {
       video.muted = true
-      if (video.readyState < HTMLMediaElement.HAVE_METADATA) video.load()
+      video.defaultMuted = true
+      video.playsInline = true
       await video.play()
       setVideoUnavailable(false)
     } catch {
@@ -27,52 +28,40 @@ export function CodyzaHeroSection({ content }: { content?: { headline?: string; 
       // Keep the poster/fallback visible and let the user opt into playback.
       setVideoUnavailable(true)
     }
-  }, [reduceMotion])
+  }, [])
 
-  const retryAfterBuffering = useCallback(() => {
+  const retryPlayback = useCallback(() => {
     if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
-    retryTimerRef.current = setTimeout(() => void tryPlayVideo(), 1200)
+    retryTimerRef.current = setTimeout(() => {
+      const video = videoRef.current
+      if (document.visibilityState === "visible" && video?.paused) void tryPlayVideo()
+    }, 900)
   }, [tryPlayVideo])
 
   useEffect(() => {
-    if (reduceMotion) return
     const video = videoRef.current
     if (!video) return
 
-    // Let the poster and hero text paint first. The remote MP4 is intentionally
-    // attached after the first frame so a slow CDN cannot delay the page's LCP.
-    const attachVideo = () => {
-      const source = video.dataset.src
-      if (!source || video.src) return
-      video.src = source
-      video.load()
-      void tryPlayVideo()
-    }
-    const idleWindow = window as Window & {
-      requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number
-      cancelIdleCallback?: (handle: number) => void
-    }
-    let idleCallbackId: number | null = null
-    let idleTimerId: ReturnType<typeof setTimeout> | null = null
-    if (idleWindow.requestIdleCallback) idleCallbackId = idleWindow.requestIdleCallback(attachVideo, { timeout: 350 })
-    else idleTimerId = setTimeout(attachVideo, 80)
-
     const resume = () => {
-      if (document.visibilityState === "visible") {
-        attachVideo()
-        void tryPlayVideo()
-      }
+      if (document.visibilityState === "visible") void tryPlayVideo()
     }
+    void tryPlayVideo()
     document.addEventListener("visibilitychange", resume)
+    document.addEventListener("pointerdown", resume, { passive: true })
+    document.addEventListener("touchstart", resume, { passive: true })
     window.addEventListener("pageshow", resume)
+    window.addEventListener("focus", resume)
+    window.addEventListener("online", resume)
     return () => {
-      if (idleCallbackId !== null) idleWindow.cancelIdleCallback?.(idleCallbackId)
-      if (idleTimerId !== null) clearTimeout(idleTimerId)
       document.removeEventListener("visibilitychange", resume)
+      document.removeEventListener("pointerdown", resume)
+      document.removeEventListener("touchstart", resume)
       window.removeEventListener("pageshow", resume)
+      window.removeEventListener("focus", resume)
+      window.removeEventListener("online", resume)
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
     }
-  }, [reduceMotion, tryPlayVideo])
+  }, [tryPlayVideo])
 
   return (
     <section className="cz-hero cz-hero--cinematic" aria-labelledby="home-title">
@@ -81,20 +70,19 @@ export function CodyzaHeroSection({ content }: { content?: { headline?: string; 
           aria-hidden="true"
           ref={videoRef}
           className="w-full h-full object-cover scale-105 transition-transform duration-1000"
-          data-src={HERO_VIDEO}
+          src={HERO_VIDEO}
           autoPlay
           loop
           muted
           playsInline
-          preload="none"
+          preload="auto"
           onCanPlay={tryPlayVideo}
           onLoadedData={tryPlayVideo}
           onLoadedMetadata={tryPlayVideo}
           onPlaying={() => setVideoUnavailable(false)}
-          onWaiting={retryAfterBuffering}
-          onStalled={retryAfterBuffering}
-          onSuspend={retryAfterBuffering}
-          onError={() => { setVideoUnavailable(true); retryAfterBuffering() }}
+          onPause={retryPlayback}
+          onStalled={retryPlayback}
+          onError={() => { setVideoUnavailable(true); retryPlayback() }}
           disablePictureInPicture
         />
         {videoUnavailable && !reduceMotion ? (
