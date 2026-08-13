@@ -3,6 +3,7 @@ import { inter, jetbrainsMono, instrumentSerif } from "@/lib/fonts"
 import { SITE_CONFIG } from "@/constants/site"
 import { ThemeProvider } from "@/components/providers/theme-provider"
 import { PwaProvider } from "@/components/providers/pwa-provider"
+import { NotificationPrompt } from "@/components/providers/notification-prompt"
 import { cn } from "@/lib/utils"
 import "./globals.css"
 
@@ -94,6 +95,7 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <PwaProvider />
+          <NotificationPrompt />
           {children}
         </ThemeProvider>
       </body>

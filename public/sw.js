@@ -27,6 +27,30 @@ self.addEventListener("message", (event) => {
   if (event.data?.type === "SKIP_WAITING") self.skipWaiting()
 })
 
+self.addEventListener("push", (event) => {
+  if (!event.data) return
+  let payload = {}
+  try { payload = event.data.json() } catch { payload = { body: event.data.text() } }
+  const title = payload.title || "Codyza"
+  const options = {
+    body: payload.body || "There’s something new from the Codyza crew.",
+    icon: payload.icon || "/icons/icon-192.png",
+    badge: payload.badge || "/icons/icon-192.png",
+    data: { url: payload.url || "/member" },
+  }
+  event.waitUntil(self.registration.showNotification(title, options))
+})
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close()
+  const target = new URL(event.notification.data?.url || "/member", self.location.origin).href
+  event.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
+    const existing = windows.find((window) => window.url.startsWith(self.location.origin))
+    if (existing) return existing.focus().then(() => existing.navigate(target))
+    return clients.openWindow(target)
+  }))
+})
+
 self.addEventListener("fetch", (event) => {
   const { request } = event
   if (request.method !== "GET") return
