@@ -4,6 +4,7 @@ import { GitBranch, Globe } from "lucide-react"
 import { createClient } from "@/lib/supabase"
 import { PublicShell } from "@/components/shared/public-shell"
 import { FadeInView } from "@/components/effects/fade-in-view"
+import { getSiteContentState } from "@/lib/site-content"
 
 export const metadata: Metadata = {
   title: "Projects",
@@ -35,6 +36,8 @@ async function getProjects(): Promise<ProjectRecord[]> {
 }
 
 export default async function ProjectsPage({ searchParams }: { searchParams: Promise<{ tech?: string }> }) {
+  const intro = await getSiteContentState<{ title: string; headline: string; description: string; copy: string }>("projects", "intro")
+  if (!intro.published) return null
   const projects = await getProjects()
   const { tech } = await searchParams
   const selectedTech = tech?.trim() || ""
@@ -50,10 +53,10 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           <FadeInView variant="subtle"><p className="cz-micro">public record / projects</p></FadeInView>
           <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_0.45fr] lg:items-end">
             <FadeInView variant="headline" delay={60}>
-              <h1 className="cz-display max-w-4xl">work is the résumé.</h1>
+              <h1 className="cz-display max-w-4xl">{intro.content.title || intro.content.headline || "work is the résumé."}</h1>
             </FadeInView>
             <FadeInView variant="subtle" delay={150}>
-              <p className="cz-body max-w-md">Every approved launch records what was built, who owned it, and where the work lives.</p>
+              <p className="cz-body max-w-md">{intro.content.description || intro.content.copy || "Every approved launch records what was built, who owned it, and where the work lives."}</p>
             </FadeInView>
           </div>
         </div>

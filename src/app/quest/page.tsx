@@ -4,6 +4,7 @@ import { PublicShell } from "@/components/shared/public-shell"
 import { EditorialHero } from "@/components/shared/editorial-hero"
 import { PublicPageCta } from "@/components/shared/public-page-cta"
 import { FadeInView } from "@/components/effects/fade-in-view"
+import { getSiteContentState } from "@/lib/site-content"
 
 export const metadata: Metadata = {
   title: "Quest",
@@ -21,13 +22,15 @@ const STAGES = [
   ["Certificates", "Verified milestones can become public credentials for employers and schools."],
 ] as const
 
-export default function QuestPage() {
+export default async function QuestPage() {
+  const intro = await getSiteContentState<{ title: string; headline: string; description: string; copy: string }>("quest", "intro")
+  if (!intro.published) return null
   return (
     <PublicShell>
       <EditorialHero
         num="quest / inside the operating system"
-        title={<>the public site tells the story. <span className="cz-headline-muted">quest runs the work.</span></>}
-        description="A private workspace for accepted Codyza builders—built around ownership, progress, and proof."
+        title={intro.content.title || intro.content.headline || <>the public site tells the story. <span className="cz-headline-muted">quest runs the work.</span></>}
+        description={intro.content.description || intro.content.copy || "A private workspace for accepted Codyza builders—built around ownership, progress, and proof."}
       />
 
       <section className="cz-section cz-border-t px-5 sm:px-8 lg:px-10">

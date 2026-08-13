@@ -10,8 +10,10 @@ import { Projects } from "@/components/landing/projects"
 import { Team } from "@/components/landing/team"
 import { ApplyCta } from "@/components/landing/apply-cta"
 import { Footer } from "@/components/landing/footer"
+import { getSiteContentState } from "@/lib/site-content"
 
-export default function HomePage() {
+export default async function HomePage() {
+  const heroState = await getSiteContentState<{ headline: string; copy: string; cta: string; cta_href: string }>("home", "hero")
   return (
     <SmoothScroll>
       <main className="cz-landing min-h-screen overflow-x-clip">
@@ -27,7 +29,7 @@ export default function HomePage() {
         <HomeAuthRedirect />
         <ScrollProgress />
         <Nav />
-        <CodyzaHeroSection />
+        {heroState.published ? <CodyzaHeroSection content={heroState.content} /> : null}
         <PressRibbon />
         <About />
         <Projects />

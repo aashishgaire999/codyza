@@ -5,6 +5,7 @@ import { PublicShell } from "@/components/shared/public-shell"
 import { EditorialHero } from "@/components/shared/editorial-hero"
 import { PublicPageCta } from "@/components/shared/public-page-cta"
 import { FadeInView } from "@/components/effects/fade-in-view"
+import { getSiteContentState } from "@/lib/site-content"
 
 export const metadata: Metadata = {
   title: "Community",
@@ -44,14 +45,16 @@ function initials(name: string) {
 }
 
 export default async function CommunityPage() {
+  const intro = await getSiteContentState<{ title: string; headline: string; description: string; copy: string }>("community", "intro")
+  if (!intro.published) return null
   const { contributors, totalXp, activeStreaks } = await getCommunity()
 
   return (
     <PublicShell>
       <EditorialHero
         num="community / the people"
-        title={<>different skills. <span className="cz-headline-muted">one shared ambition.</span></>}
-        description="Codyza is made of named people doing visible work—not an anonymous member count."
+        title={intro.content.title || intro.content.headline || <>different skills. <span className="cz-headline-muted">one shared ambition.</span></>}
+        description={intro.content.description || intro.content.copy || "Codyza is made of named people doing visible work—not an anonymous member count."}
       />
 
       <section className="cz-border-t px-5 py-12 sm:px-8 lg:px-10">

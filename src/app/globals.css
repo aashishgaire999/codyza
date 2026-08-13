@@ -368,7 +368,36 @@ html:has(.cz-landing) {
   inset: 4.25rem 0 0;
   z-index: 0;
   overflow: hidden;
+  background: var(--cz-paper);
 }
+
+.cz-hero-media video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: var(--cz-paper);
+}
+
+.cz-hero-video-retry {
+  position: absolute;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 2;
+  min-height: 2.5rem;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--cz-ink) 18%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cz-paper) 86%, transparent);
+  color: var(--cz-ink);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  backdrop-filter: blur(12px);
+}
+
+.cz-hero-video-retry:hover { background: var(--cz-paper); }
 
 .cz-hero-copy {
   position: relative;

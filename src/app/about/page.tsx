@@ -7,6 +7,7 @@ import { SmoothScroll } from "@/components/providers/smooth-scroll"
 import { FadeInView } from "@/components/effects/fade-in-view"
 import { MANIFESTO_COPY, CREW_PILLARS, APPLY_ROADMAP } from "@/constants/landing"
 import { FOUNDING_TEAM, LEADERSHIP_TEAM } from "@/constants/team"
+import { getSiteContentState } from "@/lib/site-content"
 
 export const metadata: Metadata = {
   title: "About",
@@ -15,7 +16,11 @@ export const metadata: Metadata = {
 
 const LEADERSHIP = [...FOUNDING_TEAM, ...LEADERSHIP_TEAM]
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const intro = await getSiteContentState<{ label: string; title: string; headline: string; description: string; copy: string }>("about", "intro")
+  if (!intro.published) return null
+  const introTitle = intro.content.title || intro.content.headline
+  const introDescription = intro.content.description || intro.content.copy
   return (
     <SmoothScroll>
       <main className="cz-landing min-h-screen overflow-x-clip">
@@ -25,17 +30,15 @@ export default function AboutPage() {
         <section className="cz-border-t px-5 pb-14 pt-20 sm:px-8 md:pt-24 lg:px-10">
           <div className="mx-auto max-w-[1320px]">
             <FadeInView variant="subtle">
-              <p className="cz-micro mb-10">about / why codyza exists</p>
+              <p className="cz-micro mb-10">{intro.content.label || "about / why codyza exists"}</p>
             </FadeInView>
             <FadeInView variant="headline" delay={80}>
               <h1 className="cz-display max-w-4xl">
-                you don&apos;t need another course.
-                <br />
-                <span className="cz-headline-muted">you need a crew.</span>
+                {introTitle || <>you don&apos;t need another course.<br /><span className="cz-headline-muted">you need a crew.</span></>}
               </h1>
             </FadeInView>
             <FadeInView variant="subtle" delay={200}>
-              <p className="cz-body mt-9 max-w-xl">{MANIFESTO_COPY}</p>
+              <p className="cz-body mt-9 max-w-xl">{introDescription || MANIFESTO_COPY}</p>
             </FadeInView>
 
             <div className="mt-16 grid gap-6 sm:grid-cols-3">
