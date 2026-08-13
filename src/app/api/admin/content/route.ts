@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createServiceSupabase, isAdminRequest } from "@/lib/admin-auth"
+import { notifyAllMembers } from "@/lib/member-notifications"
 
 const TABLES = {
   content: "site_content",
@@ -51,6 +52,13 @@ export async function POST(request: Request) {
     : service.from(table).upsert(payload).select().single()
   const { data, error } = await query
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (entity === "news" && record.status === "published") {
+    await notifyAllMembers({ type: "news", message: `New on Codyza: ${String(record.title || "a new story")}`, link: `/news/${payload.slug}` })
+  } else if (entity === "announcements" && record.published === true) {
+    await notifyAllMembers({ type: "announcement", message: String(record.title || "A new Codyza announcement is live."), link: "/member" })
+  } else if (entity === "content" && record.published !== false) {
+    await notifyAllMembers({ type: "site_update", message: `Codyza was updated: ${String(record.page_key)} / ${String(record.section_key)}`, link: "/member" })
+  }
   return NextResponse.json({ item: data })
 }
 

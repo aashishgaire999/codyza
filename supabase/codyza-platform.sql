@@ -64,6 +64,18 @@ create table if not exists announcements (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists notifications (
+  id uuid primary key default gen_random_uuid(),
+  codyza_id text not null references contributors(codyza_id) on delete cascade,
+  type text not null default 'general',
+  message text not null,
+  link text not null default '/member',
+  read boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists notifications_member_created_idx on notifications(codyza_id, created_at desc);
+
 create table if not exists work_sessions (
   id uuid primary key default gen_random_uuid(),
   contributor_id uuid not null references contributors(id) on delete cascade,
@@ -101,6 +113,7 @@ alter table media_assets enable row level security;
 alter table news_posts enable row level security;
 alter table news_comments enable row level security;
 alter table announcements enable row level security;
+alter table notifications enable row level security;
 alter table work_sessions enable row level security;
 
 drop policy if exists "public reads published site content" on site_content;
@@ -113,6 +126,10 @@ drop policy if exists "public reads published comments" on news_comments;
 create policy "public reads published comments" on news_comments for select using (status = 'published');
 drop policy if exists "members read announcements" on announcements;
 create policy "members read announcements" on announcements for select to authenticated using (published = true);
+drop policy if exists "members read own notifications" on notifications;
+create policy "members read own notifications" on notifications for select to authenticated using (
+  exists (select 1 from contributors c where c.codyza_id = notifications.codyza_id and c.email = auth.jwt() ->> 'email')
+);
 drop policy if exists "members read own sessions" on work_sessions;
 create policy "members read own sessions" on work_sessions for select to authenticated using (
   exists (select 1 from contributors c where c.id = work_sessions.contributor_id and c.email = auth.jwt() ->> 'email')

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
+import { notifyAllMembers } from "@/lib/member-notifications"
 
 export async function POST(req: Request) {
   try {
@@ -137,12 +138,14 @@ export async function POST(req: Request) {
           console.error("Onboarding retry failed:", retryError)
           return NextResponse.json({ error: "Failed to create profile. Please try again." }, { status: 500 })
         }
+        await notifyAllMembers({ type: "new_member", message: `${name.trim()} just joined the Codyza crew.`, link: "/community", excludeCodyzaId: retryId })
         return NextResponse.json({ codyza_id: retryId })
       }
       console.error("Onboarding insert error:", insertError)
       return NextResponse.json({ error: "Failed to create profile. Please try again." }, { status: 500 })
     }
 
+    await notifyAllMembers({ type: "new_member", message: `${name.trim()} just joined the Codyza crew.`, link: "/community", excludeCodyzaId: newCodyzaId })
     return NextResponse.json({ codyza_id: newCodyzaId })
   } catch (error) {
     console.error("Onboarding error:", error)

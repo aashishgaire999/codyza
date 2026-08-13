@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createServiceSupabase, isAdminRequest } from "@/lib/admin-auth"
 import { getRequestMember } from "@/lib/member-auth"
+import { notifyAllMembers } from "@/lib/member-notifications"
 
 // GET all bounties
 export async function GET(req: Request) {
@@ -57,20 +58,7 @@ export async function POST(req: Request) {
 
     if (bountyErr) return NextResponse.json({ error: bountyErr.message }, { status: 500 })
 
-    // Notify all contributors
-    const { data: allContribs } = await supabase
-      .from("contributors")
-      .select("codyza_id")
-
-    if (allContribs?.length) {
-      const notifications = allContribs.map((c: any) => ({
-        codyza_id: c.codyza_id,
-        message: `New bounty: "${title}" — +${xp_reward || 100} XP`,
-        type: "bounty",
-        link: "/member/bounties",
-      }))
-      await supabase.from("notifications").insert(notifications)
-    }
+    await notifyAllMembers({ type: "bounty", message: `New bounty: "${title}" — +${xp_reward || 100} XP`, link: "/member/bounties" })
 
     return NextResponse.json({ success: true, bounty })
   } catch {
