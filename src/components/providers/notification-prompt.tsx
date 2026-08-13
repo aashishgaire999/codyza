@@ -12,7 +12,6 @@ export function NotificationPrompt() {
   const [message, setMessage] = useState<string | null>(null)
 
   useEffect(() => {
-    if (process.env.NODE_ENV !== "production") return
     if (!("Notification" in window) || !("serviceWorker" in navigator)) return
     if (Notification.permission !== "default") return
     const dismissed = Number(window.localStorage.getItem(DISMISS_KEY) || 0)
