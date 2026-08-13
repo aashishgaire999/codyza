@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { JOIN_HREF } from "@/constants/site"
 import { createClient } from "@/lib/supabase"
 import { PublicShell } from "@/components/shared/public-shell"
 import { EditorialHero } from "@/components/shared/editorial-hero"
@@ -72,7 +73,7 @@ export default async function CommunityPage() {
           {contributors.length === 0 ? (
             <div className="cz-project-empty mt-14">
               <div><p className="cz-micro">the first names are coming</p><p className="cz-project-empty-title">The directory is waiting for its opening crew.</p></div>
-              <div><p className="cz-body">When contributor profiles are public, they will appear here with their rank, streak, and work.</p><Link href="/join" className="cz-inline-link mt-6">put your name on the work</Link></div>
+              <div><p className="cz-body">When contributor profiles are public, they will appear here with their rank, streak, and work.</p><Link href={JOIN_HREF} className="cz-inline-link mt-6">put your name on the work</Link></div>
             </div>
           ) : (
             <ul className="cz-people-grid mt-14">

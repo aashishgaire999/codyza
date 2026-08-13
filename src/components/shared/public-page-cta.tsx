@@ -1,11 +1,12 @@
 import Link from "next/link"
 import { FadeInView } from "@/components/effects/fade-in-view"
+import { JOIN_HREF } from "@/constants/site"
 
 export function PublicPageCta({
   eyebrow = "join codyza",
   title,
   copy,
-  href = "/join",
+  href = JOIN_HREF,
   label = "join the crew",
 }: {
   eyebrow?: string

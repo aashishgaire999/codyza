@@ -13,6 +13,11 @@ export const SITE_CONFIG = {
   reviewCycle: "48 hours",
 } as const
 
+// Public invitations always open the application story first. The form is a
+// separate, deliberate step reached from the hero's "start your application"
+// control.
+export const JOIN_HREF = "/join#join-top" as const
+
 export const BRAND_COLORS = {
   background: "#050508",
   purple: "#8b5cf6",

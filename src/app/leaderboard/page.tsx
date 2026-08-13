@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { JOIN_HREF } from "@/constants/site"
 import { createClient } from "@/lib/supabase"
 import { PublicShell } from "@/components/shared/public-shell"
 import { EditorialHero } from "@/components/shared/editorial-hero"
@@ -55,7 +56,7 @@ export default async function LeaderboardPage() {
       <section className="cz-section cz-border-t px-5 sm:px-8 lg:px-10">
         <div className="mx-auto max-w-[1320px]">
           {contributors.length === 0 ? (
-            <div className="cz-project-empty"><div><p className="cz-micro">open board</p><p className="cz-project-empty-title">No public XP has been recorded yet.</p></div><div><p className="cz-body">The first approved contribution sets the pace.</p><Link href="/join" className="cz-inline-link mt-6">earn the first line</Link></div></div>
+            <div className="cz-project-empty"><div><p className="cz-micro">open board</p><p className="cz-project-empty-title">No public XP has been recorded yet.</p></div><div><p className="cz-body">The first approved contribution sets the pace.</p><Link href={JOIN_HREF} className="cz-inline-link mt-6">earn the first line</Link></div></div>
           ) : (
             <ol className="cz-ranking-list">
               {contributors.map((contributor, index) => (

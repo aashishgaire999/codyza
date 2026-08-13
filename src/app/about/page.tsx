@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { JOIN_HREF } from "@/constants/site"
 import { ScrollProgress } from "@/components/landing/scroll-progress"
 import { Nav } from "@/components/landing/nav"
 import { Footer } from "@/components/landing/footer"
@@ -103,7 +104,7 @@ export default async function AboutPage() {
           <div className="mx-auto max-w-[1320px] text-center">
             <FadeInView variant="subtle">
               <p className="cz-body mb-8 text-[15px]">ready to build with us?</p>
-              <Link href="/join" className="cz-pill cz-pill-solid !min-h-11 !px-7 !text-[12px]">
+              <Link href={JOIN_HREF} className="cz-pill cz-pill-solid !min-h-11 !px-7 !text-[12px]">
                 apply to join
               </Link>
             </FadeInView>

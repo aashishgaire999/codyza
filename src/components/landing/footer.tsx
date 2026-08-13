@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase"
-import { SITE_CONFIG, SOCIAL_LINKS } from "@/constants/site"
+import { JOIN_HREF, SITE_CONFIG, SOCIAL_LINKS } from "@/constants/site"
 import { FadeInView } from "@/components/effects/fade-in-view"
 
 interface ActivityEvent {
@@ -130,7 +130,7 @@ export function Footer() {
       links: [
         { label: "about", href: "/about" },
         { label: "quest", href: "/quest" },
-        { label: "join", href: "/join" },
+        { label: "join", href: JOIN_HREF },
         { label: "contact", href: "/contact" },
       ],
     },
@@ -156,7 +156,7 @@ export function Footer() {
                   Real people, building useful software together.
                 </p>
               </div>
-              <Link href="/join" className="cz-footer-join mt-7 w-fit">
+              <Link href={JOIN_HREF} className="cz-footer-join mt-7 w-fit">
                 join the crew
               </Link>
             </div>

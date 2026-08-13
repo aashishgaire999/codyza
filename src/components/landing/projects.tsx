@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import { JOIN_HREF } from "@/constants/site"
 import { Globe } from "lucide-react"
 import { createClient } from "@/lib/supabase"
 import { FadeInView } from "@/components/effects/fade-in-view"
@@ -125,7 +126,7 @@ export function Projects() {
               </div>
               <div className="cz-workbench-foot">
                 <span>first public launch is being prepared</span>
-                <Link href="/join">join the build</Link>
+                <Link href={JOIN_HREF}>join the build</Link>
               </div>
             </div>
           </FadeInView>

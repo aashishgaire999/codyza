@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { motion, useReducedMotion } from "framer-motion"
+import { JOIN_HREF } from "@/constants/site"
 
 const HERO_VIDEO =
   "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260505_101331_74f9b798-3f00-4e86-8a01-377aa16ffeaa.mp4"
@@ -172,7 +173,7 @@ export function CodyzaHeroSection({ content }: { content?: { headline?: string; 
             {content?.copy || "Codyza is the crew for developers, designers, and ambitious builders who want to turn skills into real, shipped work."}
           </p>
           <div className="cz-hero-actions">
-            <Link href={content?.cta_href || "/join#join-top"} className="cz-pill cz-pill-solid">
+            <Link href={content?.cta_href === "/join" ? JOIN_HREF : content?.cta_href || JOIN_HREF} className="cz-pill cz-pill-solid">
               {content?.cta || "join the crew"}
             </Link>
             <Link href="/projects" className="cz-hero-text-link">

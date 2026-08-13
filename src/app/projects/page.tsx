@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { JOIN_HREF } from "@/constants/site"
 import { GitBranch, Globe } from "lucide-react"
 import { createClient } from "@/lib/supabase"
 import { PublicShell } from "@/components/shared/public-shell"
@@ -85,7 +86,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
             {projects.length === 0 ? (
               <div className="cz-ledger-empty">
                 <div><p className="cz-micro">an honest beginning</p><h2>No approved launches are public yet.</h2></div>
-                <div><p className="cz-body max-w-md">We would rather show an empty record than fill this page with fictional work.</p><Link href="/join" className="cz-inline-link mt-6">build the first one with us</Link></div>
+                <div><p className="cz-body max-w-md">We would rather show an empty record than fill this page with fictional work.</p><Link href={JOIN_HREF} className="cz-inline-link mt-6">build the first one with us</Link></div>
               </div>
             ) : visibleProjects.length === 0 ? (
               <div className="cz-ledger-empty">
@@ -116,7 +117,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
             )}
           </div>
 
-          <div className="mt-16 flex justify-center"><Link href="/join" className="cz-pill cz-pill-solid">bring your project to the crew</Link></div>
+          <div className="mt-16 flex justify-center"><Link href={JOIN_HREF} className="cz-pill cz-pill-solid">bring your project to the crew</Link></div>
         </div>
       </section>
     </PublicShell>

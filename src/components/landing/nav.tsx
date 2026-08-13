@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Menu, X } from "lucide-react"
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
-import { NAV_LINKS } from "@/constants/site"
+import { JOIN_HREF, NAV_LINKS } from "@/constants/site"
 import { CodyzaLogo } from "@/components/shared/codyza-logo"
 
 export function Nav() {
@@ -37,7 +37,7 @@ export function Nav() {
   }, [menuOpen])
 
   useEffect(() => {
-    const destinations = [...NAV_LINKS.map((link) => link.href), "/login", "/join"]
+    const destinations = [...NAV_LINKS.map((link) => link.href), "/login", JOIN_HREF]
     const warmRoutes = () => destinations.forEach((href) => router.prefetch(href))
     const timer = globalThis.setTimeout(warmRoutes, 250)
     return () => window.clearTimeout(timer)
@@ -73,7 +73,7 @@ export function Nav() {
             <Link href="/login" className="cz-pill hidden !min-h-10 !px-5 !text-[11px] sm:inline-flex">
               login
             </Link>
-            <Link href="/join#join-top" className="cz-pill cz-pill-solid !min-h-11 !px-5 !text-[11px]">
+            <Link href={JOIN_HREF} className="cz-pill cz-pill-solid !min-h-11 !px-5 !text-[11px]">
               join
             </Link>
             <button
@@ -138,7 +138,7 @@ export function Nav() {
               >
                 login
               </Link>
-              <Link href="/join#join-top" onClick={() => setMenuOpen(false)} className="cz-pill cz-pill-solid mt-4 self-start">
+              <Link href={JOIN_HREF} onClick={() => setMenuOpen(false)} className="cz-pill cz-pill-solid mt-4 self-start">
                 join the crew
               </Link>
             </nav>

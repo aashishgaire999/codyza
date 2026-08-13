@@ -34,7 +34,7 @@ const DEFAULT_BLOCK = {
   headline: "building alone gets lonely.",
   copy: "Codyza is the crew for developers, designers, and ambitious builders who want to turn skills into real, shipped work.",
   cta: "join the crew",
-  cta_href: "/join",
+  cta_href: "/join#join-top",
 }
 
 const TABS: { id: Entity; label: string; icon: typeof Newspaper }[] = [

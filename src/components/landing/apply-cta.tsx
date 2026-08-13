@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { FadeInView } from "@/components/effects/fade-in-view"
+import { JOIN_HREF } from "@/constants/site"
 
 export function ApplyCta() {
   return (
@@ -25,7 +26,7 @@ export function ApplyCta() {
             </div>
           </FadeInView>
           <FadeInView variant="subtle" delay={340}>
-            <Link href="/join" className="cz-join-button">start your application</Link>
+            <Link href={JOIN_HREF} className="cz-join-button">start your application</Link>
           </FadeInView>
         </div>
       </div>
