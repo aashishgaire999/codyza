@@ -36,8 +36,7 @@ export function NotificationPrompt() {
         setMessage("You’re in — Codyza will keep you posted.")
         window.setTimeout(() => setVisible(false), 2200)
       } else {
-        setMessage("No problem. You can enable this later in browser settings.")
-        window.setTimeout(() => setVisible(false), 2600)
+        setMessage("Notifications are blocked. Open your browser’s site settings and allow notifications for Codyza, then try again.")
       }
     } finally {
       setWorking(false)
@@ -45,14 +44,14 @@ export function NotificationPrompt() {
   }
 
   return (
-    <div className="fixed inset-x-4 bottom-5 z-[120] mx-auto max-w-md sm:inset-x-auto sm:right-6">
-      <div className="rounded-2xl border border-black/10 bg-white/95 p-4 shadow-[0_20px_70px_rgba(15,23,42,0.18)] backdrop-blur-xl dark:border-white/10 dark:bg-[#11111a]/95">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/35 p-4 backdrop-blur-sm">
+      <div role="dialog" aria-modal="true" aria-labelledby="notification-prompt-title" className="w-full max-w-md rounded-2xl border border-black/10 bg-white/95 p-5 shadow-[0_24px_90px_rgba(15,23,42,0.3)] backdrop-blur-xl dark:border-white/10 dark:bg-[#11111a]/95">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#302bfb]/10 text-[#302bfb] dark:bg-[#8b5cf6]/15 dark:text-[#a78bfa]">
             <Bell className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-slate-950 dark:text-white">Stay in the loop</p>
+            <p id="notification-prompt-title" className="text-sm font-semibold text-slate-950 dark:text-white">Stay in the loop</p>
             <p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-300">
               Get Codyza announcements, meeting reminders, and crew updates.
             </p>
