@@ -1,5 +1,6 @@
 "use client"
 
+import { useLayoutEffect } from "react"
 import { ArrowDown } from "lucide-react"
 import { ApplySection } from "@/components/landing/apply-section"
 import { Nav } from "@/components/landing/nav"
@@ -10,6 +11,26 @@ import { FadeInView } from "@/components/effects/fade-in-view"
 const JOIN_VIDEO = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260328_105406_16f4600d-7a92-4292-b96e-b19156c7830a.mp4"
 
 export default function JoinPage() {
+  useLayoutEffect(() => {
+    if (window.location.hash !== "#join-top") return
+
+    const revealApplicationHero = () => {
+      document.getElementById("join-top")?.scrollIntoView({ block: "start" })
+    }
+
+    // Re-assert the anchor after App Router scroll restoration has completed.
+    // This prevents a long source page from carrying its scroll position into
+    // the Join route and exposing the form before the visitor chooses to start.
+    revealApplicationHero()
+    const frame = window.requestAnimationFrame(revealApplicationHero)
+    const timer = window.setTimeout(revealApplicationHero, 120)
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+      window.clearTimeout(timer)
+    }
+  }, [])
+
   return (
     <main className="codyza-public sofi-landing cz-landing cz-join-page min-h-screen overflow-x-clip">
       <ScrollProgress />
