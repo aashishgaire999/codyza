@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createServiceSupabase, isAdminRequest } from "@/lib/admin-auth"
+import { verifiedImageType } from "@/lib/security"
 
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"])
 
@@ -11,10 +12,13 @@ export async function POST(request: Request) {
   if (!(file instanceof File) || !ALLOWED.has(file.type)) return NextResponse.json({ error: "Upload a JPG, PNG, WebP, or GIF image" }, { status: 400 })
   if (file.size > 10 * 1024 * 1024) return NextResponse.json({ error: "Image must be smaller than 10MB" }, { status: 400 })
 
+  const buffer = Buffer.from(await file.arrayBuffer())
+  const verifiedType = verifiedImageType(buffer, file.type)
+  if (!verifiedType) return NextResponse.json({ error: "The file contents do not match the selected image type" }, { status: 400 })
   const service = createServiceSupabase()
-  const extension = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg"
+  const extension = ({ "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" } as Record<string, string>)[verifiedType]
   const fileName = `${new Date().toISOString().slice(0,10)}/${crypto.randomUUID()}.${extension}`
-  const { error: uploadError } = await service.storage.from("site-media").upload(fileName, Buffer.from(await file.arrayBuffer()), { contentType: file.type, upsert: false })
+  const { error: uploadError } = await service.storage.from("site-media").upload(fileName, buffer, { contentType: verifiedType, upsert: false })
   if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 })
   const { data: { publicUrl } } = service.storage.from("site-media").getPublicUrl(fileName)
   const { data, error } = await service.from("media_assets").insert({ file_name: file.name, public_url: publicUrl, alt_text: altText, mime_type: file.type, size_bytes: file.size }).select().single()

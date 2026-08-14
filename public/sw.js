@@ -43,7 +43,8 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close()
-  const target = new URL(event.notification.data?.url || "/member", self.location.origin).href
+  const requested = new URL(event.notification.data?.url || "/member", self.location.origin)
+  const target = requested.origin === self.location.origin ? requested.href : new URL("/member", self.location.origin).href
   event.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
     const existing = windows.find((window) => window.url.startsWith(self.location.origin))
     if (existing) return existing.focus().then(() => existing.navigate(target))

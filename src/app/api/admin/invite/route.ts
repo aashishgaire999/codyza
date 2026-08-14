@@ -1,12 +1,7 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
 import { Resend } from "resend"
-import { isAdminRequest } from "@/lib/admin-auth"
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+import { createServiceSupabase, isAdminRequest } from "@/lib/admin-auth"
+import { escapeHtml } from "@/lib/security"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -14,6 +9,7 @@ export async function POST(req: Request) {
   try {
     if (!isAdminRequest(req)) return NextResponse.json({ error: "Admin authorization required" }, { status: 401 })
     const { application_id, action } = await req.json()
+    const supabase = createServiceSupabase()
 
     const { data: app, error } = await supabase
       .from("applications")
@@ -36,13 +32,14 @@ export async function POST(req: Request) {
       }
 
       // Send acceptance email
+      const applicantName = escapeHtml(app.name)
       await resend.emails.send({
         from: "Codyza Team <team@codyza.com>",
         to: app.email,
         subject: "You're in! Welcome to Codyza 🎉",
         html: `
           <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px;background:#0a0a12;color:#f1f5f9;border-radius:12px;">
-            <h1 style="font-size:28px;font-weight:900;margin-bottom:8px;">Welcome to Codyza, ${app.name}!</h1>
+            <h1 style="font-size:28px;font-weight:900;margin-bottom:8px;">Welcome to Codyza, ${applicantName}!</h1>
             <p style="color:#94a3b8;margin-bottom:24px;">Your application has been approved. You're now part of the crew.</p>
 
             <div style="padding:20px;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);border-radius:10px;margin-bottom:24px;">
@@ -77,13 +74,14 @@ export async function POST(req: Request) {
 
     if (action === "decline") {
       // Send decline email
+      const applicantName = escapeHtml(app.name)
       await resend.emails.send({
         from: "Codyza Team <team@codyza.com>",
         to: app.email,
         subject: "Your Codyza Application",
         html: `
           <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px;background:#0a0a12;color:#f1f5f9;border-radius:12px;">
-            <h2 style="margin-bottom:8px;">Hi ${app.name},</h2>
+            <h2 style="margin-bottom:8px;">Hi ${applicantName},</h2>
             <p style="color:#94a3b8;line-height:1.7;margin-bottom:16px;">
               Thank you for applying to Codyza. After reviewing your application, we're not moving forward at this time.
             </p>

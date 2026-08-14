@@ -2,6 +2,7 @@ import { Resend } from "resend"
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { z } from "zod"
+import { consumeRateLimit } from "@/lib/security"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -31,6 +32,13 @@ function escapeHtml(value: string) {
 
 export async function POST(req: Request) {
   try {
+    const rateLimit = consumeRateLimit(req, "public-application", 5, 60 * 60 * 1000)
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many applications from this connection. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(rateLimit.retryAfter) } },
+      )
+    }
     const parsed = applicationSchema.safeParse(await req.json())
     if (!parsed.success) {
       return NextResponse.json({ error: "Please check your answers and try again." }, { status: 400 })

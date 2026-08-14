@@ -21,10 +21,8 @@ interface Submission {
 
 const RANKS = RANK_LADDER.map((r) => r.name)
 
-function adminFetch(input: RequestInfo | URL, init: RequestInit = {}, code = "") {
-  const headers = new Headers(init.headers)
-  if (code) headers.set("x-admin-code", code)
-  return fetch(input, { ...init, headers })
+function adminFetch(input: RequestInfo | URL, init: RequestInit = {}) {
+  return fetch(input, init)
 }
 
 function EditModal({ contributor, onClose, onSave, saving }: { contributor: Contributor; onClose: () => void; onSave: (_u: Partial<Contributor>) => void; saving: boolean }) {
@@ -108,10 +106,10 @@ export default function AdminDashboard() {
   const [processingApp, setProcessingApp] = useState<string | null>(null)
   const loadRequestRef = useRef(0)
 
-  const loadData = async (code?: string) => {
+  const loadData = async () => {
     const requestId = ++loadRequestRef.current
     setLoading(true)
-    const response = await adminFetch("/api/admin/dashboard", {}, code)
+    const response = await adminFetch("/api/admin/dashboard")
     if (requestId !== loadRequestRef.current) return
     if (!response.ok) {
       if (response.status === 401) setIsAuthenticated(false)
@@ -143,7 +141,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch("/api/admin/verify", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ accessCode }) })
       const data = await res.json()
-      if (data.valid) await loadData(accessCode)
+      if (data.valid) { setAccessCode(""); await loadData() }
       else setError("Invalid access code")
     } catch { setError("Network error. Please try again.") }
     finally { setVerifying(false) }

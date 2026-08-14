@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createServiceSupabase } from "@/lib/admin-auth"
 import { getRequestMember } from "@/lib/member-auth"
+import { verifiedImageType } from "@/lib/security"
 
 export async function POST(req: Request) {
   try {
@@ -28,6 +29,9 @@ export async function POST(req: Request) {
     const fileName = `${member.codyza_id.toLowerCase()}.${ext}`
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
+    if (!verifiedImageType(buffer, file.type)) {
+      return NextResponse.json({ error: "The file contents do not match the selected image type" }, { status: 400 })
+    }
 
     // Upload to Supabase Storage
     const supabase = createServiceSupabase()

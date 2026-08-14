@@ -2,19 +2,31 @@ import { NextResponse } from "next/server"
 import { GoogleGenerativeAI } from "@google/generative-ai"
 import { createServiceSupabase } from "@/lib/admin-auth"
 import { getRequestMember } from "@/lib/member-auth"
+import { safeHttpsUrl } from "@/lib/security"
+import { z } from "zod"
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+
+const submissionSchema = z.object({
+  project_name: z.string().trim().min(2).max(180),
+  github_url: z.string().max(500),
+  live_url: z.string().max(500).optional().nullable(),
+  description: z.string().trim().min(20).max(5000),
+  tech_stack: z.array(z.string().trim().min(1).max(80)).max(30).default([]),
+  bounty_id: z.string().max(100).optional().nullable(),
+})
 
 export async function POST(req: Request) {
   try {
     const member = await getRequestMember(req)
     if (!member) return NextResponse.json({ error: "Member sign-in required" }, { status: 401 })
-    const body = await req.json()
-    const { project_name, github_url, live_url, description, tech_stack, bounty_id } = body
-
-    if (!project_name || !github_url || !description) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
-    }
+    const parsedBody = submissionSchema.safeParse(await req.json())
+    if (!parsedBody.success) return NextResponse.json({ error: "Check the project details and try again" }, { status: 400 })
+    const { project_name, github_url: rawGithubUrl, live_url: rawLiveUrl, description, tech_stack, bounty_id } = parsedBody.data
+    const github_url = safeHttpsUrl(rawGithubUrl, { githubRepository: true })
+    const live_url = rawLiveUrl ? safeHttpsUrl(rawLiveUrl) : null
+    if (!github_url) return NextResponse.json({ error: "Enter a valid HTTPS GitHub repository URL" }, { status: 400 })
+    if (rawLiveUrl && !live_url) return NextResponse.json({ error: "Live URL must be a public HTTPS address" }, { status: 400 })
 
     const supabase = createServiceSupabase()
     const { data: contributor, error: fetchError } = await supabase
@@ -25,6 +37,11 @@ export async function POST(req: Request) {
 
     if (fetchError || !contributor) {
       return NextResponse.json({ error: "Invalid Codyza ID." }, { status: 404 })
+    }
+
+    if (bounty_id) {
+      const { data: bounty } = await supabase.from("bounties").select("id").eq("id", bounty_id).eq("claimed_by", member.codyza_id).eq("status", "claimed").maybeSingle()
+      if (!bounty) return NextResponse.json({ error: "That bounty is not assigned to you" }, { status: 403 })
     }
 
     let ai_score = 7
@@ -62,9 +79,9 @@ Score: 1-4 needs major work, 5-6 decent start, 7-8 solid, 9 excellent, 10 except
       const jsonMatch = text.match(/\{[\s\S]*\}/)
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0])
-        ai_score = parsed.score || 7
-        ai_feedback = parsed.feedback || ai_feedback
-        ai_review = parsed
+        ai_score = Math.min(10, Math.max(1, Math.round(Number(parsed.score) || 7)))
+        ai_feedback = typeof parsed.feedback === "string" ? parsed.feedback.slice(0, 2000) : ai_feedback
+        ai_review = typeof parsed === "object" && parsed ? parsed : {}
       }
     } catch (e) {
       console.log("AI review error:", e)
@@ -72,7 +89,8 @@ Score: 1-4 needs major work, 5-6 decent start, 7-8 solid, 9 excellent, 10 except
 
     const base_xp = 100
     const deploy_xp = live_url ? 150 : 0
-    const quality_xp = ai_score >= 8 ? (ai_score === 10 ? 300 : ai_score === 9 ? 200 : 100) : 0
+    // AI feedback is advisory only. Never let model output authorize XP.
+    const quality_xp = 0
 
     const today = new Date().toISOString().split("T")[0]
     const lastSub = contributor.last_submission
@@ -86,8 +104,8 @@ Score: 1-4 needs major work, 5-6 decent start, 7-8 solid, 9 excellent, 10 except
       contributor_id: contributor.id,
       codyza_id: contributor.codyza_id,
       project_name: String(project_name).slice(0, 180),
-      github_url: String(github_url).slice(0, 500),
-      live_url: live_url ? String(live_url).slice(0, 500) : null,
+      github_url,
+      live_url,
       description: String(description).slice(0, 5000),
       tech_stack: Array.isArray(tech_stack) ? tech_stack.slice(0, 30) : [],
       ai_score,

@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server"
 import { createServiceSupabase } from "@/lib/admin-auth"
 import { getRequestMember } from "@/lib/member-auth"
+import { consumeRateLimit } from "@/lib/security"
 
 export async function POST(req: Request) {
   try {
     const member = await getRequestMember(req)
     if (!member) return NextResponse.json({ error: "Member sign-in required" }, { status: 401 })
+    const rateLimit = consumeRateLimit(req, `reaction:${member.codyza_id}`, 60, 60 * 1000)
+    if (!rateLimit.allowed) return NextResponse.json({ error: "Slow down and try again" }, { status: 429, headers: { "Retry-After": String(rateLimit.retryAfter) } })
     const { submission_id, emoji } = await req.json()
     if (!submission_id || !emoji || !["🔥", "👏", "🚀", "💡"].includes(emoji)) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 })
@@ -37,7 +40,7 @@ export async function GET(req: Request) {
   const member = await getRequestMember(req)
   if (!member) return NextResponse.json({ error: "Member sign-in required" }, { status: 401 })
   const { searchParams } = new URL(req.url)
-  const ids = searchParams.get("ids")?.split(",") || []
+  const ids = (searchParams.get("ids")?.split(",") || []).filter(Boolean).slice(0, 50)
   if (!ids.length) return NextResponse.json({})
 
   const { data } = await createServiceSupabase()

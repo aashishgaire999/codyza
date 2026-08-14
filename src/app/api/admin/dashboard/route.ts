@@ -15,12 +15,17 @@ async function setSubmissionStatus(id: string, status: "approved" | "rejected") 
     .maybeSingle()
   if (error || !submission) throw new Error(error?.message || "Submission not found")
 
-  const { error: updateError } = await service.from("submissions").update({ status }).eq("id", id)
+  if (submission.status !== "pending") {
+    throw new Error(`Submission was already ${submission.status}`)
+  }
+
+  const { data: updated, error: updateError } = await service.from("submissions").update({ status }).eq("id", id).eq("status", "pending").select("id").maybeSingle()
   if (updateError) throw new Error(updateError.message)
+  if (!updated) throw new Error("Submission status changed. Refresh and try again.")
 
   if (status === "approved") {
     if (submission.bounty_id) {
-      await service.from("bounties").update({ status: "completed" }).eq("id", submission.bounty_id)
+      await service.from("bounties").update({ status: "completed" }).eq("id", submission.bounty_id).eq("claimed_by", submission.codyza_id).eq("status", "claimed")
     }
 
     const historyAction = `Approved submission:${submission.id}`

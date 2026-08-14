@@ -1,9 +1,18 @@
 import { NextResponse } from "next/server"
 import { timingSafeEqual } from "node:crypto"
 import { ADMIN_COOKIE, createAdminSessionToken } from "@/lib/admin-auth"
+import { consumeRateLimit } from "@/lib/security"
 
 export async function POST(req: Request) {
   try {
+    const rateLimit = consumeRateLimit(req, "admin-verify", 5, 15 * 60 * 1000)
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { valid: false, error: "Too many attempts. Try again later." },
+        { status: 429, headers: { "Retry-After": String(rateLimit.retryAfter) } },
+      )
+    }
+
     const { accessCode } = await req.json()
 
     if (!accessCode || typeof accessCode !== "string") {
@@ -28,9 +37,10 @@ export async function POST(req: Request) {
         path: "/",
         maxAge: 60 * 60 * 8,
       })
+      response.headers.set("Cache-Control", "no-store")
       return response
     }
-    return NextResponse.json({ valid: false })
+    return NextResponse.json({ valid: false }, { headers: { "Cache-Control": "no-store" } })
   } catch {
     return NextResponse.json({ valid: false }, { status: 400 })
   }
