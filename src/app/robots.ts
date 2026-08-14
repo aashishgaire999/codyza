@@ -1,9 +1,14 @@
 import type { MetadataRoute } from "next"
+import { SITE_CONFIG } from "@/constants/site"
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: { userAgent: "*", allow: "/", disallow: ["/admin", "/member", "/login", "/onboarding", "/set-password", "/api/"] },
-    sitemap: "https://codyza.com/sitemap.xml",
-    host: "https://codyza.com",
+    rules: {
+      userAgent: "*",
+      allow: ["/", "/login"],
+      disallow: ["/admin", "/member", "/auth", "/onboarding", "/forgot-password", "/set-password", "/api/"],
+    },
+    sitemap: `${SITE_CONFIG.url}/sitemap.xml`,
+    host: SITE_CONFIG.url,
   }
 }

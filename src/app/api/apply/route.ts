@@ -86,7 +86,7 @@ export async function POST(req: Request) {
             <p style="color:#94a3b8;margin-bottom:8px;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Why Codyza</p>
             <p style="margin:0;">${safe.why}</p>
           </div>
-          <p style="margin-top:20px;color:#64748b;font-size:12px;">Review this application in the <a href="https://codyza.com/admin" style="color:#a855f7;">Admin Dashboard</a></p>
+          <p style="margin-top:20px;color:#64748b;font-size:12px;">Review this application in the <a href="https://www.codyza.com/admin" style="color:#a855f7;">Admin Dashboard</a></p>
         </div>
       `,
     })

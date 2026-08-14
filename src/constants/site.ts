@@ -1,7 +1,9 @@
 export const SITE_CONFIG = {
   name: "Codyza",
   domain: "codyza.com",
-  url: "https://codyza.com",
+  // Vercel's production domain redirects the apex to www. Keep every
+  // canonical and structured-data URL on the final destination.
+  url: "https://www.codyza.com",
   tagline: "Build. Learn. Deploy. Grow Together.",
   description:
     "A community of devs, designers, and dreamers shipping real projects together. Not a bootcamp. Not another chat server. Free to join, built to last.",
@@ -27,6 +29,7 @@ export const BRAND_COLORS = {
 } as const
 
 export const SOCIAL_LINKS = {
+  linkedin: "https://www.linkedin.com/company/codyza/",
   github: "https://github.com/codyza-com",
   instagram: "https://www.instagram.com/codyza_",
   slack: "https://join.slack.com/t/codyza/shared_invite/zt-3zhylkmp1-JU9qG2GrdokWJyWbu7Rxrg",

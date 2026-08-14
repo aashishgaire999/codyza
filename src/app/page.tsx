@@ -11,6 +11,7 @@ import { Team } from "@/components/landing/team"
 import { ApplyCta } from "@/components/landing/apply-cta"
 import { Footer } from "@/components/landing/footer"
 import { getSiteContentState } from "@/lib/site-content"
+import { SITE_CONFIG, SOCIAL_LINKS } from "@/constants/site"
 
 export default async function HomePage() {
   const heroState = await getSiteContentState<{ headline: string; copy: string; cta: string; cta_href: string }>("home", "hero")
@@ -19,12 +20,29 @@ export default async function HomePage() {
       <main className="cz-landing min-h-screen overflow-x-clip">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
           "@context": "https://schema.org",
-          "@type": "Organization",
-          name: "Codyza",
-          url: "https://codyza.com",
-          logo: "https://codyza.com/logo/codyza-mark-v2.png",
-          description: "A working community for developers, designers, and ambitious builders shipping useful software together.",
-          sameAs: ["https://www.linkedin.com/company/codyza/", "https://github.com/codyza-com", "https://www.instagram.com/codyza_"],
+          "@graph": [
+            {
+              "@type": "WebSite",
+              "@id": `${SITE_CONFIG.url}/#website`,
+              url: `${SITE_CONFIG.url}/`,
+              name: SITE_CONFIG.name,
+              alternateName: ["Codyza Community", SITE_CONFIG.domain],
+              description: SITE_CONFIG.description,
+              publisher: { "@id": `${SITE_CONFIG.url}/#organization` },
+            },
+            {
+              "@type": "Organization",
+              "@id": `${SITE_CONFIG.url}/#organization`,
+              name: SITE_CONFIG.name,
+              url: `${SITE_CONFIG.url}/`,
+              logo: {
+                "@type": "ImageObject",
+                url: `${SITE_CONFIG.url}/logo/codyza-mark-v2.png`,
+              },
+              description: "A working community for developers, designers, and ambitious builders shipping useful software together.",
+              sameAs: [SOCIAL_LINKS.linkedin, SOCIAL_LINKS.github, SOCIAL_LINKS.instagram],
+            },
+          ],
         }) }} />
         <HomeAuthRedirect />
         <ScrollProgress />

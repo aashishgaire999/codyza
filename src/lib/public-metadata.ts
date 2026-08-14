@@ -1,10 +1,10 @@
 import type { Metadata } from "next"
+import { SITE_CONFIG } from "@/constants/site"
 
-const SITE_URL = "https://codyza.com"
 const SHARE_IMAGE = "/logo/codyza-mark-v2.png"
 
 export function publicMetadata(title: string, description: string, path: string): Metadata {
-  const canonical = path === "/" ? SITE_URL : `${SITE_URL}${path}`
+  const canonical = path === "/" ? SITE_CONFIG.url : `${SITE_CONFIG.url}${path}`
 
   return {
     title,
@@ -23,6 +23,11 @@ export function publicMetadata(title: string, description: string, path: string)
       title: `${title} | Codyza`,
       description,
       images: [SHARE_IMAGE],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
     },
   }
 }

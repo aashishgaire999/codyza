@@ -181,6 +181,7 @@ export function Footer() {
               <p className="cz-micro mb-4">elsewhere</p>
               <div className="flex flex-col items-start gap-2">
                 <a href={SOCIAL_LINKS.github} target="_blank" rel="noopener noreferrer" className="cz-body cz-footer-link text-[13px]">github</a>
+                <a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noopener noreferrer" className="cz-body cz-footer-link text-[13px]">linkedin</a>
                 <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" className="cz-body cz-footer-link text-[13px]">instagram</a>
                 <a href={`mailto:${SITE_CONFIG.email}`} className="cz-body cz-footer-link text-[13px]">email</a>
                 <a href={SOCIAL_LINKS.slack} target="_blank" rel="noopener noreferrer" className="cz-body cz-footer-link text-[13px]">slack</a>
