@@ -40,7 +40,12 @@ export default async function HomePage() {
                 url: `${SITE_CONFIG.url}/logo/codyza-mark-v2.png`,
               },
               description: "A working community for developers, designers, and ambitious builders shipping useful software together.",
-              sameAs: [SOCIAL_LINKS.linkedin, SOCIAL_LINKS.github, SOCIAL_LINKS.instagram],
+              sameAs: [
+                SOCIAL_LINKS.linkedin,
+                SOCIAL_LINKS.facebook,
+                SOCIAL_LINKS.github,
+                SOCIAL_LINKS.instagram,
+              ],
             },
           ],
         }) }} />

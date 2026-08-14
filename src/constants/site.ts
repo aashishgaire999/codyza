@@ -30,6 +30,7 @@ export const BRAND_COLORS = {
 
 export const SOCIAL_LINKS = {
   linkedin: "https://www.linkedin.com/company/codyza/",
+  facebook: "https://www.facebook.com/profile.php?id=61590681594726",
   github: "https://github.com/codyza-com",
   instagram: "https://www.instagram.com/codyza_",
   slack: "https://join.slack.com/t/codyza/shared_invite/zt-3zhylkmp1-JU9qG2GrdokWJyWbu7Rxrg",
