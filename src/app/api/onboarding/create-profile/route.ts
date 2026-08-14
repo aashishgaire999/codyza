@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { notifyAllMembers } from "@/lib/member-notifications"
+import { createServiceSupabase } from "@/lib/admin-auth"
 
 export async function POST(req: Request) {
   try {
@@ -41,9 +42,10 @@ export async function POST(req: Request) {
     if (authError || !user || !user.email) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
     }
+    const service = createServiceSupabase()
 
     // Check if profile already exists
-    const { data: existing } = await supabase
+    const { data: existing } = await service
       .from("contributors")
       .select("codyza_id")
       .eq("email", user.email)
@@ -55,7 +57,7 @@ export async function POST(req: Request) {
     }
 
     // Get all existing CZX-XXXX numbers to avoid collisions
-    const { data: existingRows } = await supabase
+    const { data: existingRows } = await service
       .from("contributors")
       .select("codyza_id")
 
@@ -89,7 +91,7 @@ export async function POST(req: Request) {
     const newCodyzaId = `CZX-${String(chosen).padStart(4, "0")}`
 
     // Insert the new contributor row
-    const { error: insertError } = await supabase
+    const { error: insertError } = await service
       .from("contributors")
       .insert({
         codyza_id: newCodyzaId,
@@ -120,7 +122,7 @@ export async function POST(req: Request) {
           return NextResponse.json({ error: "Could not assign ID. Please try again." }, { status: 500 })
         }
         const retryId = `CZX-${String(retryChosen).padStart(4, "0")}`
-        const { error: retryError } = await supabase
+        const { error: retryError } = await service
           .from("contributors")
           .insert({
             codyza_id: retryId,

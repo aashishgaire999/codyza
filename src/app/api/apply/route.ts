@@ -1,15 +1,10 @@
 import { Resend } from "resend"
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
 import { z } from "zod"
 import { consumeRateLimit } from "@/lib/security"
+import { createServiceSupabase } from "@/lib/admin-auth"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
 
 const applicationSchema = z.object({
   name: z.string().trim().min(2).max(120),
@@ -46,7 +41,7 @@ export async function POST(req: Request) {
     const { name, email, github, skills, role, level, why } = parsed.data
 
     // Save to database
-    const { error: insertError } = await supabase.from("applications").insert({
+    const { error: insertError } = await createServiceSupabase().from("applications").insert({
       name,
       email,
       github,
