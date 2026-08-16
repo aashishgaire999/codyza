@@ -14,7 +14,17 @@ export async function POST(req: Request) {
     const member = await getRequestMember(req)
     if (!member) return NextResponse.json({ error: "Member sign-in required" }, { status: 401 })
     const parsedBody = projectSubmissionSchema.safeParse(await req.json())
-    if (!parsedBody.success) return NextResponse.json({ error: "Check the project details and try again" }, { status: 400 })
+    if (!parsedBody.success) {
+      const fieldMessages: Record<string, string> = {
+        project_name: "Project name must be between 2 and 180 characters",
+        description: "Description must be between 20 and 5000 characters",
+        github_url: "Enter a GitHub repository URL",
+        live_url: "Live URL is too long",
+        tech_stack: "Choose up to 30 tech stack tags",
+      }
+      const field = String(parsedBody.error.issues[0]?.path[0] ?? "")
+      return NextResponse.json({ error: fieldMessages[field] || "Check the project details and try again" }, { status: 400 })
+    }
     const { project_name, github_url: rawGithubUrl, live_url: rawLiveUrl, description, tech_stack } = parsedBody.data
     const github_url = safeHttpsUrl(rawGithubUrl, { githubRepository: true })
     const live_url = rawLiveUrl ? safeHttpsUrl(rawLiveUrl) : null
