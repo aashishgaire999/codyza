@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
-import { CalendarDays, Check, Clock3, History, TimerReset } from "lucide-react"
+import { BookOpen, BriefcaseBusiness, CalendarDays, Check, Clock3, History, TimerReset } from "lucide-react"
 import { createClient } from "@/lib/supabase"
 import { MemberPageHeader } from "@/components/member/member-page-header"
 import { memberFetch } from "@/lib/member-fetch"
@@ -17,10 +17,12 @@ type WorkSession = {
   ended_at: string | null
   duration_minutes: number | null
   summary: string | null
+  is_finished: boolean | null
   status: "active" | "completed" | "cancelled"
 }
 type Bounty = { id: string; title: string; claimed_by: string | null; status: string }
 type Group = { id: string; name: string; members?: Array<{ codyza_id: string }> }
+type SessionCategory = "working" | "learning"
 
 const panelMotion = {
   initial: { opacity: 0, y: 10, scale: 0.99 },
@@ -62,8 +64,10 @@ export default function TimesheetPage() {
   const [now, setNow] = useState(() => Date.now())
   const [selectedBounty, setSelectedBounty] = useState("")
   const [selectedGroup, setSelectedGroup] = useState("")
+  const [category, setCategory] = useState<SessionCategory>("working")
   const [label, setLabel] = useState("")
   const [summary, setSummary] = useState("")
+  const [done, setDone] = useState<boolean | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState("")
   const [notice, setNotice] = useState("")
@@ -135,6 +139,7 @@ export default function TimesheetPage() {
       body: JSON.stringify({
         bounty_id: selectedBounty || null,
         group_id: selectedGroup || null,
+        category,
         label: label || null,
       }),
     })
@@ -153,16 +158,18 @@ export default function TimesheetPage() {
   async function clockOut() {
     if (!activeSession || busy) return
     if (summary.trim().length < 3) { setError("Add a short summary before clocking out."); return }
+    if (done === null) { setError("Select whether you're done before clocking out."); return }
     setBusy(true)
     setError("")
     const response = await memberFetch("/api/work-sessions", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ session_id: activeSession.id, action: "clock_out", summary }),
+      body: JSON.stringify({ session_id: activeSession.id, action: "clock_out", summary, done }),
     })
     const data = await response.json()
     if (!response.ok) { setError(data.error || "Could not clock out"); setBusy(false); return }
     setSummary("")
+    setDone(null)
     setNotice(`Session saved · ${formatDuration(data.duration_minutes)}`)
     window.dispatchEvent(new CustomEvent("codyza:work-session", { detail: { startedAt: null } }))
     await loadData()
@@ -235,6 +242,29 @@ export default function TimesheetPage() {
                         className="glass-input w-full resize-none px-4 py-3 text-sm leading-6 focus:outline-none"
                       />
                     </div>
+                    <fieldset className="mt-5">
+                      <legend className="mb-2 block text-sm font-semibold text-foreground">Are you done with this?</legend>
+                      <div className="grid grid-cols-2 gap-2 rounded-2xl bg-muted/55 p-1.5" role="radiogroup" aria-label="Are you done with this?">
+                        {([
+                          { value: true, label: "Yes, done" },
+                          { value: false, label: "No, more to do" },
+                        ]).map((option) => {
+                          const selected = done === option.value
+                          return (
+                            <button
+                              key={String(option.value)}
+                              type="button"
+                              role="radio"
+                              aria-checked={selected}
+                              onClick={() => setDone(option.value)}
+                              className={`flex min-h-12 items-center justify-center rounded-xl px-3 text-sm font-semibold transition-[background-color,color,box-shadow,transform] duration-200 active:scale-[0.98] ${selected ? "bg-card text-foreground shadow-sm ring-1 ring-border/70" : "text-muted-foreground hover:text-foreground"}`}
+                            >
+                              {option.label}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </fieldset>
                     {error && <p role="alert" className="mt-3 rounded-xl border border-destructive/20 bg-destructive/10 px-3 py-2.5 text-xs text-destructive">{error}</p>}
                     <button onClick={clockOut} disabled={busy} className="mt-4 inline-flex min-h-12 items-center justify-center rounded-full bg-foreground px-6 text-sm font-semibold text-background transition-transform active:scale-[0.97] disabled:opacity-50">
                       {busy ? "Saving session…" : "Clock out & save"}
@@ -246,12 +276,38 @@ export default function TimesheetPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-lg font-semibold tracking-[-0.02em] text-foreground">What are you working on?</p>
-                      <p className="mt-1 text-sm text-muted-foreground">Choose a source or add a simple label.</p>
+                      <p className="mt-1 text-sm text-muted-foreground">Choose a session type. Bounties and groups are optional.</p>
                     </div>
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
                       <TimerReset className="h-5 w-5" />
                     </div>
                   </div>
+
+                  <fieldset className="mt-6">
+                    <legend className="mb-2 block font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Session type</legend>
+                    <div className="grid grid-cols-2 gap-2 rounded-2xl bg-muted/55 p-1.5" role="radiogroup" aria-label="Session type">
+                      {([
+                        { value: "working" as const, label: "Working", icon: BriefcaseBusiness },
+                        { value: "learning" as const, label: "Learning", icon: BookOpen },
+                      ]).map((option) => {
+                        const Icon = option.icon
+                        const selected = category === option.value
+                        return (
+                          <button
+                            key={option.value}
+                            type="button"
+                            role="radio"
+                            aria-checked={selected}
+                            onClick={() => setCategory(option.value)}
+                            className={`flex min-h-12 items-center justify-center gap-2 rounded-xl px-3 text-sm font-semibold transition-[background-color,color,box-shadow,transform] duration-200 active:scale-[0.98] ${selected ? "bg-card text-foreground shadow-sm ring-1 ring-border/70" : "text-muted-foreground hover:text-foreground"}`}
+                          >
+                            <Icon className={`h-4 w-4 ${selected ? "text-accent" : ""}`} />
+                            {option.label}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </fieldset>
 
                   <div className="mt-6 grid gap-4 sm:grid-cols-2">
                     <div>
@@ -302,7 +358,12 @@ export default function TimesheetPage() {
                       <p className="mt-0.5 text-[10px] text-muted-foreground">{new Date(session.started_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</p>
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-xs font-medium text-accent">{claimedBounties.find((item) => item.id === session.bounty_id)?.title || myGroups.find((item) => item.id === session.group_id)?.name || session.label || "General contribution"}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="truncate text-xs font-medium text-accent">{claimedBounties.find((item) => item.id === session.bounty_id)?.title || myGroups.find((item) => item.id === session.group_id)?.name || session.label || "General contribution"}</p>
+                        {session.is_finished === false && (
+                          <span className="shrink-0 rounded-full border border-accent/20 bg-accent/10 px-1.5 py-0.5 text-[9px] font-medium text-accent">In progress</span>
+                        )}
+                      </div>
                       <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">{session.summary}</p>
                     </div>
                     <p className="font-mono text-sm font-medium text-foreground sm:text-right">{formatDuration(session.duration_minutes || 0)}</p>

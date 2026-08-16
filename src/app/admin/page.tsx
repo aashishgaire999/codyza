@@ -13,16 +13,31 @@ interface Contributor {
   id: string; codyza_id: string; name: string; email: string; github: string
   role: string; level: string; xp: number; rank: string; streak: number; joined_at: string
 }
+interface AiReview {
+  summary?: string
+  feedback?: string
+  one_liner?: string
+  strengths?: string[]
+  improvements?: string[]
+  roadmap?: string[]
+}
 interface Submission {
   id: string; codyza_id: string; project_name: string; github_url: string
   live_url: string | null; description: string; tech_stack: string[]
-  ai_score: number | null; xp_earned: number; status: string; submitted_at: string
+  ai_score: number | null; ai_feedback: string | null; ai_review: AiReview | null
+  xp_earned: number; status: string; submitted_at: string
 }
 
 const RANKS = RANK_LADDER.map((r) => r.name)
 
 function adminFetch(input: RequestInfo | URL, init: RequestInit = {}) {
   return fetch(input, init)
+}
+
+async function requireSuccessfulResponse(response: Response, fallback: string) {
+  if (response.ok) return
+  const data = await response.json().catch(() => null)
+  throw new Error(data?.error || fallback)
 }
 
 function EditModal({ contributor, onClose, onSave, saving }: { contributor: Contributor; onClose: () => void; onSave: (_u: Partial<Contributor>) => void; saving: boolean }) {
@@ -102,6 +117,7 @@ export default function AdminDashboard() {
   const [editingContributor, setEditingContributor] = useState<Contributor | null>(null)
   const [savingEdit, setSavingEdit] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [expandedAi, setExpandedAi] = useState<Set<string>>(new Set())
   const [bulkActioning, setBulkActioning] = useState(false)
   const [processingApp, setProcessingApp] = useState<string | null>(null)
   const loadRequestRef = useRef(0)
@@ -148,14 +164,19 @@ export default function AdminDashboard() {
   }
 
   const updateSubStatus = async (id: string, status: "approved"|"rejected") => {
-    await adminFetch("/api/admin/dashboard", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "submission_status", payload: { id, status } }) })
-    void loadData()
+    setError("")
+    try {
+      const response = await adminFetch("/api/admin/dashboard", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "submission_status", payload: { id, status } }) })
+      await requireSuccessfulResponse(response, "Submission could not be updated")
+      await loadData()
+    } catch (actionError) { setError(actionError instanceof Error ? actionError.message : "Submission could not be updated") }
   }
 
   const deleteSub = async (id: string) => {
     if (!confirm("Delete this submission?")) return
-    await adminFetch("/api/admin/dashboard", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ entity: "submission", id }) })
-    void loadData()
+    const response = await adminFetch("/api/admin/dashboard", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ entity: "submission", id }) })
+    try { await requireSuccessfulResponse(response, "Submission could not be deleted"); await loadData() }
+    catch (actionError) { setError(actionError instanceof Error ? actionError.message : "Submission could not be deleted") }
   }
 
   const saveContributor = async (updates: Partial<Contributor>) => {
@@ -171,24 +192,30 @@ export default function AdminDashboard() {
     if (!confirm("Delete this contributor and all their submissions?")) return
     const contributor = contributors.find((person) => person.codyza_id === id)
     if (!contributor) return
-    await adminFetch("/api/admin/dashboard", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ entity: "contributor", id: contributor.id }) })
-    void loadData()
+    const response = await adminFetch("/api/admin/dashboard", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ entity: "contributor", id: contributor.id }) })
+    try { await requireSuccessfulResponse(response, "Contributor could not be deleted"); await loadData() }
+    catch (actionError) { setError(actionError instanceof Error ? actionError.message : "Contributor could not be deleted") }
   }
 
   const bulkUpdate = async (status: "approved"|"rejected") => {
     if (selected.size === 0) return
     if (status === "rejected" && !confirm(`Reject ${selected.size} submissions?`)) return
     setBulkActioning(true)
-    await adminFetch("/api/admin/dashboard", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "bulk_submission_status", payload: { ids: Array.from(selected), status } }) })
-    setBulkActioning(false); setSelected(new Set()); void loadData()
+    try {
+      const response = await adminFetch("/api/admin/dashboard", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "bulk_submission_status", payload: { ids: Array.from(selected), status } }) })
+      await requireSuccessfulResponse(response, "Submissions could not be updated")
+      setSelected(new Set()); await loadData()
+    } catch (actionError) { setError(actionError instanceof Error ? actionError.message : "Submissions could not be updated") }
+    finally { setBulkActioning(false) }
   }
 
   const handleApplication = async (id: string, action: "approve"|"decline") => {
     setProcessingApp(id)
     try {
       const res = await adminFetch("/api/admin/invite", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ application_id: id, action }) })
-      if (res.ok) setApplications(prev => prev.map(a => a.id === id ? { ...a, status: action === "approve" ? "approved" : "declined" } : a))
-    } catch(e) { console.error(e) }
+      await requireSuccessfulResponse(res, "Application could not be processed")
+      setApplications(prev => prev.map(a => a.id === id ? { ...a, status: action === "approve" ? "approved" : "declined" } : a))
+    } catch(e) { setError(e instanceof Error ? e.message : "Application could not be processed") }
     setProcessingApp(null)
   }
 
@@ -241,6 +268,8 @@ export default function AdminDashboard() {
           <h1 className="font-[family-name:var(--font-heading)] text-2xl font-bold lowercase">admin dashboard</h1>
           <Link href="/admin/analytics" className="ml-auto text-sm text-accent transition-colors hover:opacity-80">Analytics</Link>
         </div>
+
+        {error && <div role="alert" className="mb-6 flex items-start justify-between gap-3 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"><span>{error}</span><button onClick={() => setError("")} aria-label="Dismiss error" className="shrink-0">×</button></div>}
 
         <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
           <div className="dashboard-stat">
@@ -361,6 +390,41 @@ export default function AdminDashboard() {
                 <div className="mb-3 flex flex-wrap gap-2">
                   {sub.tech_stack?.map(t => <span key={t} className="rounded-full border border-border bg-muted px-2 py-0.5 font-mono text-[10px] text-muted-foreground">{t}</span>)}
                 </div>
+                {(sub.ai_review?.summary || sub.ai_review?.feedback || sub.ai_review?.one_liner || sub.ai_feedback) && (
+                  <div className="mb-3">
+                    <button
+                      onClick={() => setExpandedAi(prev => { const n = new Set(prev); n.has(sub.id) ? n.delete(sub.id) : n.add(sub.id); return n })}
+                      className="text-xs font-medium text-accent hover:opacity-80"
+                    >
+                      {expandedAi.has(sub.id) ? "Hide AI review ▲" : "View full AI review ▼"}
+                    </button>
+                    {expandedAi.has(sub.id) && (
+                      <div className="mt-3 space-y-3 rounded-xl border border-border bg-muted/30 p-4 text-sm leading-relaxed text-muted-foreground">
+                        {sub.ai_review?.one_liner && <p className="font-semibold text-foreground">{sub.ai_review.one_liner}</p>}
+                        {sub.ai_review?.summary && <p>{sub.ai_review.summary}</p>}
+                        {(sub.ai_review?.feedback || sub.ai_feedback) && <p>{sub.ai_review?.feedback || sub.ai_feedback}</p>}
+                        {!!sub.ai_review?.strengths?.length && (
+                          <div>
+                            <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-success">Strengths</p>
+                            <ul className="list-inside list-disc space-y-0.5">{sub.ai_review.strengths.map((s, i) => <li key={i}>{s}</li>)}</ul>
+                          </div>
+                        )}
+                        {!!sub.ai_review?.improvements?.length && (
+                          <div>
+                            <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-destructive">Improvements</p>
+                            <ul className="list-inside list-disc space-y-0.5">{sub.ai_review.improvements.map((s, i) => <li key={i}>{s}</li>)}</ul>
+                          </div>
+                        )}
+                        {!!sub.ai_review?.roadmap?.length && (
+                          <div>
+                            <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-accent">Roadmap</p>
+                            <ul className="list-inside list-disc space-y-0.5">{sub.ai_review.roadmap.map((s, i) => <li key={i}>{s}</li>)}</ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div className="flex items-center gap-4">
                   <a href={sub.github_url} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground transition-colors hover:text-foreground">GitHub</a>
                   {sub.live_url && <a href={sub.live_url} target="_blank" rel="noopener noreferrer" className="text-sm text-accent transition-colors hover:opacity-80">Live</a>}
@@ -484,9 +548,14 @@ export default function AdminDashboard() {
               <button disabled={creatingGroup || !newGroupName}
                 onClick={async () => {
                   setCreatingGroup(true)
-                  await adminFetch("/api/groups", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:newGroupName,description:newGroupDesc,member_ids:selectedMembers.map((m:any)=>m.id),roles:selectedMembers.map((m:any)=>m.role)})})
-                  setNewGroupName(""); setNewGroupDesc(""); setSelectedMembers([])
-                  await loadData(); setCreatingGroup(false)
+                  setError("")
+                  try {
+                    const response = await adminFetch("/api/groups", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:newGroupName,description:newGroupDesc,member_ids:selectedMembers.map((m:any)=>m.id),roles:selectedMembers.map((m:any)=>m.role)})})
+                    await requireSuccessfulResponse(response, "Group could not be created")
+                    setNewGroupName(""); setNewGroupDesc(""); setSelectedMembers([])
+                    await loadData()
+                  } catch (actionError) { setError(actionError instanceof Error ? actionError.message : "Group could not be created") }
+                  finally { setCreatingGroup(false) }
                 }}
                 className="btn-primary rounded-full px-5 py-2 text-sm font-medium disabled:opacity-50">
                 {creatingGroup ? "Creating..." : "Create Group"}
@@ -534,9 +603,14 @@ export default function AdminDashboard() {
               <button disabled={creatingBounty || !newBountyTitle || !newBountyDesc}
                 onClick={async () => {
                   setCreatingBounty(true)
-                  await adminFetch("/api/bounties", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:newBountyTitle,description:newBountyDesc,xp_reward:newBountyXP,tech_tags:newBountyTags.split(",").map((t:string)=>t.trim()).filter(Boolean)})})
-                  setNewBountyTitle(""); setNewBountyDesc(""); setNewBountyXP(100); setNewBountyTags("")
-                  await loadData(); setCreatingBounty(false)
+                  setError("")
+                  try {
+                    const response = await adminFetch("/api/bounties", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:newBountyTitle,description:newBountyDesc,xp_reward:newBountyXP,tech_tags:newBountyTags.split(",").map((t:string)=>t.trim()).filter(Boolean)})})
+                    await requireSuccessfulResponse(response, "Bounty could not be posted")
+                    setNewBountyTitle(""); setNewBountyDesc(""); setNewBountyXP(100); setNewBountyTags("")
+                    await loadData()
+                  } catch (actionError) { setError(actionError instanceof Error ? actionError.message : "Bounty could not be posted") }
+                  finally { setCreatingBounty(false) }
                 }}
                 className="btn-accent rounded-full px-5 py-2 text-sm font-medium disabled:opacity-50">
                 {creatingBounty ? "Posting..." : "Post Bounty"}
