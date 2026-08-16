@@ -91,6 +91,18 @@
   padding: 1.5rem 2rem;
 }
 
+/* This card is always light, but its inputs inherit `color` from the page,
+   which flips to near-white in dark mode -- making typed text invisible
+   against the hardcoded white background above. Pin it to journal-ink. */
+.journal-form-card input,
+.journal-form-card textarea {
+  color: var(--journal-ink);
+}
+.journal-form-card input::placeholder,
+.journal-form-card textarea::placeholder {
+  color: rgba(0, 0, 0, 0.35);
+}
+
 @media (max-width: 639px) {
   .journal-form-card { padding: 1.25rem; }
   .journal-form-card h1 { font-size: clamp(2rem, 10vw, 2.5rem); }
