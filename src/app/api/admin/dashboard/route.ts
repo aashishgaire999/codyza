@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import { createServiceSupabase, isAdminRequest } from "@/lib/admin-auth"
-import { getRankFromXP } from "@/lib/ranks"
 
 function unauthorized() {
   return NextResponse.json({ error: "Admin authorization required" }, { status: 401 })
@@ -8,69 +7,15 @@ function unauthorized() {
 
 async function setSubmissionStatus(id: string, status: "approved" | "rejected") {
   const service = createServiceSupabase()
-  const { data: submission, error } = await service
-    .from("submissions")
-    .select("id,status,contributor_id,codyza_id,project_name,xp_earned,bounty_id")
-    .eq("id", id)
-    .maybeSingle()
-  if (error || !submission) throw new Error(error?.message || "Submission not found")
-
-  if (submission.status !== "pending") {
-    throw new Error(`Submission was already ${submission.status}`)
-  }
-
-  const { data: updated, error: updateError } = await service.from("submissions").update({ status }).eq("id", id).eq("status", "pending").select("id").maybeSingle()
-  if (updateError) throw new Error(updateError.message)
-  if (!updated) throw new Error("Submission status changed. Refresh and try again.")
-
-  if (status === "approved") {
-    if (submission.bounty_id) {
-      await service.from("bounties").update({ status: "completed" }).eq("id", submission.bounty_id).eq("claimed_by", submission.codyza_id).eq("status", "claimed")
-    }
-
-    const historyAction = `Approved submission:${submission.id}`
-    const { data: priorAward } = await service
-      .from("xp_history")
-      .select("id")
-      .eq("contributor_id", submission.contributor_id)
-      .eq("action", historyAction)
-      .maybeSingle()
-
-    if (!priorAward && Number(submission.xp_earned) > 0) {
-      const { data: contributor } = await service
-        .from("contributors")
-        .select("xp,streak,last_submission")
-        .eq("id", submission.contributor_id)
-        .maybeSingle()
-      if (contributor) {
-        const today = new Date().toISOString().slice(0, 10)
-        const last = contributor.last_submission ? new Date(contributor.last_submission).getTime() : 0
-        const inStreak = last > 0 && (Date.now() - last) / 86_400_000 <= 7
-        const xp = Number(contributor.xp || 0) + Number(submission.xp_earned)
-        await service.from("contributors").update({
-          xp,
-          rank: getRankFromXP(xp).name,
-          streak: inStreak ? Number(contributor.streak || 0) + 1 : 1,
-          last_submission: today,
-        }).eq("id", submission.contributor_id)
-        await service.from("xp_history").insert({
-          contributor_id: submission.contributor_id,
-          codyza_id: submission.codyza_id,
-          action: historyAction,
-          xp_change: Number(submission.xp_earned),
-        })
-      }
-    }
-  }
-
-  await service.from("notifications").insert({
-    codyza_id: submission.codyza_id,
-    type: status === "approved" ? "submission_approved" : "submission_rejected",
-    message: status === "approved"
-      ? `Your project "${submission.project_name}" was approved! +${submission.xp_earned} XP added.`
-      : `Your project "${submission.project_name}" was not approved this time.`,
-    link: "/member/projects",
+  const { error } = await service.rpc("admin_review_submission", {
+    p_submission_id: id,
+    p_status: status,
   })
+  if (error) {
+    console.error("Submission review failed", { code: error.code, details: error.details })
+    if (error.code === "PGRST202") throw new Error("The submission workflow migration has not been installed yet")
+    throw new Error(error.message)
+  }
 }
 
 export async function GET(request: Request) {
@@ -140,6 +85,7 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ success: true })
   } catch (error) {
+    console.error("Admin dashboard action failed", error)
     return NextResponse.json({ error: error instanceof Error ? error.message : "Admin action failed" }, { status: 500 })
   }
 }
