@@ -2,27 +2,30 @@ import { NextResponse } from "next/server"
 import { GoogleGenerativeAI } from "@google/generative-ai"
 import { createServiceSupabase } from "@/lib/admin-auth"
 import { getRequestMember } from "@/lib/member-auth"
+import { calculateProjectXp, projectSubmissionSchema } from "@/lib/project-submission"
 import { safeHttpsUrl } from "@/lib/security"
-import { z } from "zod"
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
-
-const submissionSchema = z.object({
-  project_name: z.string().trim().min(2).max(180),
-  github_url: z.string().max(500),
-  live_url: z.string().max(500).optional().nullable(),
-  description: z.string().trim().min(20).max(5000),
-  tech_stack: z.array(z.string().trim().min(1).max(80)).max(30).default([]),
-  bounty_id: z.string().max(100).optional().nullable(),
-})
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.6-flash"
+const AI_REVIEW_TIMEOUT_MS = 10_000
 
 export async function POST(req: Request) {
   try {
     const member = await getRequestMember(req)
     if (!member) return NextResponse.json({ error: "Member sign-in required" }, { status: 401 })
-    const parsedBody = submissionSchema.safeParse(await req.json())
-    if (!parsedBody.success) return NextResponse.json({ error: "Check the project details and try again" }, { status: 400 })
-    const { project_name, github_url: rawGithubUrl, live_url: rawLiveUrl, description, tech_stack, bounty_id } = parsedBody.data
+    const parsedBody = projectSubmissionSchema.safeParse(await req.json())
+    if (!parsedBody.success) {
+      const fieldMessages: Record<string, string> = {
+        project_name: "Project name must be between 2 and 180 characters",
+        description: "Description must be between 20 and 5000 characters",
+        github_url: "Enter a GitHub repository URL",
+        live_url: "Live URL is too long",
+        tech_stack: "Choose up to 30 tech stack tags",
+      }
+      const field = String(parsedBody.error.issues[0]?.path[0] ?? "")
+      return NextResponse.json({ error: fieldMessages[field] || "Check the project details and try again" }, { status: 400 })
+    }
+    const { project_name, github_url: rawGithubUrl, live_url: rawLiveUrl, description, tech_stack } = parsedBody.data
     const github_url = safeHttpsUrl(rawGithubUrl, { githubRepository: true })
     const live_url = rawLiveUrl ? safeHttpsUrl(rawLiveUrl) : null
     if (!github_url) return NextResponse.json({ error: "Enter a valid HTTPS GitHub repository URL" }, { status: 400 })
@@ -39,17 +42,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid Codyza ID." }, { status: 404 })
     }
 
-    if (bounty_id) {
-      const { data: bounty } = await supabase.from("bounties").select("id").eq("id", bounty_id).eq("claimed_by", member.codyza_id).eq("status", "claimed").maybeSingle()
-      if (!bounty) return NextResponse.json({ error: "That bounty is not assigned to you" }, { status: 403 })
-    }
-
     let ai_score = 7
     let ai_feedback = "Project reviewed. Good work on the submission."
     let ai_review: Record<string, unknown> = {}
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" })
+      const model = genAI.getGenerativeModel({ model: GEMINI_MODEL })
       const prompt = `You are a senior software engineer doing a thorough code review for Codyza, a developer community. A contributor submitted their project. Give an honest, detailed, constructive review. Be specific — reference the actual tech stack and project type.
 
 PROJECT DETAILS:
@@ -74,7 +72,10 @@ Respond ONLY with valid JSON (no markdown, no backticks):
 
 Score: 1-4 needs major work, 5-6 decent start, 7-8 solid, 9 excellent, 10 exceptional.`
 
-      const result = await model.generateContent(prompt)
+      const result = await Promise.race([
+        model.generateContent(prompt),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("AI review timed out")), AI_REVIEW_TIMEOUT_MS)),
+      ])
       const text = result.response.text()
       const jsonMatch = text.match(/\{[\s\S]*\}/)
       if (jsonMatch) {
@@ -87,20 +88,14 @@ Score: 1-4 needs major work, 5-6 decent start, 7-8 solid, 9 excellent, 10 except
       console.log("AI review error:", e)
     }
 
-    const base_xp = 100
-    const deploy_xp = live_url ? 150 : 0
-    // AI feedback is advisory only. Never let model output authorize XP.
-    const quality_xp = 0
-
-    const today = new Date().toISOString().split("T")[0]
-    const lastSub = contributor.last_submission
-    const isStreak = lastSub &&
-      (new Date(today).getTime() - new Date(lastSub).getTime()) / (1000 * 60 * 60 * 24) <= 7
-    const streak_new = isStreak ? (contributor.streak || 0) + 1 : 1
-    const streak_xp = streak_new >= 4 ? 200 : streak_new >= 2 ? 50 : 0
-
-    const total_xp = base_xp + deploy_xp + quality_xp + streak_xp
-    const { error: insertError } = await supabase.from("submissions").insert({
+    // XP is calculated now for admin review, but is only added to the member
+    // by admin_review_submission after an admin approves the project.
+    const xp = calculateProjectXp({
+      hasLiveUrl: Boolean(live_url),
+      lastSubmission: contributor.last_submission,
+      currentStreak: contributor.streak,
+    })
+    const submission = {
       contributor_id: contributor.id,
       codyza_id: contributor.codyza_id,
       project_name: String(project_name).slice(0, 180),
@@ -111,11 +106,16 @@ Score: 1-4 needs major work, 5-6 decent start, 7-8 solid, 9 excellent, 10 except
       ai_score,
       ai_feedback,
       ai_review,
-      xp_earned: total_xp,
+      xp_earned: xp.total,
       status: "pending",
-      bounty_id: bounty_id || null,
-    })
-    if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 })
+    }
+    const { error: insertError } = await supabase.from("submissions").insert(submission)
+    if (insertError) {
+      console.error("submission insert failed", { code: insertError.code, message: insertError.message })
+      return NextResponse.json({
+        error: "We could not save your project. Please try again shortly.",
+      }, { status: 500 })
+    }
 
     return NextResponse.json({
       success: true,
@@ -123,7 +123,7 @@ Score: 1-4 needs major work, 5-6 decent start, 7-8 solid, 9 excellent, 10 except
       ai_score,
       ai_feedback,
       ai_review,
-      xp_breakdown: { base: base_xp, deploy: deploy_xp, quality: quality_xp, streak: streak_xp, total: total_xp },
+      xp_breakdown: xp,
       status: "pending",
     })
 
