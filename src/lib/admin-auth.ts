@@ -46,9 +46,33 @@ export function isAdminRequest(request: Request) {
 }
 
 export function createServiceSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url) throw new Error("NEXT_PUBLIC_SUPABASE_URL is not configured")
   if (!key) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not configured")
-  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, {
+
+  // A public/anon key here silently turns server mutations into browser-level
+  // requests. Supabase then rejects them with RLS errors, which is much harder
+  // to diagnose than a clear configuration failure.
+  if (key === process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY is configured with the public anon key")
+  }
+  const jwtParts = key.split(".")
+  if (jwtParts.length === 3) {
+    try {
+      const payload = JSON.parse(Buffer.from(jwtParts[1], "base64url").toString("utf8")) as { role?: string }
+      if (payload.role !== "service_role") {
+        throw new Error("SUPABASE_SERVICE_ROLE_KEY does not contain the service_role credential")
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("service_role")) throw error
+      throw new Error("SUPABASE_SERVICE_ROLE_KEY is not a valid service-role credential")
+    }
+  } else if (!key.startsWith("sb_secret_")) {
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY is not a recognized server credential")
+  }
+
+  return createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   })
 }
