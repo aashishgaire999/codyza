@@ -56,6 +56,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ codyza_id: existing.codyza_id, alreadyExists: true })
     }
 
+    // Having a Supabase session only proves the email was verified -- it does
+    // not prove an admin approved this person. Crew membership requires an
+    // approved application; without this, anyone who can obtain any Supabase
+    // session (e.g. calling auth.signUp directly with the public anon key)
+    // could onboard themselves regardless of invite status.
+    // Case-insensitive: applicants type their email into the public form as-is
+    // (not lowercased), but Supabase normalizes auth emails to lowercase.
+    const { data: approvedApplication } = await service
+      .from("applications")
+      .select("id")
+      .ilike("email", user.email)
+      .eq("status", "approved")
+      .maybeSingle()
+
+    if (!approvedApplication) {
+      return NextResponse.json({ error: "No approved application found for this email. Apply at /join if you haven't already." }, { status: 403 })
+    }
+
     // Get all existing CZX-XXXX numbers to avoid collisions
     const { data: existingRows } = await service
       .from("contributors")
