@@ -120,6 +120,8 @@ export default function AdminDashboard() {
   const [expandedAi, setExpandedAi] = useState<Set<string>>(new Set())
   const [bulkActioning, setBulkActioning] = useState(false)
   const [processingApp, setProcessingApp] = useState<string | null>(null)
+  const [resendingApp, setResendingApp] = useState<string | null>(null)
+  const [resentAppId, setResentAppId] = useState<string | null>(null)
   const loadRequestRef = useRef(0)
 
   const loadData = async () => {
@@ -207,6 +209,20 @@ export default function AdminDashboard() {
       setSelected(new Set()); await loadData()
     } catch (actionError) { setError(actionError instanceof Error ? actionError.message : "Submissions could not be updated") }
     finally { setBulkActioning(false) }
+  }
+
+  const handleResendInvite = async (app: any) => {
+    setResendingApp(app.id)
+    setError("")
+    try {
+      const response = await adminFetch("/api/auth/resend-invite", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: app.email }) })
+      await requireSuccessfulResponse(response, "Could not resend the invite")
+      setResentAppId(app.id)
+      setTimeout(() => setResentAppId(null), 4000)
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : "Could not resend the invite")
+    }
+    setResendingApp(null)
   }
 
   const handleApplication = async (id: string, action: "approve"|"decline") => {
@@ -490,6 +506,15 @@ export default function AdminDashboard() {
                           <button onClick={() => handleApplication(app.id, "decline")} disabled={processingApp === app.id}
                             className="rounded-full border border-destructive/20 bg-destructive/10 px-4 py-2 text-sm text-destructive transition-colors hover:bg-destructive/20 disabled:opacity-50">
                             Decline
+                          </button>
+                        </div>
+                      )}
+                      {app.status === "approved" && (
+                        <div className="flex flex-shrink-0 flex-col gap-2">
+                          <button onClick={() => handleResendInvite(app)} disabled={resendingApp === app.id}
+                            title="Resend their invite link if it expired or never confirmed"
+                            className="rounded-full border border-accent/30 bg-accent/10 px-4 py-2 text-sm font-medium text-accent transition-colors hover:bg-accent/20 disabled:opacity-50">
+                            {resendingApp === app.id ? "Sending..." : resentAppId === app.id ? "Sent ✓" : "Resend invite"}
                           </button>
                         </div>
                       )}
