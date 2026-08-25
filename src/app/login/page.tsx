@@ -45,7 +45,12 @@ function LoginForm() {
       password,
     })
     if (signInError) {
-      setError(signInError.message.includes("Signups not allowed") ? "This email isn't registered." : signInError.message)
+      const message = signInError.message.includes("Signups not allowed")
+        ? "This email isn't registered."
+        : signInError.message.includes("Invalid login credentials")
+          ? "Incorrect email or password. If you haven't set a password yet, use the link from your invite email, or try \"forgot password?\" below."
+          : signInError.message
+      setError(message)
       setLoading(false)
     } else {
       router.push("/member")
