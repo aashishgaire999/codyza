@@ -91,16 +91,24 @@ function SetPasswordContent() {
   const handleRequestNewLink = async () => {
     if (!requestEmail) return
     setRequesting(true)
-    const supabase = createClient()
-    await supabase.auth.signInWithOtp({
-      email: requestEmail,
-      options: {
-        shouldCreateUser: false,
-        emailRedirectTo: `${window.location.origin}/set-password`,
-      },
-    })
+    setError("")
+    try {
+      const response = await fetch("/api/auth/resend-invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: requestEmail }),
+      })
+      const data = await response.json().catch(() => null)
+      if (!response.ok) {
+        setError(data?.error || "Could not send a new link. Please try again.")
+        setRequesting(false)
+        return
+      }
+      setRequested(true)
+    } catch {
+      setError("Could not send a new link. Please try again.")
+    }
     setRequesting(false)
-    setRequested(true)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -166,6 +174,11 @@ function SetPasswordContent() {
             >
               {requesting ? "Sending..." : "Send new link"}
             </button>
+            {error && error !== "This link is invalid or has expired. Request a new one." && (
+              <p className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-center text-sm text-destructive">
+                {error}
+              </p>
+            )}
           </div>
         )}
 

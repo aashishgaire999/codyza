@@ -25,6 +25,20 @@ export async function notifyAllMembers({ type, message, link = "/member", exclud
   }
 }
 
+/** Alert admins only -- for operational signals the whole crew doesn't need to see. */
+export async function notifyAdmins({ type, message, link = "/admin" }: Omit<NotificationInput, "excludeCodyzaId">) {
+  try {
+    const supabase = createServiceSupabase()
+    const { data: admins, error } = await supabase.from("contributors").select("codyza_id").eq("is_admin", true)
+    if (error || !admins?.length) return
+
+    const rows = admins.map((admin) => ({ codyza_id: admin.codyza_id, type, message, link }))
+    await supabase.from("notifications").insert(rows)
+  } catch {
+    // Notifications must never break the auth flow.
+  }
+}
+
 export async function notifyMember(codyzaId: string, { type, message, link = "/member" }: Omit<NotificationInput, "excludeCodyzaId">) {
   try {
     await createServiceSupabase().from("notifications").insert({ codyza_id: codyzaId, type, message, link })
