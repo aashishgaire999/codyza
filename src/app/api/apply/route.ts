@@ -9,7 +9,7 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 const applicationSchema = z.object({
   name: z.string().trim().min(2).max(120),
   email: z.string().trim().email().max(254),
-  github: z.string().trim().min(2).max(80).regex(/^[a-zA-Z0-9-]+$/),
+  github: z.string().trim().max(80).regex(/^[a-zA-Z0-9-]*$/),
   skills: z.string().trim().min(3).max(500),
   role: z.enum(["frontend", "backend", "fullstack", "ai", "design"]),
   level: z.enum(["beginner", "intermediate", "advanced"]),
@@ -27,7 +27,11 @@ function escapeHtml(value: string) {
 
 export async function POST(req: Request) {
   try {
-    const rateLimit = consumeRateLimit(req, "public-application", 5, 60 * 60 * 1000)
+    // Loose on purpose: mobile carriers put many different applicants behind
+    // one shared IP (CGNAT), and a hiring post going out on LinkedIn/Indeed
+    // can burst traffic from the same network. Worst case of abuse here is
+    // junk pending applications an admin declines, not real harm.
+    const rateLimit = consumeRateLimit(req, "public-application", 30, 60 * 60 * 1000)
     if (!rateLimit.allowed) {
       return NextResponse.json(
         { error: "Too many applications from this connection. Please try again later." },
@@ -77,7 +81,7 @@ export async function POST(req: Request) {
           <table style="width:100%;border-collapse:collapse;">
             <tr><td style="padding:8px 0;color:#94a3b8;width:120px;">Name</td><td style="padding:8px 0;font-weight:600;">${safe.name}</td></tr>
             <tr><td style="padding:8px 0;color:#94a3b8;">Email</td><td style="padding:8px 0;">${safe.email}</td></tr>
-            <tr><td style="padding:8px 0;color:#94a3b8;">GitHub</td><td style="padding:8px 0;"><a href="https://github.com/${safe.github}" style="color:#67e8f9;">@${safe.github}</a></td></tr>
+            <tr><td style="padding:8px 0;color:#94a3b8;">GitHub</td><td style="padding:8px 0;">${safe.github ? `<a href="https://github.com/${safe.github}" style="color:#67e8f9;">@${safe.github}</a>` : "Not provided"}</td></tr>
             <tr><td style="padding:8px 0;color:#94a3b8;">Role</td><td style="padding:8px 0;">${safe.role}</td></tr>
             <tr><td style="padding:8px 0;color:#94a3b8;">Level</td><td style="padding:8px 0;">${safe.level}</td></tr>
             <tr><td style="padding:8px 0;color:#94a3b8;">Skills</td><td style="padding:8px 0;">${safe.skills}</td></tr>
