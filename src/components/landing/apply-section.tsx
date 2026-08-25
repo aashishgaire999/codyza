@@ -14,7 +14,7 @@ import { SITE_CONFIG } from "@/constants/site"
 const schema = z.object({
   name: z.string().min(2, "Name too short"),
   email: z.string().email("Invalid email"),
-  github: z.string().min(2, "GitHub username required"),
+  github: z.string().max(80, "Too long").regex(/^[a-zA-Z0-9-]*$/, "Letters, numbers, and hyphens only"),
   skills: z.string().min(3, "Add at least one skill"),
   role: z.string().min(1, "Pick one"),
   level: z.string().min(1, "Pick one"),
@@ -464,11 +464,11 @@ export function ApplySection() {
                           where do you build?
                         </h4>
                         <p className="mb-5 text-sm text-black/55">
-                          Just your GitHub username.
+                          Your GitHub username, if you have one. Not required.
                         </p>
                         <div className="relative">
                           <Input
-                            placeholder="aashishgaire999"
+                            placeholder="aashishgaire999 (optional)"
                             autoFocus
                             {...register("github")}
                           />
