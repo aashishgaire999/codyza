@@ -1,7 +1,8 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { Bell, CheckCircle, XCircle, Trophy, Flame, Users, Zap, Megaphone, Star } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Bell, CheckCircle, XCircle, Trophy, Flame, Users, Zap, Megaphone, Star, LogIn } from "lucide-react"
 import { memberFetch } from "@/lib/member-fetch"
 
 interface Notification {
@@ -30,6 +31,7 @@ function NotifIcon({ type }: { type: string }) {
     rank_up:             { icon: <Trophy size={13} />,       color: "#f59e0b", bg: "rgba(245,158,11,0.15)" },
     streak_milestone:    { icon: <Flame size={13} />,        color: "#f97316", bg: "rgba(249,115,22,0.15)" },
     new_member:          { icon: <Users size={13} />,        color: "#06b6d4", bg: "rgba(6,182,212,0.15)" },
+    member_confirmed:    { icon: <LogIn size={13} />,        color: "#22d3ee", bg: "rgba(34,211,238,0.15)" },
     xp:                  { icon: <Zap size={13} />,          color: "#f59e0b", bg: "rgba(245,158,11,0.15)" },
     group:               { icon: <Users size={13} />,        color: "#8b5cf6", bg: "rgba(139,92,246,0.15)" },
     bounty:              { icon: <Star size={13} />,         color: "#f59e0b", bg: "rgba(245,158,11,0.15)" },
@@ -45,7 +47,9 @@ function NotifIcon({ type }: { type: string }) {
 }
 
 export function NotificationBell() {
+  const router = useRouter()
   const [notifications, setNotifications] = useState<Notification[]>([])
+  const [error, setError] = useState("")
   const [open, setOpen] = useState(false)
   const [now, setNow] = useState(() => Date.now())
   const ref = useRef<HTMLDivElement>(null)
@@ -53,10 +57,16 @@ export function NotificationBell() {
   const unread = notifications.filter(n => !n.read).length
 
   const loadNotifications = useCallback(async () => {
-    const res = await memberFetch("/api/notifications")
-    const data = await res.json()
-    setNotifications(Array.isArray(data) ? data : [])
-    setNow(Date.now())
+    try {
+      const res = await memberFetch("/api/notifications")
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Notifications could not be loaded")
+      setNotifications(Array.isArray(data) ? data : [])
+      setError("")
+      setNow(Date.now())
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "Notifications could not be loaded")
+    }
   }, [])
 
   useEffect(() => {
@@ -76,27 +86,39 @@ export function NotificationBell() {
   }, [])
 
   const markAllRead = async () => {
-    await memberFetch("/api/notifications", {
+    const response = await memberFetch("/api/notifications", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
     })
+    if (!response.ok) {
+      const data = await response.json().catch(() => null)
+      setError(data?.error || "Notifications could not be updated")
+      return false
+    }
     setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+    return true
   }
 
   const markRead = async (id: string) => {
-    await memberFetch("/api/notifications", {
+    const response = await memberFetch("/api/notifications", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     })
+    if (!response.ok) {
+      const data = await response.json().catch(() => null)
+      setError(data?.error || "Notification could not be updated")
+      return false
+    }
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
+    return true
   }
 
   return (
     <div ref={ref} style={{ position: "relative" }}>
       <button
-        onClick={() => { setOpen(!open); if (!open && unread > 0) markAllRead() }}
+        onClick={() => { setOpen(!open) }}
         style={{
           position: "relative", padding: "8px", borderRadius: 8,
           background: open ? "rgba(255,255,255,0.08)" : "transparent",
@@ -141,7 +163,12 @@ export function NotificationBell() {
             )}
           </div>
 
-          {notifications.length === 0 ? (
+          {error ? (
+            <div role="alert" style={{ padding: "24px 16px", textAlign: "center", color: "#fca5a5", fontSize: 12, lineHeight: 1.5 }}>
+              {error}
+              <button onClick={() => void loadNotifications()} style={{ display: "block", margin: "10px auto 0", color: "#c4b5fd", background: "none", border: 0, cursor: "pointer" }}>Try again</button>
+            </div>
+          ) : notifications.length === 0 ? (
             <div style={{ padding: "32px 16px", textAlign: "center", color: "rgba(255,255,255,0.3)", fontSize: 13 }}>
               No notifications yet
             </div>
@@ -149,7 +176,13 @@ export function NotificationBell() {
             notifications.map(n => (
               <div
                 key={n.id}
-                onClick={() => markRead(n.id)}
+                onClick={async () => {
+                  const updated = n.read || await markRead(n.id)
+                  if (updated && n.link) {
+                    setOpen(false)
+                    router.push(n.link)
+                  }
+                }}
                 style={{
                   padding: "12px 16px",
                   borderBottom: "1px solid rgba(255,255,255,0.04)",

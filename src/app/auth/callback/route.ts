@@ -2,6 +2,31 @@ import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { NextRequest, NextResponse } from "next/server"
 import { safeInternalRedirect } from "@/lib/security"
+import { createServiceSupabase } from "@/lib/admin-auth"
+import { notifyAdmins } from "@/lib/member-notifications"
+
+// Fires only the first time this email successfully authenticates -- lets
+// admins know an invite was actually redeemed without checking the Supabase
+// dashboard by hand. Routine re-logins by existing members are silent.
+async function notifyIfFirstLogin(email: string | undefined) {
+  if (!email) return
+  try {
+    const service = createServiceSupabase()
+    const { data: existing } = await service
+      .from("contributors")
+      .select("codyza_id")
+      .ilike("email", email)
+      .maybeSingle()
+    if (existing) return
+    await notifyAdmins({
+      type: "member_confirmed",
+      message: `${email} just confirmed their invite and logged in for the first time.`,
+      link: "/admin",
+    })
+  } catch (error) {
+    console.error("notifyIfFirstLogin failed", error)
+  }
+}
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
@@ -32,6 +57,8 @@ export async function GET(request: NextRequest) {
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
+      const { data: { user } } = await supabase.auth.getUser()
+      await notifyIfFirstLogin(user?.email)
       return NextResponse.redirect(new URL(next, origin))
     }
   }
@@ -42,6 +69,8 @@ export async function GET(request: NextRequest) {
       type: type as "invite" | "recovery" | "email",
     })
     if (!error) {
+      const { data: { user } } = await supabase.auth.getUser()
+      await notifyIfFirstLogin(user?.email)
       return NextResponse.redirect(new URL(next, origin))
     }
   }
