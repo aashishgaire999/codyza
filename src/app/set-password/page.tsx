@@ -7,6 +7,13 @@ import Link from "next/link"
 import { CheckCircle, AlertCircle } from "lucide-react"
 import { AuthLayout } from "@/components/shared/auth-layout"
 
+function humanizeAuthError(message: string): string {
+  if (/password should contain at least one character of each/i.test(message)) {
+    return "Password needs at least one lowercase letter, one uppercase letter, one number, and one special character."
+  }
+  return message
+}
+
 function SetPasswordContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -130,7 +137,7 @@ function SetPasswordContent() {
     setSubmitting(false)
 
     if (updateErr) {
-      setError(updateErr.message)
+      setError(humanizeAuthError(updateErr.message))
       return
     }
 
@@ -231,8 +238,9 @@ function SetPasswordContent() {
         </div>
 
         {error && (
-          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-            {error}
+          <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 

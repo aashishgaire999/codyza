@@ -292,6 +292,85 @@ export default function AdminDashboard() {
   const pendingCount = submissions.filter(s => s.status === "pending").length
   const pendingApps = applications.filter(a => a.status === "pending").length
 
+  const renderApplicationCard = (app: any) => (
+    <div key={app.id} className={`surface-card p-5 ${app.status === "approved" ? "border-success/20" : app.status === "declined" ? "border-destructive/10" : ""}`}>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <div className="mb-2 flex flex-wrap items-center gap-3">
+            <span className="text-base font-bold">{app.name}</span>
+            <span className={`rounded px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest ${app.status === "pending" ? "border border-border bg-muted text-muted-foreground" : app.status === "approved" ? "border border-success/30 bg-success/10 text-success" : "border border-destructive/20 bg-destructive/10 text-destructive"}`}>{app.status}</span>
+          </div>
+          <div className="mb-3 flex flex-wrap gap-4 text-sm text-muted-foreground">
+            <span>{app.email}</span>
+            {app.github && <a href={`https://github.com/${app.github}`} target="_blank" rel="noopener noreferrer" className="text-accent transition-colors hover:opacity-80">@{app.github}</a>}
+            <span>{app.role} · {app.level}</span>
+            <span className="font-mono text-xs text-muted-foreground">{new Date(app.applied_at).toLocaleDateString()}</span>
+          </div>
+          {app.skills && (
+            <div className="mb-3 flex flex-wrap gap-1.5">
+              {app.skills.split(",").slice(0,6).map((s: string) => (
+                <span key={s} className="rounded-full border border-border bg-muted px-2 py-0.5 font-mono text-[10px] text-muted-foreground">{s.trim()}</span>
+              ))}
+            </div>
+          )}
+          {app.why && (
+            <p className="rounded-r-lg border-l-2 border-accent/30 bg-muted/30 py-2 pl-3 text-sm italic leading-relaxed text-muted-foreground">&ldquo;{app.why}&rdquo;</p>
+          )}
+          {app.status === "approved" && (
+            <div className="mt-3 flex items-center gap-3 rounded-xl border border-border bg-muted/30 px-3 py-2.5">
+              {app.member ? (
+                <>
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-[10px] font-bold text-muted-foreground">
+                    {app.member.avatar_url
+                      ? <img src={app.member.avatar_url} alt={app.member.name} className="h-full w-full object-cover" />
+                      : (app.member.name || "?").split(" ").map((p: string) => p[0]).slice(0, 2).join("").toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-semibold text-foreground">✓ In the system &middot; {app.member.name} <span className="font-mono text-accent">{app.member.codyza_id}</span></p>
+                    <p className="text-[10px] text-muted-foreground">{app.last_sign_in_at ? `Last active ${new Date(app.last_sign_in_at).toLocaleString()}` : "Never signed in"}</p>
+                  </div>
+                </>
+              ) : app.confirmed_at ? (
+                <p className="text-xs text-muted-foreground">🕓 Confirmed their invite, hasn&apos;t finished onboarding yet.</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">⏳ Invite not yet redeemed.</p>
+              )}
+            </div>
+          )}
+        </div>
+        {app.status === "pending" && (
+          <div className="flex flex-shrink-0 flex-col gap-2">
+            <button onClick={() => handleApplication(app.id, "approve")} disabled={processingApp === app.id}
+              className="rounded-full border border-success/30 bg-success/10 px-4 py-2 text-sm font-medium text-success transition-colors hover:bg-success/20 disabled:opacity-50">
+              {processingApp === app.id ? "..." : "Approve ✓"}
+            </button>
+            <button onClick={() => handleApplication(app.id, "decline")} disabled={processingApp === app.id}
+              className="rounded-full border border-destructive/20 bg-destructive/10 px-4 py-2 text-sm text-destructive transition-colors hover:bg-destructive/20 disabled:opacity-50">
+              Decline
+            </button>
+          </div>
+        )}
+        {app.status === "approved" && (
+          <div className="flex flex-shrink-0 flex-col items-end gap-1">
+            <button onClick={() => handleResendInvite(app)} disabled={resendingApp === app.id}
+              title="Sending this instantly kills any earlier invite link they haven't used yet"
+              className="rounded-full border border-accent/30 bg-accent/10 px-4 py-2 text-sm font-medium text-accent transition-colors hover:bg-accent/20 disabled:opacity-50">
+              {resendingApp === app.id ? "Sending..." : resentAppId === app.id ? "Sent ✓" : "Resend invite"}
+            </button>
+            <p className="max-w-[140px] text-right text-[10px] leading-tight text-muted-foreground">Invalidates their current link if unused</p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+
+  const applicationSections = [
+    { key: "pending", label: "pending", items: applications.filter(a => a.status === "pending") },
+    { key: "approved-unredeemed", label: "approved · not in the system yet", items: applications.filter(a => a.status === "approved" && !a.member) },
+    { key: "in-system", label: "in the system", items: applications.filter(a => a.status === "approved" && a.member) },
+    { key: "declined", label: "declined", items: applications.filter(a => a.status === "declined") },
+  ]
+
   return (
     <div className="cosmic-workspace cosmic-admin min-h-screen font-sans text-foreground antialiased" data-cosmic-zone="command">
       <CosmicBackdrop variant="command" />
@@ -496,7 +575,7 @@ export default function AdminDashboard() {
             </div>
             <div className="surface-card mb-5 p-5">
               <h3 className="mb-1 font-[family-name:var(--font-heading)] text-sm font-semibold lowercase">invite a contributor directly</h3>
-              <p className="mb-4 text-xs text-muted-foreground">For people who didn&apos;t go through /join. This is the only correct way to add someone outside the normal application flow &mdash; adding them directly in Supabase will not work.</p>
+              <p className="mb-4 text-xs text-muted-foreground">For people who didn&apos;t go through /join. This is the only correct way to add someone outside the normal application flow &mdash; adding them directly in Supabase will not work. If they already have an unused invite, sending again replaces it instantly &mdash; any older email link they have stops working.</p>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <input value={directInviteName} onChange={e => setDirectInviteName(e.target.value)} placeholder="Full name" className="glass-input flex-1 rounded-xl px-3 py-2 text-sm focus:outline-none" />
                 <input value={directInviteEmail} onChange={e => setDirectInviteEmail(e.target.value)} placeholder="email@example.com" type="email" className="glass-input flex-1 rounded-xl px-3 py-2 text-sm focus:outline-none" />
@@ -510,75 +589,18 @@ export default function AdminDashboard() {
             {applications.length === 0 ? (
               <div className="py-16 text-center text-muted-foreground">No applications yet.</div>
             ) : (
-              <div className="space-y-3">
-                {applications.map(app => (
-                  <div key={app.id} className={`surface-card p-5 ${app.status === "approved" ? "border-success/20" : app.status === "declined" ? "border-destructive/10" : ""}`}>
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="min-w-0 flex-1">
-                        <div className="mb-2 flex flex-wrap items-center gap-3">
-                          <span className="text-base font-bold">{app.name}</span>
-                          <span className={`rounded px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest ${app.status === "pending" ? "border border-border bg-muted text-muted-foreground" : app.status === "approved" ? "border border-success/30 bg-success/10 text-success" : "border border-destructive/20 bg-destructive/10 text-destructive"}`}>{app.status}</span>
-                        </div>
-                        <div className="mb-3 flex flex-wrap gap-4 text-sm text-muted-foreground">
-                          <span>{app.email}</span>
-                          {app.github && <a href={`https://github.com/${app.github}`} target="_blank" rel="noopener noreferrer" className="text-accent transition-colors hover:opacity-80">@{app.github}</a>}
-                          <span>{app.role} · {app.level}</span>
-                          <span className="font-mono text-xs text-muted-foreground">{new Date(app.applied_at).toLocaleDateString()}</span>
-                        </div>
-                        {app.skills && (
-                          <div className="mb-3 flex flex-wrap gap-1.5">
-                            {app.skills.split(",").slice(0,6).map((s: string) => (
-                              <span key={s} className="rounded-full border border-border bg-muted px-2 py-0.5 font-mono text-[10px] text-muted-foreground">{s.trim()}</span>
-                            ))}
-                          </div>
-                        )}
-                        {app.why && (
-                          <p className="rounded-r-lg border-l-2 border-accent/30 bg-muted/30 py-2 pl-3 text-sm italic leading-relaxed text-muted-foreground">&ldquo;{app.why}&rdquo;</p>
-                        )}
-                        {app.status === "approved" && (
-                          <div className="mt-3 flex items-center gap-3 rounded-xl border border-border bg-muted/30 px-3 py-2.5">
-                            {app.member ? (
-                              <>
-                                <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-[10px] font-bold text-muted-foreground">
-                                  {app.member.avatar_url
-                                    ? <img src={app.member.avatar_url} alt={app.member.name} className="h-full w-full object-cover" />
-                                    : (app.member.name || "?").split(" ").map((p: string) => p[0]).slice(0, 2).join("").toUpperCase()}
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                  <p className="truncate text-xs font-semibold text-foreground">✓ In the system &middot; {app.member.name} <span className="font-mono text-accent">{app.member.codyza_id}</span></p>
-                                  <p className="text-[10px] text-muted-foreground">{app.last_sign_in_at ? `Last active ${new Date(app.last_sign_in_at).toLocaleString()}` : "Never signed in"}</p>
-                                </div>
-                              </>
-                            ) : app.confirmed_at ? (
-                              <p className="text-xs text-muted-foreground">🕓 Confirmed their invite, hasn&apos;t finished onboarding yet.</p>
-                            ) : (
-                              <p className="text-xs text-muted-foreground">⏳ Invite not yet redeemed.</p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                      {app.status === "pending" && (
-                        <div className="flex flex-shrink-0 flex-col gap-2">
-                          <button onClick={() => handleApplication(app.id, "approve")} disabled={processingApp === app.id}
-                            className="rounded-full border border-success/30 bg-success/10 px-4 py-2 text-sm font-medium text-success transition-colors hover:bg-success/20 disabled:opacity-50">
-                            {processingApp === app.id ? "..." : "Approve ✓"}
-                          </button>
-                          <button onClick={() => handleApplication(app.id, "decline")} disabled={processingApp === app.id}
-                            className="rounded-full border border-destructive/20 bg-destructive/10 px-4 py-2 text-sm text-destructive transition-colors hover:bg-destructive/20 disabled:opacity-50">
-                            Decline
-                          </button>
-                        </div>
-                      )}
-                      {app.status === "approved" && (
-                        <div className="flex flex-shrink-0 flex-col gap-2">
-                          <button onClick={() => handleResendInvite(app)} disabled={resendingApp === app.id}
-                            title="Resend their invite link if it expired or never confirmed"
-                            className="rounded-full border border-accent/30 bg-accent/10 px-4 py-2 text-sm font-medium text-accent transition-colors hover:bg-accent/20 disabled:opacity-50">
-                            {resendingApp === app.id ? "Sending..." : resentAppId === app.id ? "Sent ✓" : "Resend invite"}
-                          </button>
-                        </div>
-                      )}
-                    </div>
+              <div className="space-y-8">
+                {applicationSections.map(section => (
+                  <div key={section.key}>
+                    <h3 className="mb-3 flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+                      {section.label}
+                      <span className="rounded-full border border-border bg-muted px-2 py-0.5">{section.items.length}</span>
+                    </h3>
+                    {section.items.length === 0 ? (
+                      <p className="pb-2 text-xs text-muted-foreground">None.</p>
+                    ) : (
+                      <div className="space-y-3">{section.items.map(renderApplicationCard)}</div>
+                    )}
                   </div>
                 ))}
               </div>
