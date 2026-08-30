@@ -26,6 +26,19 @@ export async function POST(req: Request) {
 
     const service = createServiceSupabase()
 
+    // Existing crew members (e.g. seeded founders/admins) were never added
+    // through the applications table, so they'd otherwise get a misleading
+    // "not registered" instead of being told they already have an account.
+    const { data: existingContributor } = await service
+      .from("contributors")
+      .select("codyza_id")
+      .ilike("email", email)
+      .maybeSingle()
+
+    if (existingContributor) {
+      return NextResponse.json({ error: "This account is already set up. Sign in at /login instead." }, { status: 409 })
+    }
+
     const { data: approvedApplication } = await service
       .from("applications")
       .select("id")
