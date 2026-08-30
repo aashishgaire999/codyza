@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai"
 import { createServiceSupabase } from "@/lib/admin-auth"
 import { getRequestMember } from "@/lib/member-auth"
 import { calculateProjectXp, projectSubmissionSchema } from "@/lib/project-submission"
-import { safeHttpsUrl } from "@/lib/security"
+import { consumeRateLimit, safeHttpsUrl } from "@/lib/security"
 
 export const maxDuration = 30
 
@@ -99,6 +99,14 @@ async function fetchLiveSiteContext(liveUrl: string, timeoutMs: number) {
 
 export async function POST(req: Request) {
   try {
+    const rateLimit = consumeRateLimit(req, "project-submit", 10, 60 * 60 * 1000)
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many submissions. Please try again shortly." },
+        { status: 429, headers: { "Retry-After": String(rateLimit.retryAfter) } },
+      )
+    }
+
     const member = await getRequestMember(req)
     if (!member) return NextResponse.json({ error: "Member sign-in required" }, { status: 401 })
     const parsedBody = projectSubmissionSchema.safeParse(await req.json())
