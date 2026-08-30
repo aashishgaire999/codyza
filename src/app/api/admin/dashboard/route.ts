@@ -21,7 +21,7 @@ async function setSubmissionStatus(id: string, status: "approved" | "rejected") 
 export async function GET(request: Request) {
   if (!isAdminRequest(request)) return unauthorized()
   const service = createServiceSupabase()
-  const [contributors, submissions, applications, groups, groupMembers, bounties, sessions] = await Promise.all([
+  const [contributors, submissions, applications, groups, groupMembers, bounties, sessions, authUsers] = await Promise.all([
     service.from("contributors").select("*").order("xp", { ascending: false }),
     service.from("submissions").select("*").order("submitted_at", { ascending: false }),
     service.from("applications").select("*").order("applied_at", { ascending: false }),
@@ -29,6 +29,7 @@ export async function GET(request: Request) {
     service.from("group_members").select("group_id,codyza_id,role"),
     service.from("bounties").select("*").order("posted_at", { ascending: false }),
     service.from("work_sessions").select("*").order("started_at", { ascending: false }),
+    service.auth.admin.listUsers({ page: 1, perPage: 1000 }),
   ])
   const failed = [contributors, submissions, applications, groups, groupMembers, bounties].find((result) => result.error)
   if (failed?.error) return NextResponse.json({ error: failed.error.message }, { status: 500 })
@@ -50,10 +51,32 @@ export async function GET(request: Request) {
     membersByGroup.set(member.group_id, entries)
   }
 
+  // Lets admins confirm an approved applicant actually made it into the
+  // system (and when they were last active) without checking Supabase by
+  // hand -- cross-referenced by email since that's the only link between an
+  // application, its auth account, and its eventual contributor row.
+  const contributorByEmail = new Map(people.filter((p) => p.email).map((p) => [String(p.email).toLowerCase(), p]))
+  const authByEmail = new Map(
+    (authUsers.data?.users || [])
+      .filter((u) => u.email)
+      .map((u) => [String(u.email).toLowerCase(), { confirmed_at: u.confirmed_at || null, last_sign_in_at: u.last_sign_in_at || null }]),
+  )
+  const enrichedApplications = (applications.data || []).map((app) => {
+    const email = app.email ? String(app.email).toLowerCase() : ""
+    const member = email ? contributorByEmail.get(email) : undefined
+    const auth = email ? authByEmail.get(email) : undefined
+    return {
+      ...app,
+      member: member ? { codyza_id: member.codyza_id, name: member.name, avatar_url: member.avatar_url } : null,
+      confirmed_at: auth?.confirmed_at || null,
+      last_sign_in_at: auth?.last_sign_in_at || null,
+    }
+  })
+
   return NextResponse.json({
     contributors: people,
     submissions: submissions.data || [],
-    applications: applications.data || [],
+    applications: enrichedApplications,
     groups: (groups.data || []).map((group) => ({ ...group, members: membersByGroup.get(group.id) || [], creator_name: names.get(group.created_by) || group.created_by })),
     bounties: (bounties.data || []).map((bounty) => ({ ...bounty, poster_name: names.get(bounty.posted_by) || bounty.posted_by, claimer_name: bounty.claimed_by ? names.get(bounty.claimed_by) || bounty.claimed_by : null })),
     workSessions: workSessions.map((session) => ({ ...session, member_name: names.get(session.codyza_id) || session.codyza_id })),

@@ -70,7 +70,20 @@ export async function POST(req: Request) {
       .eq("status", "approved")
       .maybeSingle()
 
-    if (!approvedApplication) {
+    let authorized = Boolean(approvedApplication)
+
+    if (!authorized) {
+      // Supabase only sets invited_at when an account was created via the
+      // admin invite API (auth.admin.inviteUserByEmail) -- whether that was
+      // triggered through this app or directly in the Supabase dashboard.
+      // A public self-signup via auth.signUp never sets this field, so it's
+      // a safe signal that an admin explicitly vouched for this account
+      // even without a matching application record.
+      const { data: adminUserData } = await service.auth.admin.getUserById(user.id)
+      authorized = Boolean(adminUserData?.user?.invited_at)
+    }
+
+    if (!authorized) {
       return NextResponse.json({ error: "No approved application found for this email. Apply at /join if you haven't already." }, { status: 403 })
     }
 

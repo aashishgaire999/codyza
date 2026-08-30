@@ -122,6 +122,10 @@ export default function AdminDashboard() {
   const [processingApp, setProcessingApp] = useState<string | null>(null)
   const [resendingApp, setResendingApp] = useState<string | null>(null)
   const [resentAppId, setResentAppId] = useState<string | null>(null)
+  const [directInviteName, setDirectInviteName] = useState("")
+  const [directInviteEmail, setDirectInviteEmail] = useState("")
+  const [sendingDirectInvite, setSendingDirectInvite] = useState(false)
+  const [directInviteNotice, setDirectInviteNotice] = useState("")
   const loadRequestRef = useRef(0)
 
   const loadData = async () => {
@@ -223,6 +227,28 @@ export default function AdminDashboard() {
       setError(actionError instanceof Error ? actionError.message : "Could not resend the invite")
     }
     setResendingApp(null)
+  }
+
+  const handleDirectInvite = async () => {
+    if (directInviteName.trim().length < 2 || !directInviteEmail.trim()) return
+    setSendingDirectInvite(true)
+    setError("")
+    setDirectInviteNotice("")
+    try {
+      const response = await adminFetch("/api/admin/direct-invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: directInviteName.trim(), email: directInviteEmail.trim() }),
+      })
+      await requireSuccessfulResponse(response, "Could not send the invite")
+      setDirectInviteNotice(`Invite sent to ${directInviteEmail.trim()}`)
+      setDirectInviteName("")
+      setDirectInviteEmail("")
+      await loadData()
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : "Could not send the invite")
+    }
+    setSendingDirectInvite(false)
   }
 
   const handleApplication = async (id: string, action: "approve"|"decline") => {
@@ -468,6 +494,19 @@ export default function AdminDashboard() {
               </h2>
               <button onClick={() => void loadData()} className="btn-ghost rounded-full px-3 py-1.5 text-xs">Refresh</button>
             </div>
+            <div className="surface-card mb-5 p-5">
+              <h3 className="mb-1 font-[family-name:var(--font-heading)] text-sm font-semibold lowercase">invite a contributor directly</h3>
+              <p className="mb-4 text-xs text-muted-foreground">For people who didn&apos;t go through /join. This is the only correct way to add someone outside the normal application flow &mdash; adding them directly in Supabase will not work.</p>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <input value={directInviteName} onChange={e => setDirectInviteName(e.target.value)} placeholder="Full name" className="glass-input flex-1 rounded-xl px-3 py-2 text-sm focus:outline-none" />
+                <input value={directInviteEmail} onChange={e => setDirectInviteEmail(e.target.value)} placeholder="email@example.com" type="email" className="glass-input flex-1 rounded-xl px-3 py-2 text-sm focus:outline-none" />
+                <button onClick={handleDirectInvite} disabled={sendingDirectInvite || directInviteName.trim().length < 2 || !directInviteEmail.trim()}
+                  className="btn-primary shrink-0 rounded-full px-5 py-2 text-sm font-medium disabled:opacity-50">
+                  {sendingDirectInvite ? "Sending..." : "Send invite"}
+                </button>
+              </div>
+              {directInviteNotice && <p className="mt-3 text-xs text-success">{directInviteNotice}</p>}
+            </div>
             {applications.length === 0 ? (
               <div className="py-16 text-center text-muted-foreground">No applications yet.</div>
             ) : (
@@ -495,6 +534,27 @@ export default function AdminDashboard() {
                         )}
                         {app.why && (
                           <p className="rounded-r-lg border-l-2 border-accent/30 bg-muted/30 py-2 pl-3 text-sm italic leading-relaxed text-muted-foreground">&ldquo;{app.why}&rdquo;</p>
+                        )}
+                        {app.status === "approved" && (
+                          <div className="mt-3 flex items-center gap-3 rounded-xl border border-border bg-muted/30 px-3 py-2.5">
+                            {app.member ? (
+                              <>
+                                <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-[10px] font-bold text-muted-foreground">
+                                  {app.member.avatar_url
+                                    ? <img src={app.member.avatar_url} alt={app.member.name} className="h-full w-full object-cover" />
+                                    : (app.member.name || "?").split(" ").map((p: string) => p[0]).slice(0, 2).join("").toUpperCase()}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <p className="truncate text-xs font-semibold text-foreground">✓ In the system &middot; {app.member.name} <span className="font-mono text-accent">{app.member.codyza_id}</span></p>
+                                  <p className="text-[10px] text-muted-foreground">{app.last_sign_in_at ? `Last active ${new Date(app.last_sign_in_at).toLocaleString()}` : "Never signed in"}</p>
+                                </div>
+                              </>
+                            ) : app.confirmed_at ? (
+                              <p className="text-xs text-muted-foreground">🕓 Confirmed their invite, hasn&apos;t finished onboarding yet.</p>
+                            ) : (
+                              <p className="text-xs text-muted-foreground">⏳ Invite not yet redeemed.</p>
+                            )}
+                          </div>
                         )}
                       </div>
                       {app.status === "pending" && (

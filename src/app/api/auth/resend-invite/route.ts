@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createServiceSupabase } from "@/lib/admin-auth"
 import { consumeRateLimit } from "@/lib/security"
+import { resendOrInvite } from "@/lib/member-invites"
 
 // The public magic-link endpoint (auth.signInWithOtp) does not correctly
 // resend a link for a user who was invited but never confirmed -- Supabase
@@ -36,28 +37,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "This email isn't registered." }, { status: 404 })
     }
 
-    const { data: userList, error: listError } = await service.auth.admin.listUsers({ page: 1, perPage: 1000 })
-    if (listError) {
-      console.error("resend-invite: could not list users", listError)
-      return NextResponse.json({ error: "Could not send a new link. Please try again shortly." }, { status: 500 })
-    }
-    const existingUser = userList.users.find((user) => user.email?.toLowerCase() === email)
-
-    if (existingUser?.confirmed_at) {
-      return NextResponse.json(
-        { error: "This account is already set up. Sign in at /login, or use \"email me a login link\" there." },
-        { status: 409 },
-      )
-    }
-
     const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || new URL(req.url).origin).replace(/\/$/, "")
-    const { error: inviteError } = await service.auth.admin.inviteUserByEmail(email, {
-      redirectTo: `${siteUrl}/auth/callback?next=/set-password`,
-    })
-
-    if (inviteError) {
-      console.error("resend-invite: invite failed", inviteError)
-      return NextResponse.json({ error: "Could not send a new link. Please try again shortly." }, { status: 500 })
+    const result = await resendOrInvite(service, email, siteUrl)
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error }, { status: result.status })
     }
 
     return NextResponse.json({ success: true })
