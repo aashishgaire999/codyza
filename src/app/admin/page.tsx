@@ -126,6 +126,7 @@ export default function AdminDashboard() {
   const [directInviteEmail, setDirectInviteEmail] = useState("")
   const [sendingDirectInvite, setSendingDirectInvite] = useState(false)
   const [directInviteNotice, setDirectInviteNotice] = useState("")
+  const [applicationFilter, setApplicationFilter] = useState("pending")
   const loadRequestRef = useRef(0)
 
   const loadData = async () => {
@@ -589,20 +590,26 @@ export default function AdminDashboard() {
             {applications.length === 0 ? (
               <div className="py-16 text-center text-muted-foreground">No applications yet.</div>
             ) : (
-              <div className="space-y-8">
-                {applicationSections.map(section => (
-                  <div key={section.key}>
-                    <h3 className="mb-3 flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-                      {section.label}
-                      <span className="rounded-full border border-border bg-muted px-2 py-0.5">{section.items.length}</span>
-                    </h3>
-                    {section.items.length === 0 ? (
-                      <p className="pb-2 text-xs text-muted-foreground">None.</p>
-                    ) : (
-                      <div className="space-y-3">{section.items.map(renderApplicationCard)}</div>
-                    )}
-                  </div>
-                ))}
+              <div>
+                <div className="mb-5 flex flex-wrap gap-2">
+                  {applicationSections.map(section => (
+                    <button
+                      key={section.key}
+                      onClick={() => setApplicationFilter(section.key)}
+                      className={`rounded-full border px-4 py-1.5 font-mono text-[11px] uppercase tracking-widest transition-colors ${applicationFilter === section.key ? "border-accent bg-accent/10 text-accent" : "border-border bg-muted text-muted-foreground hover:border-accent/30"}`}
+                    >
+                      {section.label} ({section.items.length})
+                    </button>
+                  ))}
+                </div>
+                {(() => {
+                  const active = applicationSections.find(section => section.key === applicationFilter) || applicationSections[0]
+                  return active.items.length === 0 ? (
+                    <div className="py-16 text-center text-muted-foreground">None in this section.</div>
+                  ) : (
+                    <div className="space-y-3">{active.items.map(renderApplicationCard)}</div>
+                  )
+                })()}
               </div>
             )}
           </div>
