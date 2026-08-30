@@ -351,7 +351,7 @@ export default function AdminDashboard() {
             </button>
           </div>
         )}
-        {app.status === "approved" && (
+        {app.status === "approved" && !app.member && (
           <div className="flex flex-shrink-0 flex-col items-end gap-1">
             <button onClick={() => handleResendInvite(app)} disabled={resendingApp === app.id}
               title="Sending this instantly kills any earlier invite link they haven't used yet"
