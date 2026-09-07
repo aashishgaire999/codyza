@@ -16,14 +16,24 @@ export async function GET(req: Request) {
 
   // Get members for each group
   const groupIds = (groups || []).map((g: any) => g.id)
-  const { data: members } = await supabase
+  const { data: members, error: membersError } = await supabase
     .from("group_members")
     .select("group_id, codyza_id, role")
     .in("group_id", groupIds.length > 0 ? groupIds : ["none"])
 
-  const { data: contributors } = await supabase
+  if (membersError) {
+    console.error("Group member list failed", { code: membersError.code, details: membersError.details })
+    return NextResponse.json({ error: "Groups could not be loaded" }, { status: 500 })
+  }
+
+  const { data: contributors, error: contributorsError } = await supabase
     .from("contributors")
     .select("codyza_id, name")
+
+  if (contributorsError) {
+    console.error("Group contributor list failed", { code: contributorsError.code, details: contributorsError.details })
+    return NextResponse.json({ error: "Groups could not be loaded" }, { status: 500 })
+  }
 
   const nameMap = new Map((contributors || []).map((c: any) => [c.codyza_id, c.name]))
   const membersByGroup = new Map<string, any[]>()
@@ -32,10 +42,18 @@ export async function GET(req: Request) {
     membersByGroup.get(m.group_id)!.push({ ...m, name: nameMap.get(m.codyza_id) || m.codyza_id })
   }
 
+  const { data: pendingSubs } = await supabase
+    .from("submissions")
+    .select("group_id")
+    .eq("status", "pending")
+    .in("group_id", groupIds.length > 0 ? groupIds : ["none"])
+  const pendingGroupIds = new Set((pendingSubs || []).map((s: any) => s.group_id))
+
   const enriched = (groups || []).map((g: any) => ({
     ...g,
     members: membersByGroup.get(g.id) || [],
     creator_name: nameMap.get(g.created_by) || g.created_by,
+    has_pending_submission: pendingGroupIds.has(g.id),
   }))
 
   return NextResponse.json(enriched)
@@ -77,7 +95,12 @@ export async function POST(req: Request) {
         codyza_id: id,
         role: roles?.[i] || "member",
       }))
-      await supabase.from("group_members").insert(memberRows)
+      const { error: memberError } = await supabase.from("group_members").insert(memberRows)
+      if (memberError) {
+        await supabase.from("project_groups").delete().eq("id", group.id)
+        console.error("Group member creation failed", { code: memberError.code, details: memberError.details })
+        return NextResponse.json({ error: "The group could not be created with its selected members" }, { status: 500 })
+      }
 
       // Send notification to each member
       const notifications = member_ids.map((id: string) => ({
@@ -86,7 +109,10 @@ export async function POST(req: Request) {
         type: "group",
         link: `/member/groups`,
       }))
-      await supabase.from("notifications").insert(notifications)
+      const { error: notificationError } = await supabase.from("notifications").insert(notifications)
+      if (notificationError) {
+        console.error("Group notifications failed", { code: notificationError.code, details: notificationError.details })
+      }
     }
 
     return NextResponse.json({ success: true, group })

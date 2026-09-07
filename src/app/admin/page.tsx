@@ -500,6 +500,9 @@ export default function AdminDashboard() {
                     <div>
                       <h3 className="font-[family-name:var(--font-heading)] text-lg font-semibold lowercase">{sub.project_name}</h3>
                       <p className="text-sm text-muted-foreground">{sub.codyza_id} · {new Date(sub.submitted_at).toLocaleDateString()}</p>
+                      {sub.group && (
+                        <p className="mt-1 text-xs font-medium text-accent">👥 Group submission &middot; {sub.group.name} &middot; XP goes to all {sub.group.member_count} members</p>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">

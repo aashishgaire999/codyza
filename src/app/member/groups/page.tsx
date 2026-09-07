@@ -2,9 +2,16 @@
 
 import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase"
-import { Users, GitBranch, Globe, Send, Clock, CheckCircle, Zap, Hammer, Eye } from "lucide-react"
+import { Users, GitBranch, Globe, Send, Clock, CheckCircle, Zap, Hammer, Eye, Plus, ChevronDown, ChevronUp } from "lucide-react"
 import { MemberPageHeader } from "@/components/member/member-page-header"
 import { memberFetch } from "@/lib/member-fetch"
+
+const TECH_OPTIONS = [
+  "Next.js","React","TypeScript","Python","Node.js","Tailwind CSS",
+  "MongoDB","Supabase","PostgreSQL","Prisma","GraphQL","REST API",
+  "Docker","AWS","Vercel","Cloudflare","Gemini AI","OpenAI",
+  "Claude API","React Native","Vue.js","Django","FastAPI","Rust","Go"
+]
 
 const STATUS_CONFIG: Record<string, { label: string; badge: string; icon: any }> = {
   planning:  { label: "Planning",  badge: "bg-muted text-muted-foreground", icon: Clock },
@@ -45,6 +52,54 @@ export default function GroupsPage() {
   const [contributor, setContributor] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState("all")
+  const [submitOpenFor, setSubmitOpenFor] = useState<string | null>(null)
+  const [projectName, setProjectName] = useState("")
+  const [githubUrl, setGithubUrl] = useState("")
+  const [liveUrl, setLiveUrl] = useState("")
+  const [description, setDescription] = useState("")
+  const [selectedTech, setSelectedTech] = useState<string[]>([])
+  const [submitting, setSubmitting] = useState(false)
+  const [submitSuccess, setSubmitSuccess] = useState(false)
+  const [submitError, setSubmitError] = useState("")
+
+  function toggleTech(tech: string) {
+    setSelectedTech(prev => prev.includes(tech) ? prev.filter(t => t !== tech) : prev.length < 8 ? [...prev, tech] : prev)
+  }
+
+  function openSubmitFor(groupId: string) {
+    setSubmitOpenFor(prev => prev === groupId ? null : groupId)
+    setSubmitError("")
+    setSubmitSuccess(false)
+  }
+
+  async function handleSubmit(e: React.FormEvent, groupId: string) {
+    e.preventDefault()
+    setSubmitting(true)
+    setSubmitError("")
+    try {
+      const res = await memberFetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          project_name: projectName,
+          github_url: githubUrl,
+          live_url: liveUrl,
+          description,
+          tech_stack: selectedTech,
+          group_id: groupId,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setSubmitError(data.error || "Submission failed"); setSubmitting(false); return }
+      setSubmitSuccess(true)
+      setProjectName(""); setGithubUrl(""); setLiveUrl(""); setDescription(""); setSelectedTech([])
+      await loadData()
+      setTimeout(() => { setSubmitSuccess(false); setSubmitOpenFor(null) }, 3000)
+    } catch {
+      setSubmitError("Something went wrong. Try again.")
+    }
+    setSubmitting(false)
+  }
 
   async function loadData() {
     const supabase = createClient()
@@ -199,6 +254,65 @@ export default function GroupsPage() {
                               <span className={ROLE_COLORS[m.role] || "text-muted-foreground"}>· {m.role}</span>
                             </span>
                           ))}
+                        </div>
+                      )}
+
+                      {isMyGroup && (group.status === "planning" || group.status === "building") && !group.has_pending_submission && (
+                        <div className="mt-3 border-t border-border pt-3">
+                          <button onClick={() => openSubmitFor(group.id)}
+                            className="flex items-center gap-1.5 text-xs font-medium text-accent hover:opacity-80">
+                            <Plus className="h-3.5 w-3.5" />
+                            Submit project for this group
+                            {submitOpenFor === group.id ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                          </button>
+                          {submitOpenFor === group.id && (
+                            submitSuccess ? (
+                              <div className="mt-3 py-4 text-center">
+                                <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full border border-success/25 bg-success/15">
+                                  <span className="text-lg text-success">✓</span>
+                                </div>
+                                <p className="text-sm font-semibold text-success">Submitted!</p>
+                                <p className="mt-1 text-xs text-muted-foreground">Admin review is next. XP goes to every member on approval.</p>
+                              </div>
+                            ) : (
+                              <form onSubmit={e => handleSubmit(e, group.id)} className="mt-3 space-y-3">
+                                <p className="rounded-xl border border-accent/15 bg-accent/5 px-3 py-2 text-xs text-muted-foreground">
+                                  Submitting once, on behalf of the whole group. Every current member gets the XP on approval.
+                                </p>
+                                <div>
+                                  <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Project name *</label>
+                                  <input type="text" required value={projectName} onChange={e => setProjectName(e.target.value)} placeholder="My awesome project" className="glass-input w-full px-3 py-2 text-sm focus:outline-none" />
+                                </div>
+                                <div>
+                                  <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">GitHub URL *</label>
+                                  <input type="url" required value={githubUrl} onChange={e => setGithubUrl(e.target.value)} placeholder="https://github.com/..." className="glass-input w-full px-3 py-2 text-sm focus:outline-none" />
+                                </div>
+                                <div>
+                                  <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Live URL <span className="text-success">+150 XP</span></label>
+                                  <input type="url" value={liveUrl} onChange={e => setLiveUrl(e.target.value)} placeholder="https://myproject.vercel.app" className="glass-input w-full px-3 py-2 text-sm focus:outline-none" />
+                                </div>
+                                <div>
+                                  <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Description *</label>
+                                  <textarea required value={description} onChange={e => setDescription(e.target.value)} placeholder="What does it do? What problem does it solve?" rows={3} className="glass-input w-full resize-none px-3 py-2 text-sm focus:outline-none" />
+                                </div>
+                                <div>
+                                  <label className="mb-1.5 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Tech stack <span className="normal-case tracking-normal text-muted-foreground">(up to 8)</span></label>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {TECH_OPTIONS.map(tech => (
+                                      <button key={tech} type="button" onClick={() => toggleTech(tech)} className={`rounded px-2 py-0.5 text-[11px] transition-colors ${selectedTech.includes(tech) ? "border border-accent/50 bg-accent/15 text-accent" : "border border-border bg-muted text-muted-foreground hover:border-accent/30"}`}>
+                                        {tech}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                                {submitError && <p className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-xs text-destructive">{submitError}</p>}
+                                <button type="submit" disabled={submitting} className="btn-primary flex w-full items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold disabled:opacity-50">
+                                  <Send className="h-4 w-4" />
+                                  {submitting ? "Sending project..." : "Submit for review"}
+                                </button>
+                              </form>
+                            )
+                          )}
                         </div>
                       )}
                     </div>

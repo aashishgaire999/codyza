@@ -121,7 +121,7 @@ export async function POST(req: Request) {
       const field = String(parsedBody.error.issues[0]?.path[0] ?? "")
       return NextResponse.json({ error: fieldMessages[field] || "Check the project details and try again" }, { status: 400 })
     }
-    const { project_name, github_url: rawGithubUrl, live_url: rawLiveUrl, description, tech_stack } = parsedBody.data
+    const { project_name, github_url: rawGithubUrl, live_url: rawLiveUrl, description, tech_stack, group_id } = parsedBody.data
     const github_url = safeHttpsUrl(rawGithubUrl, { githubRepository: true })
     const live_url = rawLiveUrl ? safeHttpsUrl(rawLiveUrl) : null
     if (!github_url) return NextResponse.json({ error: "Enter a valid HTTPS GitHub repository URL" }, { status: 400 })
@@ -129,6 +129,25 @@ export async function POST(req: Request) {
 
     const deadline = Date.now() + REQUEST_BUDGET_MS
     const supabase = createServiceSupabase()
+
+    if (group_id) {
+      const { data: membership } = await supabase
+        .from("group_members")
+        .select("group_id")
+        .eq("group_id", group_id)
+        .eq("codyza_id", member.codyza_id)
+        .maybeSingle()
+      if (!membership) return NextResponse.json({ error: "You're not a member of that group." }, { status: 403 })
+
+      const { data: pending } = await supabase
+        .from("submissions")
+        .select("id")
+        .eq("group_id", group_id)
+        .eq("status", "pending")
+        .maybeSingle()
+      if (pending) return NextResponse.json({ error: "This group already has a submission pending review." }, { status: 409 })
+    }
+
     const [{ data: contributor, error: fetchError }, githubContext, liveSiteContext] = await Promise.all([
       supabase.from("contributors").select("*").eq("id", member.id).single(),
       fetchGithubContext(github_url, Math.min(FETCH_TIMEOUT_MS, msRemaining(deadline))),
@@ -203,6 +222,7 @@ Score: 1-4 needs major work, 5-6 decent start, 7-8 solid, 9 excellent, 10 except
     const submission = {
       contributor_id: contributor.id,
       codyza_id: contributor.codyza_id,
+      group_id: group_id || null,
       project_name: String(project_name).slice(0, 180),
       github_url,
       live_url,
@@ -220,6 +240,10 @@ Score: 1-4 needs major work, 5-6 decent start, 7-8 solid, 9 excellent, 10 except
       return NextResponse.json({
         error: "We could not save your project. Please try again shortly.",
       }, { status: 500 })
+    }
+
+    if (group_id) {
+      await supabase.from("project_groups").update({ status: "submitted", github_url, live_url }).eq("id", group_id)
     }
 
     return NextResponse.json({
