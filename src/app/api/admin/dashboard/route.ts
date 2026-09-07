@@ -61,6 +61,17 @@ export async function GET(request: Request) {
       .filter((u) => u.email)
       .map((u) => [String(u.email).toLowerCase(), { confirmed_at: u.confirmed_at || null, last_sign_in_at: u.last_sign_in_at || null }]),
   )
+  // So admins can see a group submission awards XP to every member, not just
+  // the person who happened to submit it, before they approve it.
+  const groupsById = new Map((groups.data || []).map((group) => [group.id, group]))
+  const enrichedSubmissions = (submissions.data || []).map((sub) => {
+    const group = sub.group_id ? groupsById.get(sub.group_id) : undefined
+    return {
+      ...sub,
+      group: group ? { id: group.id, name: group.name, member_count: (membersByGroup.get(group.id) || []).length } : null,
+    }
+  })
+
   const enrichedApplications = (applications.data || []).map((app) => {
     const email = app.email ? String(app.email).toLowerCase() : ""
     const member = email ? contributorByEmail.get(email) : undefined
@@ -75,7 +86,7 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     contributors: people,
-    submissions: submissions.data || [],
+    submissions: enrichedSubmissions,
     applications: enrichedApplications,
     groups: (groups.data || []).map((group) => ({ ...group, members: membersByGroup.get(group.id) || [], creator_name: names.get(group.created_by) || group.created_by })),
     bounties: (bounties.data || []).map((bounty) => ({ ...bounty, poster_name: names.get(bounty.posted_by) || bounty.posted_by, claimer_name: bounty.claimed_by ? names.get(bounty.claimed_by) || bounty.claimed_by : null })),
