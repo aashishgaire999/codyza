@@ -26,6 +26,7 @@ interface Submission {
   live_url: string | null; description: string; tech_stack: string[]
   ai_score: number | null; ai_feedback: string | null; ai_review: AiReview | null
   xp_earned: number; status: string; submitted_at: string
+  group: { id: string; name: string; member_count: number } | null
 }
 
 const RANKS = RANK_LADDER.map((r) => r.name)
