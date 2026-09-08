@@ -13,7 +13,7 @@ async function setSubmissionStatus(id: string, status: "approved" | "rejected", 
     p_reason: reason?.trim() ? reason.trim().slice(0, 1000) : null,
   })
   if (error) {
-    console.error("Submission review failed", { code: error.code, details: error.details })
+    console.error("Submission review failed", { code: error.code, message: error.message, details: error.details })
     if (error.code === "PGRST202") throw new Error("The submission workflow migration has not been installed yet")
     throw new Error(error.message)
   }
