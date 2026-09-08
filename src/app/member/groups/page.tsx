@@ -58,12 +58,20 @@ export default function GroupsPage() {
   const [liveUrl, setLiveUrl] = useState("")
   const [description, setDescription] = useState("")
   const [selectedTech, setSelectedTech] = useState<string[]>([])
+  const [customTech, setCustomTech] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [submitError, setSubmitError] = useState("")
 
   function toggleTech(tech: string) {
     setSelectedTech(prev => prev.includes(tech) ? prev.filter(t => t !== tech) : prev.length < 8 ? [...prev, tech] : prev)
+  }
+
+  function addCustomTech() {
+    const tag = customTech.trim().slice(0, 40)
+    if (!tag || selectedTech.length >= 8 || selectedTech.some(t => t.toLowerCase() === tag.toLowerCase())) return
+    setSelectedTech(prev => [...prev, tag])
+    setCustomTech("")
   }
 
   function openSubmitFor(groupId: string) {
@@ -297,12 +305,18 @@ export default function GroupsPage() {
                                 </div>
                                 <div>
                                   <label className="mb-1.5 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Tech stack <span className="normal-case tracking-normal text-muted-foreground">(up to 8)</span></label>
-                                  <div className="flex flex-wrap gap-1.5">
-                                    {TECH_OPTIONS.map(tech => (
+                                  <div className="mb-1.5 flex flex-wrap gap-1.5">
+                                    {Array.from(new Set([...TECH_OPTIONS, ...selectedTech])).map(tech => (
                                       <button key={tech} type="button" onClick={() => toggleTech(tech)} className={`rounded px-2 py-0.5 text-[11px] transition-colors ${selectedTech.includes(tech) ? "border border-accent/50 bg-accent/15 text-accent" : "border border-border bg-muted text-muted-foreground hover:border-accent/30"}`}>
                                         {tech}
                                       </button>
                                     ))}
+                                  </div>
+                                  <div className="flex gap-1.5">
+                                    <input type="text" value={customTech} onChange={e => setCustomTech(e.target.value)}
+                                      onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addCustomTech() } }}
+                                      placeholder="Other tech not listed..." className="glass-input flex-1 px-2 py-1 text-[11px] focus:outline-none" />
+                                    <button type="button" onClick={addCustomTech} className="rounded border border-border bg-muted px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-accent/30">Add</button>
                                   </div>
                                 </div>
                                 {submitError && <p className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-xs text-destructive">{submitError}</p>}
