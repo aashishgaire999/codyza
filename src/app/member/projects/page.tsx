@@ -51,8 +51,7 @@ export default function ProjectsPage() {
   const [submitting, setSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [submitError, setSubmitError] = useState("")
-  const [claimedBounties, setClaimedBounties] = useState<any[]>([])
-  const [selectedBounty, setSelectedBounty] = useState("")
+  const [expandedAi, setExpandedAi] = useState<Set<string>>(new Set())
 
   async function loadData() {
     const supabase = createClient()
@@ -73,21 +72,6 @@ export default function ProjectsPage() {
     setProjects(enriched)
     setLoading(false)
 
-    if (contrib) {
-      const res = await memberFetch("/api/bounties")
-      const bounties = await res.json()
-      const mine = Array.isArray(bounties)
-        ? bounties.filter((b: any) => b.status === "claimed" && b.claimed_by === contrib.codyza_id)
-        : []
-      setClaimedBounties(mine)
-
-      const params = new URLSearchParams(window.location.search)
-      const bountyParam = params.get("bounty")
-      if (bountyParam && mine.some((b: any) => b.id === bountyParam)) {
-        setSelectedBounty(bountyParam)
-        setSubmitOpen(true)
-      }
-    }
   }
 
   useEffect(() => { void loadData() }, [])
@@ -111,13 +95,12 @@ export default function ProjectsPage() {
           live_url: liveUrl,
           description,
           tech_stack: selectedTech,
-          bounty_id: selectedBounty || null,
         }),
       })
       const data = await res.json()
       if (!res.ok) { setSubmitError(data.error || "Submission failed"); setSubmitting(false); return }
       setSubmitSuccess(true)
-      setProjectName(""); setGithubUrl(""); setLiveUrl(""); setDescription(""); setSelectedTech([]); setSelectedBounty("")
+      setProjectName(""); setGithubUrl(""); setLiveUrl(""); setDescription(""); setSelectedTech([])
       await loadData()
       setTimeout(() => { setSubmitSuccess(false); setSubmitOpen(false) }, 3000)
     } catch {
@@ -165,7 +148,7 @@ export default function ProjectsPage() {
               </div>
               <div className="text-left">
                 <div className="text-sm font-semibold text-foreground">Submit your project</div>
-                <div className="text-xs text-muted-foreground">Earn XP + AI review</div>
+                <div className="text-xs text-muted-foreground">Submit any project for review</div>
               </div>
             </div>
             {submitOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
@@ -178,10 +161,13 @@ export default function ProjectsPage() {
                     <span className="text-xl text-success">✓</span>
                   </div>
                   <p className="text-sm font-semibold text-success">Submitted!</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Your project is under review.</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Admin review is next. XP is added after approval.</p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-3">
+                  <p className="rounded-xl border border-accent/15 bg-accent/5 px-3 py-2 text-xs text-muted-foreground">
+                    No bounty required. Share anything you built and the team will review it.
+                  </p>
                   <div>
                     <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Project name *</label>
                     <input type="text" required value={projectName} onChange={e => setProjectName(e.target.value)} placeholder="My awesome project" className="glass-input w-full px-3 py-2 text-sm focus:outline-none" />
@@ -198,17 +184,6 @@ export default function ProjectsPage() {
                     <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Description *</label>
                     <textarea required value={description} onChange={e => setDescription(e.target.value)} placeholder="What does it do? What problem does it solve?" rows={3} className="glass-input w-full resize-none px-3 py-2 text-sm focus:outline-none" />
                   </div>
-                  {claimedBounties.length > 0 && (
-                    <div>
-                      <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Submitting for a bounty? (optional)</label>
-                      <select value={selectedBounty} onChange={e => setSelectedBounty(e.target.value)} className="glass-input w-full px-3 py-2 text-sm focus:outline-none">
-                        <option value="">None — general submission</option>
-                        {claimedBounties.map((b: any) => (
-                          <option key={b.id} value={b.id}>{b.title} (+{b.xp_reward} XP)</option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
                   <div>
                     <label className="mb-1.5 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Tech stack <span className="normal-case tracking-normal text-muted-foreground">(up to 8)</span></label>
                     <div className="flex flex-wrap gap-1.5">
@@ -222,7 +197,7 @@ export default function ProjectsPage() {
                   {submitError && <p className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-xs text-destructive">{submitError}</p>}
                   <button type="submit" disabled={submitting} className="btn-primary flex w-full items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold disabled:opacity-50">
                     <Send className="h-4 w-4" />
-                    {submitting ? "Getting AI Review..." : "Submit & Get AI Review"}
+                    {submitting ? "Sending project..." : "Submit for review"}
                   </button>
                 </form>
               )}
@@ -261,7 +236,7 @@ export default function ProjectsPage() {
               { label: "Total projects", value: projects.length },
               { label: "Live now", value: counts.live },
               { label: "Contributors", value: new Set(projects.map(p => p.codyza_id)).size },
-              { label: "XP awarded", value: projects.reduce((s,p)=>s+(p.xp_awarded||0),0).toLocaleString() },
+              { label: "XP awarded", value: projects.filter(p => p.status === "approved").reduce((sum, project) => sum + (project.xp_earned || 0), 0).toLocaleString() },
             ].map(({ label, value }) => (
               <div key={label} className="arcade-stat">
                 <div className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{label}</div>
@@ -311,6 +286,45 @@ export default function ProjectsPage() {
                         )}
                       </div>
                     )}
+                    {isOwn && project.review_reason && (
+                      <p className="border-b border-border px-4 py-2 text-xs text-muted-foreground">Admin note: {project.review_reason}</p>
+                    )}
+                    {isOwn && (project.ai_review?.summary || project.ai_review?.feedback || project.ai_feedback) && (
+                      <div className="border-b border-border px-4 py-2">
+                        <button
+                          onClick={() => setExpandedAi(prev => { const n = new Set(prev); n.has(project.id) ? n.delete(project.id) : n.add(project.id); return n })}
+                          className="flex items-center gap-1.5 text-xs font-medium text-accent hover:opacity-80"
+                        >
+                          {project.ai_score && <span className="rounded border border-accent/30 bg-accent/10 px-1.5 py-0.5 font-bold">{project.ai_score}/10</span>}
+                          {expandedAi.has(project.id) ? "Hide AI review ▲" : "View your AI review ▼"}
+                        </button>
+                        {expandedAi.has(project.id) && (
+                          <div className="mt-2 space-y-2 rounded-xl border border-border bg-muted/30 p-3 text-xs leading-relaxed text-muted-foreground">
+                            {project.ai_review?.one_liner && <p className="font-semibold text-foreground">{project.ai_review.one_liner}</p>}
+                            {project.ai_review?.summary && <p>{project.ai_review.summary}</p>}
+                            {(project.ai_review?.feedback || project.ai_feedback) && <p>{project.ai_review?.feedback || project.ai_feedback}</p>}
+                            {!!project.ai_review?.strengths?.length && (
+                              <div>
+                                <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-success">Strengths</p>
+                                <ul className="list-inside list-disc space-y-0.5">{project.ai_review.strengths.map((s: string, i: number) => <li key={i}>{s}</li>)}</ul>
+                              </div>
+                            )}
+                            {!!project.ai_review?.improvements?.length && (
+                              <div>
+                                <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-destructive">Improvements</p>
+                                <ul className="list-inside list-disc space-y-0.5">{project.ai_review.improvements.map((s: string, i: number) => <li key={i}>{s}</li>)}</ul>
+                              </div>
+                            )}
+                            {!!project.ai_review?.roadmap?.length && (
+                              <div>
+                                <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-accent">Roadmap</p>
+                                <ul className="list-inside list-disc space-y-0.5">{project.ai_review.roadmap.map((s: string, i: number) => <li key={i}>{s}</li>)}</ul>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
                     <div className="flex items-center justify-between px-4 py-3">
                       <div className="flex items-center gap-2">
                         <div className="relative h-6 w-6 flex-shrink-0 overflow-hidden rounded-full border border-border">
@@ -321,7 +335,7 @@ export default function ProjectsPage() {
                         </div>
                         <span className="max-w-[100px] truncate text-xs text-muted-foreground">{project.member_name}</span>
                         {isOwn && <span className="rounded-full border border-accent/20 bg-accent/10 px-1.5 py-0.5 text-[9px] text-accent">you</span>}
-                        {project.xp_awarded > 0 && <span className="ml-1 text-xs font-semibold text-accent">+{project.xp_awarded} XP</span>}
+                        {project.status === "approved" && project.xp_earned > 0 && <span className="ml-1 text-xs font-semibold text-accent">+{project.xp_earned} XP</span>}
                       </div>
                       <div className="flex items-center gap-1">
                         {project.live_url && project.status === "approved" && (
@@ -358,7 +372,7 @@ export default function ProjectsPage() {
                 </div>
                 <div className="text-left">
                   <div className="text-sm font-semibold text-foreground">Submit your project</div>
-                  <div className="text-xs text-muted-foreground">Earn XP + AI review</div>
+                  <div className="text-xs text-muted-foreground">Submit any project for review</div>
                 </div>
               </div>
               {submitOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
@@ -367,7 +381,7 @@ export default function ProjectsPage() {
             {!submitOpen && (
               <div className="px-5 pb-4">
                 <div className="mb-3 grid grid-cols-2 gap-2">
-                  {[{ label: "Base XP", value: "+100" }, { label: "Live URL", value: "+150" }, { label: "Quality", value: "+300" }, { label: "Streak", value: "+200" }].map(({ label, value }) => (
+                  {[{ label: "Base XP", value: "+100" }, { label: "Live URL", value: "+150" }, { label: "Approval", value: "required" }, { label: "Streak", value: "up to +200" }].map(({ label, value }) => (
                     <div key={label} className="arcade-stat px-3 py-2 text-center">
                       <div className="text-[10px] text-muted-foreground">{label}</div>
                       <div className="text-sm font-bold text-accent">{value}</div>
@@ -389,10 +403,13 @@ export default function ProjectsPage() {
                       <span className="text-xl text-success">✓</span>
                     </div>
                     <p className="text-sm font-semibold text-success">Submitted!</p>
-                    <p className="mt-1 text-xs text-muted-foreground">Your project is under review.</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Admin review is next. XP is added after approval.</p>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-3">
+                    <p className="rounded-xl border border-accent/15 bg-accent/5 px-3 py-2 text-xs text-muted-foreground">
+                      No bounty required. Share anything you built and the team will review it.
+                    </p>
                     <div>
                       <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Project name *</label>
                       <input type="text" required value={projectName} onChange={e => setProjectName(e.target.value)} placeholder="My awesome project" className="glass-input w-full px-3 py-2 text-sm focus:outline-none" />
@@ -422,7 +439,7 @@ export default function ProjectsPage() {
                     {submitError && <p className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-xs text-destructive">{submitError}</p>}
                     <button type="submit" disabled={submitting} className="btn-primary flex w-full items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold disabled:opacity-50">
                       <Send className="h-4 w-4" />
-                      {submitting ? "Getting AI Review..." : "Submit & Get AI Review"}
+                      {submitting ? "Sending project..." : "Submit for review"}
                     </button>
                   </form>
                 )}
