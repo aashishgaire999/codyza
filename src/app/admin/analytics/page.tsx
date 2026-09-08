@@ -35,7 +35,7 @@ export default async function AnalyticsPage() {
     { data: applications },
   ] = await Promise.all([
     supabase.from("contributors").select("xp, rank, joined_at, name, codyza_id").order("xp", { ascending: false }),
-    supabase.from("submissions").select("status, xp_earned, ai_score, created_at, codyza_id, project_name").order("created_at", { ascending: false }),
+    supabase.from("submissions").select("status, xp_earned, ai_score, submitted_at, codyza_id, project_name").order("submitted_at", { ascending: false }),
     supabase.from("applications").select("status, applied_at"),
   ])
 
@@ -60,7 +60,7 @@ export default async function AnalyticsPage() {
   })
   const subsByDay = days14.map(day => ({
     day: day.slice(5),
-    count: allSubs.filter(s => s.created_at?.startsWith(day)).length
+    count: allSubs.filter(s => s.submitted_at?.startsWith(day)).length
   }))
   const maxSubDay = Math.max(...subsByDay.map(d => d.count), 1)
 
@@ -234,7 +234,7 @@ export default async function AnalyticsPage() {
                   <span className="flex-shrink-0 text-xs font-bold text-accent">{s.ai_score}/10</span>
                 )}
                 <span className="flex-shrink-0 font-mono text-[10px] text-muted-foreground">
-                  {new Date(s.created_at).toLocaleDateString()}
+                  {new Date(s.submitted_at).toLocaleDateString()}
                 </span>
               </div>
             ))}

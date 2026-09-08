@@ -78,7 +78,7 @@ export function Projects() {
         .from("submissions")
         .select("project_name, github_url, live_url, description, tech_stack, codyza_id")
         .eq("status", "approved")
-        .order("created_at", { ascending: false })
+        .order("submitted_at", { ascending: false })
         .limit(6)
       setProjects(data || [])
       setLoading(false)
