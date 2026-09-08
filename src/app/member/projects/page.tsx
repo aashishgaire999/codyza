@@ -53,6 +53,7 @@ export default function ProjectsPage() {
   const [submitError, setSubmitError] = useState("")
   const [expandedAi, setExpandedAi] = useState<Set<string>>(new Set())
   const [customTech, setCustomTech] = useState("")
+  const [myGroupIds, setMyGroupIds] = useState<Set<string>>(new Set())
 
   async function loadData() {
     const supabase = createClient()
@@ -61,16 +62,26 @@ export default function ProjectsPage() {
       window.location.href = "/login"
       return
     }
-    const [{ data: contrib }, { data: subs }, { data: contribs }] = await Promise.all([
+    const [{ data: contrib }, { data: subs }, { data: contribs }, groupsRes] = await Promise.all([
       supabase.from("contributors").select("*").eq("email", user.email).maybeSingle(),
       supabase.from("submissions").select("*").order("submitted_at", { ascending: false }),
       supabase.from("contributors").select("codyza_id, name, avatar_url"),
+      memberFetch("/api/groups"),
     ])
     setContributor(contrib)
     const nameMap = new Map((contribs || []).map((c: any) => [c.codyza_id, c.name]))
     const avatarMap = new Map((contribs || []).map((c: any) => [c.codyza_id, c.avatar_url]))
     const enriched = (subs || []).map((s: any) => ({ ...s, member_name: nameMap.get(s.codyza_id) || s.codyza_id, member_avatar: avatarMap.get(s.codyza_id) || "" }))
     setProjects(enriched)
+    // group_members isn't readable client-side, so figure out which groups the
+    // viewer belongs to via the API instead -- that's how a group submission
+    // gets treated as "yours" for every member, not just whoever clicked submit.
+    const groupsData = await groupsRes.json().catch(() => [])
+    setMyGroupIds(new Set(
+      (Array.isArray(groupsData) ? groupsData : [])
+        .filter((g: any) => g.members?.some((m: any) => m.codyza_id === contrib?.codyza_id))
+        .map((g: any) => g.id)
+    ))
     setLoading(false)
 
   }
@@ -164,12 +175,12 @@ export default function ProjectsPage() {
           {submitOpen && (
             <div className="border-t border-border px-5 py-4">
               {submitSuccess ? (
-                <div className="py-6 text-center">
-                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-success/25 bg-success/15">
-                    <span className="text-xl text-success">✓</span>
+                <div className="animate-in zoom-in-50 fade-in py-6 text-center duration-500">
+                  <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full border border-success/25 bg-success/15">
+                    <span className="text-2xl">🎉</span>
                   </div>
-                  <p className="text-sm font-semibold text-success">Submitted!</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Admin review is next. XP is added after approval.</p>
+                  <p className="text-base font-bold text-success">Submitted! Nice work.</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Admin review is next — XP lands the moment it's approved.</p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-3">
@@ -210,8 +221,8 @@ export default function ProjectsPage() {
                   </div>
                   {submitError && <p className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-xs text-destructive">{submitError}</p>}
                   <button type="submit" disabled={submitting} className="btn-primary flex w-full items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold disabled:opacity-50">
-                    <Send className="h-4 w-4" />
-                    {submitting ? "Sending project..." : "Submit for review"}
+                    {submitting ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <Send className="h-4 w-4" />}
+                    {submitting ? "Submitting..." : "Submit for review"}
                   </button>
                 </form>
               )}
@@ -278,6 +289,9 @@ export default function ProjectsPage() {
               {filtered.map((project) => {
                 const status = STATUS_CONFIG[project.status] || STATUS_CONFIG.pending
                 const isOwn = project.codyza_id === contributor?.codyza_id
+                // Group submissions show the AI review to every member, not just
+                // whoever clicked submit -- everyone on the team earned that XP.
+                const canSeeReview = isOwn || (project.group_id && myGroupIds.has(project.group_id))
                 return (
                   <div key={project.id} className="surface-card overflow-hidden transition-all hover:-translate-y-0.5">
                     <div className="border-b border-border px-4 pb-3 pt-4">
@@ -300,10 +314,10 @@ export default function ProjectsPage() {
                         )}
                       </div>
                     )}
-                    {isOwn && project.review_reason && (
+                    {canSeeReview && project.review_reason && (
                       <p className="border-b border-border px-4 py-2 text-xs text-muted-foreground">Admin note: {project.review_reason}</p>
                     )}
-                    {isOwn && (project.ai_review?.summary || project.ai_review?.feedback || project.ai_feedback) && (
+                    {canSeeReview && (project.ai_review?.summary || project.ai_review?.feedback || project.ai_feedback) && (
                       <div className="border-b border-border px-4 py-2">
                         <button
                           onClick={() => setExpandedAi(prev => { const n = new Set(prev); n.has(project.id) ? n.delete(project.id) : n.add(project.id); return n })}
@@ -412,12 +426,12 @@ export default function ProjectsPage() {
             {submitOpen && (
               <div className="border-t border-border px-5 py-4">
                 {submitSuccess ? (
-                  <div className="py-6 text-center">
-                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-success/25 bg-success/15">
-                      <span className="text-xl text-success">✓</span>
+                  <div className="animate-in zoom-in-50 fade-in py-6 text-center duration-500">
+                    <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full border border-success/25 bg-success/15">
+                      <span className="text-2xl">🎉</span>
                     </div>
-                    <p className="text-sm font-semibold text-success">Submitted!</p>
-                    <p className="mt-1 text-xs text-muted-foreground">Admin review is next. XP is added after approval.</p>
+                    <p className="text-base font-bold text-success">Submitted! Nice work.</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Admin review is next — XP lands the moment it's approved.</p>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-3">
@@ -458,8 +472,8 @@ export default function ProjectsPage() {
                     </div>
                     {submitError && <p className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-xs text-destructive">{submitError}</p>}
                     <button type="submit" disabled={submitting} className="btn-primary flex w-full items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold disabled:opacity-50">
-                      <Send className="h-4 w-4" />
-                      {submitting ? "Sending project..." : "Submit for review"}
+                      {submitting ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <Send className="h-4 w-4" />}
+                      {submitting ? "Submitting..." : "Submit for review"}
                     </button>
                   </form>
                 )}

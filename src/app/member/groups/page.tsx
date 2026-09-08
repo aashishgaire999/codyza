@@ -275,12 +275,12 @@ export default function GroupsPage() {
                           </button>
                           {submitOpenFor === group.id && (
                             submitSuccess ? (
-                              <div className="mt-3 py-4 text-center">
-                                <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full border border-success/25 bg-success/15">
-                                  <span className="text-lg text-success">✓</span>
+                              <div className="animate-in zoom-in-50 fade-in mt-3 py-4 text-center duration-500">
+                                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full border border-success/25 bg-success/15">
+                                  <span className="text-xl">🎉</span>
                                 </div>
-                                <p className="text-sm font-semibold text-success">Submitted!</p>
-                                <p className="mt-1 text-xs text-muted-foreground">Admin review is next. XP goes to every member on approval.</p>
+                                <p className="text-sm font-bold text-success">Submitted! Nice work.</p>
+                                <p className="mt-1 text-xs text-muted-foreground">Admin review is next — XP goes to every member on approval.</p>
                               </div>
                             ) : (
                               <form onSubmit={e => handleSubmit(e, group.id)} className="mt-3 space-y-3">
@@ -321,8 +321,8 @@ export default function GroupsPage() {
                                 </div>
                                 {submitError && <p className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-xs text-destructive">{submitError}</p>}
                                 <button type="submit" disabled={submitting} className="btn-primary flex w-full items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold disabled:opacity-50">
-                                  <Send className="h-4 w-4" />
-                                  {submitting ? "Sending project..." : "Submit for review"}
+                                  {submitting ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <Send className="h-4 w-4" />}
+                                  {submitting ? "Submitting..." : "Submit for review"}
                                 </button>
                               </form>
                             )
