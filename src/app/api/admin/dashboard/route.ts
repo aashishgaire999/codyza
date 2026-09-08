@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createServiceSupabase, isAdminRequest } from "@/lib/admin-auth"
+import { expireStaleWorkSessions, MAX_SESSION_MINUTES } from "@/lib/work-sessions"
 
 function unauthorized() {
   return NextResponse.json({ error: "Admin authorization required" }, { status: 401 })
@@ -19,9 +20,109 @@ async function setSubmissionStatus(id: string, status: "approved" | "rejected", 
   }
 }
 
+async function clockInMember(codyzaId: string, label?: string) {
+  const service = createServiceSupabase()
+  const { data: member, error: memberError } = await service
+    .from("contributors")
+    .select("id, codyza_id")
+    .eq("codyza_id", codyzaId)
+    .maybeSingle()
+  if (memberError) throw new Error(memberError.message)
+  if (!member) throw new Error("Contributor not found")
+
+  const { data: active, error: activeError } = await service
+    .from("work_sessions")
+    .select("id")
+    .eq("contributor_id", member.id)
+    .eq("status", "active")
+    .maybeSingle()
+  if (activeError) throw new Error(activeError.message)
+  if (active) throw new Error("This member is already clocked in")
+
+  const cleanLabel = typeof label === "string" ? label.trim().slice(0, 160) : ""
+  const { error } = await service.from("work_sessions").insert({
+    contributor_id: member.id,
+    codyza_id: member.codyza_id,
+    label: cleanLabel ? `Clocked in by admin · ${cleanLabel}` : "Clocked in by admin",
+    status: "active",
+  })
+  if (error) throw new Error(error.message)
+}
+
+async function clockOutSession(id: string, summary?: string, isFinished?: boolean) {
+  const service = createServiceSupabase()
+  const { data: session, error: sessionError } = await service
+    .from("work_sessions")
+    .select("started_at, status")
+    .eq("id", id)
+    .maybeSingle()
+  if (sessionError) throw new Error(sessionError.message)
+  if (!session) throw new Error("Session not found")
+  if (session.status !== "active") throw new Error("Session is not active")
+
+  const startedAt = new Date(session.started_at).getTime()
+  const duration_minutes = Math.min(MAX_SESSION_MINUTES, Math.max(1, Math.round((Date.now() - startedAt) / (1000 * 60))))
+  const cleanSummary = typeof summary === "string" && summary.trim() ? summary.trim().slice(0, 2000) : "Clocked out by admin"
+
+  const { error } = await service
+    .from("work_sessions")
+    .update({
+      ended_at: new Date().toISOString(),
+      duration_minutes,
+      summary: cleanSummary,
+      is_finished: typeof isFinished === "boolean" ? isFinished : true,
+      status: "completed",
+      edited_by_admin: true,
+    })
+    .eq("id", id)
+    .eq("status", "active")
+  if (error) throw new Error(error.message)
+}
+
+// Corrects an existing session's recorded times/notes -- e.g. fixing a
+// pre-cap 38h "completed" session down to a believable duration. Changing
+// ended_at on a still-active session is refused; use clockOutSession (the
+// "Clock out" action) to actually end an active session, since that path
+// also satisfies the completed_session_fields DB constraint.
+async function editSession(id: string, updates: Record<string, unknown>) {
+  const service = createServiceSupabase()
+  const { data: session, error: sessionError } = await service
+    .from("work_sessions")
+    .select("started_at, ended_at, status")
+    .eq("id", id)
+    .maybeSingle()
+  if (sessionError) throw new Error(sessionError.message)
+  if (!session) throw new Error("Session not found")
+  if (updates.ended_at !== undefined && session.status !== "completed") {
+    throw new Error("Clock this session out first, then edit its end time")
+  }
+
+  const startedAt = typeof updates.started_at === "string" && updates.started_at ? new Date(updates.started_at) : new Date(session.started_at)
+  const endedAt = updates.ended_at !== undefined
+    ? (typeof updates.ended_at === "string" && updates.ended_at ? new Date(updates.ended_at) : null)
+    : (session.ended_at ? new Date(session.ended_at) : null)
+
+  if (Number.isNaN(startedAt.getTime())) throw new Error("Invalid start time")
+  if (endedAt && Number.isNaN(endedAt.getTime())) throw new Error("Invalid end time")
+  if (endedAt && endedAt.getTime() <= startedAt.getTime()) throw new Error("End time must be after start time")
+
+  const patch: Record<string, unknown> = { started_at: startedAt.toISOString(), edited_by_admin: true }
+  if (endedAt) {
+    patch.ended_at = endedAt.toISOString()
+    patch.duration_minutes = Math.max(1, Math.round((endedAt.getTime() - startedAt.getTime()) / (1000 * 60)))
+  }
+  if (typeof updates.summary === "string") patch.summary = updates.summary.trim().slice(0, 2000) || null
+  if (typeof updates.label === "string") patch.label = updates.label.trim().slice(0, 160) || null
+  if (typeof updates.is_finished === "boolean") patch.is_finished = updates.is_finished
+
+  const { error } = await service.from("work_sessions").update(patch).eq("id", id)
+  if (error) throw new Error(error.message)
+}
+
 export async function GET(request: Request) {
   if (!isAdminRequest(request)) return unauthorized()
   const service = createServiceSupabase()
+  await expireStaleWorkSessions(service)
   const [contributors, submissions, applications, groups, groupMembers, bounties, sessions, authUsers] = await Promise.all([
     service.from("contributors").select("*").order("xp", { ascending: false }),
     service.from("submissions").select("*").order("submitted_at", { ascending: false }),
@@ -115,6 +216,15 @@ export async function POST(request: Request) {
       const updates = Object.fromEntries(Object.entries(payload.updates as Record<string, unknown>).filter(([key]) => allowed.includes(key)))
       const { error } = await service.from("contributors").update(updates).eq("id", String(payload.id))
       if (error) throw new Error(error.message)
+    } else if (action === "session_clock_in") {
+      if (typeof payload.codyza_id !== "string" || !payload.codyza_id) return NextResponse.json({ error: "Contributor is required" }, { status: 400 })
+      await clockInMember(payload.codyza_id, typeof payload.label === "string" ? payload.label : undefined)
+    } else if (action === "session_clock_out") {
+      if (typeof payload.id !== "string" || !payload.id) return NextResponse.json({ error: "Session is required" }, { status: 400 })
+      await clockOutSession(payload.id, typeof payload.summary === "string" ? payload.summary : undefined, typeof payload.is_finished === "boolean" ? payload.is_finished : undefined)
+    } else if (action === "session_edit") {
+      if (typeof payload.id !== "string" || !payload.id) return NextResponse.json({ error: "Session is required" }, { status: 400 })
+      await editSession(payload.id, payload)
     } else {
       return NextResponse.json({ error: "Unknown admin action" }, { status: 400 })
     }

@@ -31,6 +31,70 @@ interface Submission {
 }
 
 const RANKS = RANK_LADDER.map((r) => r.name)
+// Kept in sync with MAX_SESSION_MINUTES in src/lib/work-sessions.ts (can't
+// import that module here -- it's server-only).
+const MAX_SESSION_MINUTES = 720
+
+function formatSessionDuration(minutes: number) {
+  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`
+}
+
+function toDatetimeLocal(iso: string) {
+  const date = new Date(iso)
+  const pad = (n: number) => String(n).padStart(2, "0")
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
+function SessionEditModal({ session, onClose, onSave, saving }: { session: any; onClose: () => void; onSave: (_u: Record<string, unknown>) => void; saving: boolean }) {
+  const [startedAt, setStartedAt] = useState(toDatetimeLocal(session.started_at))
+  const [endedAt, setEndedAt] = useState(session.ended_at ? toDatetimeLocal(session.ended_at) : "")
+  const [summary, setSummary] = useState(session.summary || "")
+  const [isFinished, setIsFinished] = useState(session.is_finished !== false)
+  const canEditEnd = session.status === "completed"
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
+      <div className="surface-card w-full max-w-md p-6 shadow-2xl">
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="font-[family-name:var(--font-heading)] text-xl font-bold lowercase">edit session</h2>
+          <button onClick={onClose} disabled={saving} className="text-muted-foreground hover:text-foreground">✕</button>
+        </div>
+        <div className="space-y-4">
+          <div>
+            <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Started</label>
+            <input type="datetime-local" value={startedAt} onChange={e => setStartedAt(e.target.value)} className="glass-input w-full rounded-xl px-3 py-2 text-sm focus:outline-none"/>
+          </div>
+          <div>
+            <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Ended {!canEditEnd && "(clock out first)"}</label>
+            <input type="datetime-local" value={endedAt} disabled={!canEditEnd} onChange={e => setEndedAt(e.target.value)} className="glass-input w-full rounded-xl px-3 py-2 text-sm focus:outline-none disabled:opacity-50"/>
+          </div>
+          <div>
+            <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Summary</label>
+            <textarea value={summary} onChange={e => setSummary(e.target.value)} rows={3} className="glass-input w-full resize-none rounded-xl px-3 py-2 text-sm focus:outline-none"/>
+          </div>
+          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+            <input type="checkbox" checked={isFinished} onChange={e => setIsFinished(e.target.checked)} />
+            Marked as done
+          </label>
+        </div>
+        <div className="mt-6 flex gap-3">
+          <button onClick={onClose} disabled={saving} className="btn-ghost flex-1 rounded-full px-4 py-2 text-sm font-medium disabled:opacity-50">Cancel</button>
+          <button
+            onClick={() => onSave({
+              started_at: new Date(startedAt).toISOString(),
+              ended_at: canEditEnd && endedAt ? new Date(endedAt).toISOString() : undefined,
+              summary,
+              is_finished: isFinished,
+            })}
+            disabled={saving}
+            className="btn-primary flex-1 rounded-full px-4 py-2 text-sm font-medium disabled:opacity-50"
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function adminFetch(input: RequestInfo | URL, init: RequestInit = {}) {
   return fetch(input, init)
@@ -131,6 +195,14 @@ export default function AdminDashboard() {
   const [applicationFilter, setApplicationFilter] = useState("pending")
   const [reasonBySubmission, setReasonBySubmission] = useState<Record<string, string>>({})
   const [processingSubmission, setProcessingSubmission] = useState<string | null>(null)
+  const [sessionView, setSessionView] = useState<"all" | "by-person">("all")
+  const [sessionPersonFilter, setSessionPersonFilter] = useState<string | null>(null)
+  const [clockInCodyzaId, setClockInCodyzaId] = useState("")
+  const [clockInLabel, setClockInLabel] = useState("")
+  const [clockingIn, setClockingIn] = useState(false)
+  const [processingSessionId, setProcessingSessionId] = useState<string | null>(null)
+  const [editingSession, setEditingSession] = useState<any | null>(null)
+  const [savingSessionEdit, setSavingSessionEdit] = useState(false)
   const loadRequestRef = useRef(0)
 
   const loadData = async () => {
@@ -277,6 +349,50 @@ export default function AdminDashboard() {
     setProcessingApp(null)
   }
 
+  const adminClockIn = async () => {
+    if (!clockInCodyzaId || clockingIn) return
+    setClockingIn(true)
+    setError("")
+    try {
+      const response = await adminFetch("/api/admin/dashboard", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "session_clock_in", payload: { codyza_id: clockInCodyzaId, label: clockInLabel || undefined } }) })
+      await requireSuccessfulResponse(response, "Could not clock this member in")
+      setClockInCodyzaId(""); setClockInLabel("")
+      await loadData()
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : "Could not clock this member in")
+    }
+    setClockingIn(false)
+  }
+
+  const adminClockOut = async (id: string) => {
+    if (processingSessionId) return
+    setProcessingSessionId(id)
+    setError("")
+    try {
+      const response = await adminFetch("/api/admin/dashboard", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "session_clock_out", payload: { id } }) })
+      await requireSuccessfulResponse(response, "Could not clock this session out")
+      await loadData()
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : "Could not clock this session out")
+    }
+    setProcessingSessionId(null)
+  }
+
+  const saveSessionEdit = async (updates: Record<string, unknown>) => {
+    if (!editingSession) return
+    setSavingSessionEdit(true)
+    setError("")
+    try {
+      const response = await adminFetch("/api/admin/dashboard", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "session_edit", payload: { id: editingSession.id, ...updates } }) })
+      await requireSuccessfulResponse(response, "Could not update this session")
+      setEditingSession(null)
+      await loadData()
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : "Could not update this session")
+    }
+    setSavingSessionEdit(false)
+  }
+
   if (!isAuthenticated) {
     return (
       <div className="cosmic-workspace cosmic-admin min-h-screen font-sans text-foreground antialiased" data-cosmic-zone="command">
@@ -307,6 +423,20 @@ export default function AdminDashboard() {
   const totalXP = contributors.reduce((sum, c) => sum + c.xp, 0)
   const pendingCount = submissions.filter(s => s.status === "pending").length
   const pendingApps = applications.filter(a => a.status === "pending").length
+
+  const sessionStatsByPerson = (() => {
+    const map = new Map<string, { codyza_id: string; name: string; totalMinutes: number; count: number; lastActive: string }>()
+    for (const s of workSessions) {
+      if (s.status !== "completed") continue
+      const entry = map.get(s.codyza_id) || { codyza_id: s.codyza_id, name: s.member_name, totalMinutes: 0, count: 0, lastActive: s.started_at }
+      entry.totalMinutes += s.duration_minutes || 0
+      entry.count += 1
+      if (s.started_at > entry.lastActive) entry.lastActive = s.started_at
+      map.set(s.codyza_id, entry)
+    }
+    return Array.from(map.values()).sort((a, b) => b.totalMinutes - a.totalMinutes)
+  })()
+  const visibleSessions = sessionPersonFilter ? workSessions.filter((s: any) => s.codyza_id === sessionPersonFilter) : workSessions
 
   const renderApplicationCard = (app: any) => (
     <div key={app.id} className={`surface-card p-5 ${app.status === "approved" ? "border-success/20" : app.status === "declined" ? "border-destructive/10" : ""}`}>
@@ -792,31 +922,104 @@ export default function AdminDashboard() {
         )}
 
         {activeTab === "sessions" && !loading && (
-          <div className="mt-0 space-y-3">
-            {workSessions.length === 0 ? (
+          <div className="mt-0 space-y-4">
+            <div className="surface-card flex flex-wrap items-end gap-3 p-4">
+              <div className="min-w-[10rem] flex-1">
+                <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Clock in a member</label>
+                <select value={clockInCodyzaId} onChange={e => setClockInCodyzaId(e.target.value)} className="glass-input w-full rounded-xl px-3 py-2 text-sm focus:outline-none">
+                  <option value="">Select contributor</option>
+                  {contributors.map(c => <option key={c.id} value={c.codyza_id}>{c.name} · {c.codyza_id}</option>)}
+                </select>
+              </div>
+              <div className="min-w-[10rem] flex-1">
+                <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Label (optional)</label>
+                <input type="text" value={clockInLabel} onChange={e => setClockInLabel(e.target.value)} placeholder="What are they working on?" className="glass-input w-full rounded-xl px-3 py-2 text-sm focus:outline-none"/>
+              </div>
+              <button onClick={adminClockIn} disabled={!clockInCodyzaId || clockingIn} className="btn-primary rounded-full px-4 py-2 text-sm font-medium disabled:opacity-50">
+                {clockingIn ? "Clocking in..." : "Clock in"}
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button onClick={() => { setSessionView("all"); setSessionPersonFilter(null) }} className={`rounded-full px-3 py-1.5 text-xs font-medium ${sessionView === "all" ? "bg-accent text-white" : "btn-ghost"}`}>All sessions</button>
+              <button onClick={() => setSessionView("by-person")} className={`rounded-full px-3 py-1.5 text-xs font-medium ${sessionView === "by-person" ? "bg-accent text-white" : "btn-ghost"}`}>By person</button>
+              {sessionPersonFilter && (
+                <span className="flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                  {sessionPersonFilter}
+                  <button onClick={() => setSessionPersonFilter(null)} className="text-foreground">✕</button>
+                </span>
+              )}
+            </div>
+
+            {sessionView === "by-person" ? (
+              sessionStatsByPerson.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">No completed sessions yet.</p>
+              ) : (
+                <div className="space-y-2">
+                  {sessionStatsByPerson.map(person => (
+                    <button
+                      key={person.codyza_id}
+                      onClick={() => { setSessionPersonFilter(person.codyza_id); setSessionView("all") }}
+                      className="surface-card flex w-full items-center justify-between gap-4 p-4 text-left transition-colors hover:bg-muted/40"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold">{person.name}</p>
+                        <p className="text-xs text-muted-foreground">{person.count} session{person.count === 1 ? "" : "s"} · last active {new Date(person.lastActive).toLocaleDateString()}</p>
+                      </div>
+                      <div className="flex shrink-0 gap-6 text-right">
+                        <div>
+                          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Total</p>
+                          <p className="text-sm font-bold text-accent">{formatSessionDuration(person.totalMinutes)}</p>
+                        </div>
+                        <div>
+                          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Average</p>
+                          <p className="text-sm font-bold">{formatSessionDuration(Math.round(person.totalMinutes / person.count))}</p>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )
+            ) : visibleSessions.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">No sessions logged yet.</p>
             ) : (
-              workSessions.map((s: any) => (
-                <div key={s.id} className="surface-card p-4">
-                  <div className="mb-1 flex items-center justify-between">
-                    <span className="text-sm font-semibold">{s.member_name}</span>
-                    {s.status === "active" ? (
-                      <span className="flex items-center gap-1.5 rounded-full bg-success/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-success">
-                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success" /> Active
-                      </span>
-                    ) : (
-                      <span className="rounded-full bg-muted px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                        {s.duration_minutes ? `${Math.floor(s.duration_minutes / 60)}h ${s.duration_minutes % 60}m` : "—"}
-                      </span>
-                    )}
-                  </div>
-                  <p className="mb-1 text-xs text-muted-foreground">
-                    Started {new Date(s.started_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
-                    {s.label ? ` · ${s.label}` : ""}
-                  </p>
-                  {s.summary && <p className="text-xs text-muted-foreground">{s.summary}</p>}
-                </div>
-              ))
+              <div className="space-y-3">
+                {visibleSessions.map((s: any) => {
+                  const overCap = s.status === "completed" && (s.duration_minutes || 0) > MAX_SESSION_MINUTES
+                  return (
+                    <div key={s.id} className="surface-card p-4">
+                      <div className="mb-1 flex items-center justify-between gap-3">
+                        <span className="text-sm font-semibold">{s.member_name}</span>
+                        <div className="flex shrink-0 items-center gap-2">
+                          {s.status === "active" ? (
+                            <span className="flex items-center gap-1.5 rounded-full bg-success/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-success">
+                              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success" /> Active
+                            </span>
+                          ) : (
+                            <span className={`rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest ${overCap ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>
+                              {s.duration_minutes ? formatSessionDuration(s.duration_minutes) : "—"}
+                            </span>
+                          )}
+                          {s.edited_by_admin && (
+                            <span className="rounded-full border border-border px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest text-muted-foreground">edited</span>
+                          )}
+                          {s.status === "active" && (
+                            <button onClick={() => adminClockOut(s.id)} disabled={processingSessionId === s.id} className="rounded-full border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50">
+                              {processingSessionId === s.id ? "..." : "Clock out"}
+                            </button>
+                          )}
+                          <button onClick={() => setEditingSession(s)} className="rounded-full border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">Edit</button>
+                        </div>
+                      </div>
+                      <p className="mb-1 text-xs text-muted-foreground">
+                        Started {new Date(s.started_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                        {s.label ? ` · ${s.label}` : ""}
+                      </p>
+                      {s.summary && <p className="text-xs text-muted-foreground">{s.summary}</p>}
+                    </div>
+                  )
+                })}
+              </div>
             )}
           </div>
         )}
@@ -824,6 +1027,9 @@ export default function AdminDashboard() {
 
       {editingContributor && (
         <EditModal contributor={editingContributor} onClose={() => setEditingContributor(null)} onSave={saveContributor} saving={savingEdit}/>
+      )}
+      {editingSession && (
+        <SessionEditModal session={editingSession} onClose={() => setEditingSession(null)} onSave={saveSessionEdit} saving={savingSessionEdit}/>
       )}
     </div>
   )

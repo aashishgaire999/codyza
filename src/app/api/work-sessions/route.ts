@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createServiceSupabase } from "@/lib/admin-auth"
 import { getRequestMember } from "@/lib/member-auth"
+import { expireStaleWorkSessions } from "@/lib/work-sessions"
 
 const MAX_LABEL_LENGTH = 160
 const MAX_SUMMARY_LENGTH = 2000
@@ -28,7 +29,10 @@ export async function GET(req: Request) {
   const member = await getRequestMember(req)
   if (!member) return NextResponse.json({ error: "Member sign-in required" }, { status: 401 })
 
-  const { data, error } = await createServiceSupabase()
+  const supabase = createServiceSupabase()
+  await expireStaleWorkSessions(supabase)
+
+  const { data, error } = await supabase
     .from("work_sessions")
     .select("*")
     .eq("contributor_id", member.id)
@@ -58,6 +62,7 @@ export async function POST(req: Request) {
     const member = await getRequestMember(req)
     if (!member) return NextResponse.json({ error: "Member sign-in required" }, { status: 401 })
     const supabase = createServiceSupabase()
+    await expireStaleWorkSessions(supabase)
 
     if (bountyId && groupId) {
       return NextResponse.json({ error: "Choose either a bounty or a group" }, { status: 400 })
@@ -136,6 +141,8 @@ export async function PATCH(req: Request) {
         return NextResponse.json({ error: "Session is required" }, { status: 400 })
       }
 
+      await expireStaleWorkSessions(supabase)
+
       const { data: session, error: sessionError } = await supabase
         .from("work_sessions")
         .select("started_at, status, contributor_id")
@@ -143,6 +150,10 @@ export async function PATCH(req: Request) {
         .maybeSingle()
 
       if (sessionError) return workSessionError("find-session", sessionError)
+
+      if (session && session.status !== "active" && session.contributor_id === member.id) {
+        return NextResponse.json({ error: "This session passed the 12h cap and was closed automatically. Start a new one to keep logging." }, { status: 409 })
+      }
 
       if (!session || session.status !== "active" || session.contributor_id !== member.id) {
         return NextResponse.json({ error: "Session is not active" }, { status: 400 })
