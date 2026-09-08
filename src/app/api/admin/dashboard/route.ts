@@ -5,11 +5,12 @@ function unauthorized() {
   return NextResponse.json({ error: "Admin authorization required" }, { status: 401 })
 }
 
-async function setSubmissionStatus(id: string, status: "approved" | "rejected") {
+async function setSubmissionStatus(id: string, status: "approved" | "rejected", reason?: string) {
   const service = createServiceSupabase()
   const { error } = await service.rpc("admin_review_submission", {
     p_submission_id: id,
     p_status: status,
+    p_reason: reason?.trim() ? reason.trim().slice(0, 1000) : null,
   })
   if (error) {
     console.error("Submission review failed", { code: error.code, details: error.details })
@@ -102,7 +103,7 @@ export async function POST(request: Request) {
     if (action === "submission_status") {
       const status = payload.status === "approved" ? "approved" : payload.status === "rejected" ? "rejected" : null
       if (!payload.id || !status) return NextResponse.json({ error: "Invalid submission update" }, { status: 400 })
-      await setSubmissionStatus(String(payload.id), status)
+      await setSubmissionStatus(String(payload.id), status, typeof payload.reason === "string" ? payload.reason : undefined)
     } else if (action === "bulk_submission_status") {
       const ids = Array.isArray(payload.ids) ? payload.ids.map(String).slice(0, 100) : []
       const status = payload.status === "approved" ? "approved" : payload.status === "rejected" ? "rejected" : null

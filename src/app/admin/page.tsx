@@ -27,6 +27,7 @@ interface Submission {
   ai_score: number | null; ai_feedback: string | null; ai_review: AiReview | null
   xp_earned: number; status: string; submitted_at: string
   group: { id: string; name: string; member_count: number } | null
+  review_reason: string | null
 }
 
 const RANKS = RANK_LADDER.map((r) => r.name)
@@ -128,6 +129,7 @@ export default function AdminDashboard() {
   const [sendingDirectInvite, setSendingDirectInvite] = useState(false)
   const [directInviteNotice, setDirectInviteNotice] = useState("")
   const [applicationFilter, setApplicationFilter] = useState("pending")
+  const [reasonBySubmission, setReasonBySubmission] = useState<Record<string, string>>({})
   const loadRequestRef = useRef(0)
 
   const loadData = async () => {
@@ -174,8 +176,10 @@ export default function AdminDashboard() {
   const updateSubStatus = async (id: string, status: "approved"|"rejected") => {
     setError("")
     try {
-      const response = await adminFetch("/api/admin/dashboard", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "submission_status", payload: { id, status } }) })
+      const reason = reasonBySubmission[id]?.trim()
+      const response = await adminFetch("/api/admin/dashboard", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "submission_status", payload: { id, status, reason } }) })
       await requireSuccessfulResponse(response, "Submission could not be updated")
+      setReasonBySubmission(prev => { const next = { ...prev }; delete next[id]; return next })
       await loadData()
     } catch (actionError) { setError(actionError instanceof Error ? actionError.message : "Submission could not be updated") }
   }
@@ -516,6 +520,9 @@ export default function AdminDashboard() {
                 <div className="mb-3 flex flex-wrap gap-2">
                   {sub.tech_stack?.map(t => <span key={t} className="rounded-full border border-border bg-muted px-2 py-0.5 font-mono text-[10px] text-muted-foreground">{t}</span>)}
                 </div>
+                {sub.status !== "pending" && sub.review_reason && (
+                  <p className="mb-3 rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">Note sent to submitter: {sub.review_reason}</p>
+                )}
                 {(sub.ai_review?.summary || sub.ai_review?.feedback || sub.ai_review?.one_liner || sub.ai_feedback) && (
                   <div className="mb-3">
                     <button
@@ -550,6 +557,14 @@ export default function AdminDashboard() {
                       </div>
                     )}
                   </div>
+                )}
+                {sub.status === "pending" && (
+                  <input
+                    value={reasonBySubmission[sub.id] || ""}
+                    onChange={e => setReasonBySubmission(prev => ({ ...prev, [sub.id]: e.target.value }))}
+                    placeholder="Reason for approve/reject (optional, shown to submitter)"
+                    className="glass-input mb-3 w-full rounded-xl px-3 py-2 text-sm focus:outline-none"
+                  />
                 )}
                 <div className="flex items-center gap-4">
                   <a href={sub.github_url} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground transition-colors hover:text-foreground">GitHub</a>
