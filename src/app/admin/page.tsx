@@ -698,7 +698,24 @@ export default function AdminDashboard() {
               {groups.length === 0 ? <p className="py-8 text-center text-sm text-muted-foreground">No groups yet.</p> : groups.map((g: any) => (
                 <div key={g.id} className="surface-card p-4">
                   <div className="mb-2 flex items-center justify-between">
-                    <div className="flex items-center gap-3"><span className="text-sm font-semibold">{g.name}</span><span className="rounded-full border border-border bg-muted px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{g.status}</span></div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-semibold">{g.name}</span>
+                      <select
+                        value={g.status}
+                        onChange={async (e) => {
+                          const status = e.target.value
+                          setError("")
+                          try {
+                            const response = await adminFetch("/api/groups", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: g.id, status }) })
+                            await requireSuccessfulResponse(response, "Group status could not be updated")
+                            await loadData()
+                          } catch (actionError) { setError(actionError instanceof Error ? actionError.message : "Group status could not be updated") }
+                        }}
+                        className="rounded-full border border-border bg-muted px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground focus:outline-none"
+                      >
+                        {["planning","building","review","submitted","live"].map(s => <option key={s} value={s} className="bg-card">{s}</option>)}
+                      </select>
+                    </div>
                     <span className="text-xs text-muted-foreground">{g.members?.length || 0} members</span>
                   </div>
                   {g.description && <p className="mb-2 text-xs text-muted-foreground">{g.description}</p>}

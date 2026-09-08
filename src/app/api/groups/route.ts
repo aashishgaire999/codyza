@@ -120,3 +120,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Server error" }, { status: 500 })
   }
 }
+
+const GROUP_STATUSES = ["planning", "building", "review", "submitted", "live"]
+
+// PATCH update group status (admin only) -- submit/approve/reject already move
+// a group between statuses automatically, but a fresh group has no way to
+// move from "planning" to "building" on its own, so admins need a manual override.
+export async function PATCH(req: Request) {
+  if (!isAdminRequest(req)) return NextResponse.json({ error: "Admin authorization required" }, { status: 401 })
+  const { id, status } = await req.json()
+  if (!id || !GROUP_STATUSES.includes(status)) return NextResponse.json({ error: "Invalid group update" }, { status: 400 })
+  const supabase = createServiceSupabase()
+  const { error } = await supabase.from("project_groups").update({ status }).eq("id", id)
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ success: true })
+}
