@@ -101,7 +101,7 @@ export function ApplySection() {
     trigger,
     watch,
     setValue,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, touchedFields },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     mode: "onSubmit",
@@ -201,7 +201,12 @@ export function ApplySection() {
   }
 
   async function nextStep() {
-    const valid = await trigger(STEPS[step].fields as unknown as (keyof FormData)[])
+    const fields = STEPS[step].fields as unknown as (keyof FormData)[]
+    // Mark the current step's fields touched before validating, so a field the
+    // user never focused (e.g. a radio picked without blurring) still shows its
+    // error instead of silently blocking advancement.
+    fields.forEach((field) => setValue(field, watch(field), { shouldTouch: true }))
+    const valid = await trigger(fields)
     if (!valid) return
     if (step < STEPS.length - 1) setStep(step + 1)
   }
@@ -258,13 +263,13 @@ export function ApplySection() {
     if (!cleaned) return
     if (skillsArray.includes(cleaned)) return
     const next = [...skillsArray, cleaned].join(", ")
-    setValue("skills", next, { shouldValidate: true })
+    setValue("skills", next, { shouldValidate: true, shouldTouch: true })
     setSkillInput("")
   }
 
   function removeSkill(skill: string) {
     const next = skillsArray.filter((s) => s !== skill).join(", ")
-    setValue("skills", next, { shouldValidate: true })
+    setValue("skills", next, { shouldValidate: true, shouldTouch: true })
   }
 
   function toggleSkill(skill: string) {
@@ -411,7 +416,7 @@ export function ApplySection() {
                         <div className="space-y-3">
                           <label htmlFor="application-name" className="sr-only">Your name</label>
                           <Input id="application-name" placeholder="Your name" autoFocus autoComplete="name" {...register("name")} />
-                          {errors.name && (
+                          {errors.name && touchedFields.name && (
                             <p className="text-xs text-red-400">{errors.name.message}</p>
                           )}
                           <div className="relative">
@@ -450,7 +455,7 @@ export function ApplySection() {
                               </motion.div>
                             )}
                           </div>
-                          {errors.email && (
+                          {errors.email && touchedFields.email && (
                             <p className="text-xs text-red-400">{errors.email.message}</p>
                           )}
                         </div>
@@ -476,7 +481,7 @@ export function ApplySection() {
                             <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-black/45" />
                           )}
                         </div>
-                        {errors.github && (
+                        {errors.github && touchedFields.github && (
                           <p className="mt-2 text-xs text-red-400">{errors.github.message}</p>
                         )}
 
@@ -568,7 +573,7 @@ export function ApplySection() {
                             className="flex-1 min-w-[120px] bg-transparent text-sm text-black/40 placeholder:text-black/35 focus:outline-none"
                           />
                         </div>
-                        {errors.skills && (
+                        {errors.skills && touchedFields.skills && (
                           <p className="mt-2 text-xs text-red-400">{errors.skills.message}</p>
                         )}
 
@@ -631,7 +636,7 @@ export function ApplySection() {
                             </label>
                           ))}
                         </div>
-                        {errors.role && (
+                        {errors.role && touchedFields.role && (
                           <p className="mb-3 text-xs text-red-400">{errors.role.message}</p>
                         )}
                         <div className="mb-2 text-xs text-black/50">Experience level</div>
@@ -656,7 +661,7 @@ export function ApplySection() {
                             </label>
                           ))}
                         </div>
-                        {errors.level && (
+                        {errors.level && touchedFields.level && (
                           <p className="mt-2 text-xs text-red-400">{errors.level.message}</p>
                         )}
                       </div>
@@ -708,7 +713,7 @@ export function ApplySection() {
                             </span>
                           )}
                         </div>
-                        {errors.why && (
+                        {errors.why && touchedFields.why && (
                           <p className="mt-2 text-xs text-red-400">{errors.why.message}</p>
                         )}
                       </div>

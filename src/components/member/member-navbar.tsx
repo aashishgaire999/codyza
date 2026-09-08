@@ -5,6 +5,7 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase"
 import { CodyzaLogo } from "@/components/shared/codyza-logo"
 import { ThemeToggle } from "@/components/shared/theme-toggle"
+import { NotificationBell } from "@/components/member/notification-bell"
 import { Clock3, House, LogOut, Rocket, Settings, ShieldCheck, SquarePen, Target, Users } from "lucide-react"
 import { useRouter, usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -140,6 +141,7 @@ export function MemberNavbar() {
             </Link>
           )}
           <InstallAppButton compact />
+          <NotificationBell />
           <ThemeToggle />
           <button
             type="button"
