@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import { createClient } from "@/lib/supabase"
-import { ExternalLink, GitBranch, FileText, Send, ChevronDown, ChevronUp, Plus } from "lucide-react"
+import { ExternalLink, GitBranch, FileText, Send, ChevronDown, ChevronUp, Plus, CheckCircle } from "lucide-react"
 import { MemberPageHeader } from "@/components/member/member-page-header"
 import { memberFetch } from "@/lib/member-fetch"
 
@@ -175,12 +175,12 @@ export default function ProjectsPage() {
           {submitOpen && (
             <div className="border-t border-border px-5 py-4">
               {submitSuccess ? (
-                <div className="animate-in zoom-in-50 fade-in py-6 text-center duration-500">
-                  <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full border border-success/25 bg-success/15">
-                    <span className="text-2xl">🎉</span>
+                <div className="animate-in fade-in zoom-in-95 py-6 text-center duration-500 ease-out">
+                  <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full border border-success/25 bg-success/10">
+                    <CheckCircle className="h-7 w-7 text-success" />
                   </div>
-                  <p className="text-base font-bold text-success">Submitted! Nice work.</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Admin review is next — XP lands the moment it's approved.</p>
+                  <h3 className="font-[family-name:var(--font-heading)] text-base font-bold lowercase text-foreground">shipped.</h3>
+                  <p className="mt-1 text-xs text-muted-foreground">Admin review is next — XP lands on approval.</p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-3">
@@ -426,12 +426,12 @@ export default function ProjectsPage() {
             {submitOpen && (
               <div className="border-t border-border px-5 py-4">
                 {submitSuccess ? (
-                  <div className="animate-in zoom-in-50 fade-in py-6 text-center duration-500">
-                    <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full border border-success/25 bg-success/15">
-                      <span className="text-2xl">🎉</span>
+                  <div className="animate-in fade-in zoom-in-95 py-6 text-center duration-500 ease-out">
+                    <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full border border-success/25 bg-success/10">
+                      <CheckCircle className="h-7 w-7 text-success" />
                     </div>
-                    <p className="text-base font-bold text-success">Submitted! Nice work.</p>
-                    <p className="mt-1 text-xs text-muted-foreground">Admin review is next — XP lands the moment it's approved.</p>
+                    <h3 className="font-[family-name:var(--font-heading)] text-base font-bold lowercase text-foreground">shipped.</h3>
+                    <p className="mt-1 text-xs text-muted-foreground">Admin review is next — XP lands on approval.</p>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-3">

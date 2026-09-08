@@ -275,11 +275,11 @@ export default function GroupsPage() {
                           </button>
                           {submitOpenFor === group.id && (
                             submitSuccess ? (
-                              <div className="animate-in zoom-in-50 fade-in mt-3 py-4 text-center duration-500">
-                                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full border border-success/25 bg-success/15">
-                                  <span className="text-xl">🎉</span>
+                              <div className="animate-in fade-in zoom-in-95 mt-3 py-4 text-center duration-500 ease-out">
+                                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full border border-success/25 bg-success/10">
+                                  <CheckCircle className="h-6 w-6 text-success" />
                                 </div>
-                                <p className="text-sm font-bold text-success">Submitted! Nice work.</p>
+                                <h3 className="font-[family-name:var(--font-heading)] text-sm font-bold lowercase text-foreground">shipped.</h3>
                                 <p className="mt-1 text-xs text-muted-foreground">Admin review is next — XP goes to every member on approval.</p>
                               </div>
                             ) : (
