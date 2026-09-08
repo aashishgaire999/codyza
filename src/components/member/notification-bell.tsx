@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Bell, CheckCircle, XCircle, Trophy, Flame, Users, Zap, Megaphone, Star, LogIn } from "lucide-react"
+import { Bell, CheckCircle, XCircle, Trophy, Flame, Users, Zap, Megaphone, Star, LogIn, Clock3 } from "lucide-react"
 import { memberFetch } from "@/lib/member-fetch"
 
 interface Notification {
@@ -32,6 +32,7 @@ function NotifIcon({ type }: { type: string }) {
     streak_milestone:    { icon: <Flame size={13} />,        color: "#f97316", bg: "rgba(249,115,22,0.15)" },
     new_member:          { icon: <Users size={13} />,        color: "#06b6d4", bg: "rgba(6,182,212,0.15)" },
     member_confirmed:    { icon: <LogIn size={13} />,        color: "#22d3ee", bg: "rgba(34,211,238,0.15)" },
+    session_auto_closed: { icon: <Clock3 size={13} />,       color: "#f59e0b", bg: "rgba(245,158,11,0.15)" },
     xp:                  { icon: <Zap size={13} />,          color: "#f59e0b", bg: "rgba(245,158,11,0.15)" },
     group:               { icon: <Users size={13} />,        color: "#8b5cf6", bg: "rgba(139,92,246,0.15)" },
     bounty:              { icon: <Star size={13} />,         color: "#f59e0b", bg: "rgba(245,158,11,0.15)" },
