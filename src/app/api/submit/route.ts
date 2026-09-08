@@ -163,7 +163,11 @@ export async function POST(req: Request) {
     let ai_review: Record<string, unknown> = {}
 
     try {
-      const model = genAI.getGenerativeModel({ model: GEMINI_MODEL })
+      // responseMimeType forces Gemini to return pure JSON instead of prose
+      // that may or may not wrap valid JSON -- without it, some responses
+      // failed the naive brace-matching below and silently fell back to the
+      // generic placeholder, so review quality looked inconsistent per submission.
+      const model = genAI.getGenerativeModel({ model: GEMINI_MODEL, generationConfig: { responseMimeType: "application/json" } })
       const prompt = `You are a senior software engineer doing a thorough code review for Codyza, a developer community. A contributor submitted their project. Give an honest, detailed, constructive review grounded in the ACTUAL repository content and live site content below — not just the submitter's own description. If that context is missing or thin, say so in your feedback instead of inventing specifics you can't verify.
 
 PROJECT DETAILS:
@@ -209,7 +213,7 @@ Score: 1-4 needs major work, 5-6 decent start, 7-8 solid, 9 excellent, 10 except
         ai_review = typeof parsed === "object" && parsed ? parsed : {}
       }
     } catch (e) {
-      console.log("AI review error:", e)
+      console.error("AI review error:", e)
     }
 
     // XP is calculated now for admin review, but is only added to the member
