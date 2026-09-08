@@ -121,7 +121,7 @@ export async function POST(req: Request) {
       const field = String(parsedBody.error.issues[0]?.path[0] ?? "")
       return NextResponse.json({ error: fieldMessages[field] || "Check the project details and try again" }, { status: 400 })
     }
-    const { project_name, github_url: rawGithubUrl, live_url: rawLiveUrl, description, tech_stack, group_id } = parsedBody.data
+    const { project_name, github_url: rawGithubUrl, live_url: rawLiveUrl, description, tech_stack, group_id, bounty_id } = parsedBody.data
     const github_url = safeHttpsUrl(rawGithubUrl, { githubRepository: true })
     const live_url = rawLiveUrl ? safeHttpsUrl(rawLiveUrl) : null
     if (!github_url) return NextResponse.json({ error: "Enter a valid HTTPS GitHub repository URL" }, { status: 400 })
@@ -146,6 +146,21 @@ export async function POST(req: Request) {
         .eq("status", "pending")
         .maybeSingle()
       if (pending) return NextResponse.json({ error: "This group already has a submission pending review." }, { status: 409 })
+    }
+
+    // Claim ownership is re-verified here, not trusted from the client -- the
+    // same check the bounty-linked work-session clock-in already does.
+    let bounty: { xp_reward: number } | null = null
+    if (bounty_id) {
+      const { data: claimedBounty } = await supabase
+        .from("bounties")
+        .select("xp_reward")
+        .eq("id", bounty_id)
+        .eq("claimed_by", member.codyza_id)
+        .eq("status", "claimed")
+        .maybeSingle()
+      if (!claimedBounty) return NextResponse.json({ error: "That bounty is not assigned to you" }, { status: 403 })
+      bounty = claimedBounty
     }
 
     const [{ data: contributor, error: fetchError }, githubContext, liveSiteContext] = await Promise.all([
@@ -217,7 +232,10 @@ Score: 1-4 needs major work, 5-6 decent start, 7-8 solid, 9 excellent, 10 except
     }
 
     // XP is calculated now for admin review, but is only added to the member
-    // by admin_review_submission after an admin approves the project.
+    // by admin_review_submission after an admin approves the project. A
+    // bounty-linked submission earns exactly the bounty's advertised reward
+    // instead of the generic formula, so the number a member claimed the
+    // bounty for is the number they actually get.
     const xp = calculateProjectXp({
       hasLiveUrl: Boolean(live_url),
       lastSubmission: contributor.last_submission,
@@ -227,6 +245,10 @@ Score: 1-4 needs major work, 5-6 decent start, 7-8 solid, 9 excellent, 10 except
       contributor_id: contributor.id,
       codyza_id: contributor.codyza_id,
       group_id: group_id || null,
+      // Only set on an actual bounty submission -- keeps every other
+      // submission's insert identical to before regardless of whether the
+      // bounty_id column has been restored on this deployment yet.
+      ...(bounty ? { bounty_id } : {}),
       project_name: String(project_name).slice(0, 180),
       github_url,
       live_url,
@@ -235,7 +257,7 @@ Score: 1-4 needs major work, 5-6 decent start, 7-8 solid, 9 excellent, 10 except
       ai_score,
       ai_feedback,
       ai_review,
-      xp_earned: xp.total,
+      xp_earned: bounty ? bounty.xp_reward : xp.total,
       status: "pending",
     }
     const { error: insertError } = await supabase.from("submissions").insert(submission)

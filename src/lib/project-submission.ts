@@ -7,6 +7,7 @@ export const projectSubmissionSchema = z.object({
   description: z.string().trim().min(20).max(5000),
   tech_stack: z.array(z.string().trim().min(1).max(80)).max(30).default([]),
   group_id: z.string().uuid().optional().nullable(),
+  bounty_id: z.string().uuid().optional().nullable(),
 }).strip()
 
 export function calculateProjectXp({

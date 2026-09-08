@@ -17,7 +17,7 @@ const TECH_OPTIONS = [
 const STATUS_CONFIG: Record<string, { label: string; badge: string; dot: string }> = {
   approved: { label: "Live", badge: "bg-success/10 text-success", dot: "bg-success" },
   pending:  { label: "In Review", badge: "bg-accent/10 text-accent", dot: "bg-accent" },
-  reviewed: { label: "Building", badge: "bg-muted text-muted-foreground", dot: "bg-muted-foreground" },
+  rejected: { label: "Not approved", badge: "bg-destructive/10 text-destructive", dot: "bg-destructive" },
 }
 
 function getInitials(name: string) {
@@ -54,6 +54,7 @@ export default function ProjectsPage() {
   const [expandedAi, setExpandedAi] = useState<Set<string>>(new Set())
   const [customTech, setCustomTech] = useState("")
   const [myGroupIds, setMyGroupIds] = useState<Set<string>>(new Set())
+  const [claimedBounty, setClaimedBounty] = useState<{ id: string; title: string; xp_reward: number } | null>(null)
 
   async function loadData() {
     const supabase = createClient()
@@ -82,8 +83,24 @@ export default function ProjectsPage() {
         .filter((g: any) => g.members?.some((m: any) => m.codyza_id === contrib?.codyza_id))
         .map((g: any) => g.id)
     ))
-    setLoading(false)
 
+    // Arriving from "Submit for this bounty" on the bounties page -- prefill
+    // and open the form. This is UX only: the server independently re-checks
+    // that the claim actually belongs to this member before it counts.
+    const bountyParam = new URLSearchParams(window.location.search).get("bounty")
+    if (bountyParam && contrib) {
+      const bountiesRes = await memberFetch("/api/bounties")
+      const bounties = await bountiesRes.json().catch(() => [])
+      const claimed = Array.isArray(bounties)
+        ? bounties.find((b: any) => b.id === bountyParam && b.claimed_by === contrib.codyza_id && b.status === "claimed")
+        : null
+      if (claimed) {
+        setClaimedBounty({ id: claimed.id, title: claimed.title, xp_reward: claimed.xp_reward })
+        setSubmitOpen(true)
+      }
+    }
+
+    setLoading(false)
   }
 
   useEffect(() => { void loadData() }, [])
@@ -114,12 +131,13 @@ export default function ProjectsPage() {
           live_url: liveUrl,
           description,
           tech_stack: selectedTech,
+          bounty_id: claimedBounty?.id || undefined,
         }),
       })
       const data = await res.json()
       if (!res.ok) { setSubmitError(data.error || "Submission failed"); setSubmitting(false); return }
       setSubmitSuccess(true)
-      setProjectName(""); setGithubUrl(""); setLiveUrl(""); setDescription(""); setSelectedTech([])
+      setProjectName(""); setGithubUrl(""); setLiveUrl(""); setDescription(""); setSelectedTech([]); setClaimedBounty(null)
       await loadData()
       setTimeout(() => { setSubmitSuccess(false); setSubmitOpen(false) }, 3000)
     } catch {
@@ -128,12 +146,14 @@ export default function ProjectsPage() {
     setSubmitting(false)
   }
 
+  const isMine = (p: any) => p.codyza_id === contributor?.codyza_id || (p.group_id && myGroupIds.has(p.group_id))
+
   const filtered = projects.filter(p => {
     if (filter === "all") return true
     if (filter === "live") return p.status === "approved"
     if (filter === "review") return p.status === "pending"
-    if (filter === "building") return p.status === "reviewed"
-    if (filter === "mine") return p.codyza_id === contributor?.codyza_id
+    if (filter === "rejected") return p.status === "rejected"
+    if (filter === "mine") return isMine(p)
     return true
   })
 
@@ -141,8 +161,8 @@ export default function ProjectsPage() {
     all: projects.length,
     live: projects.filter(p => p.status === "approved").length,
     review: projects.filter(p => p.status === "pending").length,
-    building: projects.filter(p => p.status === "reviewed").length,
-    mine: projects.filter(p => p.codyza_id === contributor?.codyza_id).length,
+    rejected: projects.filter(p => p.status === "rejected").length,
+    mine: projects.filter(isMine).length,
   }
 
   return (
@@ -185,7 +205,9 @@ export default function ProjectsPage() {
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-3">
                   <p className="rounded-xl border border-accent/15 bg-accent/5 px-3 py-2 text-xs text-muted-foreground">
-                    No bounty required. Share anything you built and the team will review it.
+                    {claimedBounty
+                      ? <>Completing bounty <strong className="text-foreground">{claimedBounty.title}</strong> — +{claimedBounty.xp_reward} XP on approval.</>
+                      : "No bounty required. Share anything you built and the team will review it."}
                   </p>
                   <div>
                     <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Project name *</label>
@@ -240,7 +262,7 @@ export default function ProjectsPage() {
               { key: "all", label: "All" },
               { key: "live", label: "Live" },
               { key: "review", label: "In Review" },
-              { key: "building", label: "Building" },
+              { key: "rejected", label: "Not approved" },
               { key: "mine", label: "My Projects" },
             ].map(({ key, label }) => (
               <button key={key} onClick={() => setFilter(key)}
@@ -436,7 +458,9 @@ export default function ProjectsPage() {
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-3">
                     <p className="rounded-xl border border-accent/15 bg-accent/5 px-3 py-2 text-xs text-muted-foreground">
-                      No bounty required. Share anything you built and the team will review it.
+                      {claimedBounty
+                        ? <>Completing bounty <strong className="text-foreground">{claimedBounty.title}</strong> — +{claimedBounty.xp_reward} XP on approval.</>
+                        : "No bounty required. Share anything you built and the team will review it."}
                     </p>
                     <div>
                       <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Project name *</label>
