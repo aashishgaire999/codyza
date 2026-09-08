@@ -130,6 +130,7 @@ export default function AdminDashboard() {
   const [directInviteNotice, setDirectInviteNotice] = useState("")
   const [applicationFilter, setApplicationFilter] = useState("pending")
   const [reasonBySubmission, setReasonBySubmission] = useState<Record<string, string>>({})
+  const [processingSubmission, setProcessingSubmission] = useState<string | null>(null)
   const loadRequestRef = useRef(0)
 
   const loadData = async () => {
@@ -174,14 +175,23 @@ export default function AdminDashboard() {
   }
 
   const updateSubStatus = async (id: string, status: "approved"|"rejected") => {
+    if (processingSubmission) return
     setError("")
+    setProcessingSubmission(id)
     try {
       const reason = reasonBySubmission[id]?.trim()
       const response = await adminFetch("/api/admin/dashboard", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "submission_status", payload: { id, status, reason } }) })
       await requireSuccessfulResponse(response, "Submission could not be updated")
       setReasonBySubmission(prev => { const next = { ...prev }; delete next[id]; return next })
+    } catch (actionError) {
+      // Someone else may have already approved/rejected/deleted it (e.g. two
+      // admins reviewing at once) -- refresh either way so a stale card
+      // doesn't just sit there erroring again on retry.
+      setError(actionError instanceof Error ? actionError.message : "Submission could not be updated")
+    } finally {
       await loadData()
-    } catch (actionError) { setError(actionError instanceof Error ? actionError.message : "Submission could not be updated") }
+      setProcessingSubmission(null)
+    }
   }
 
   const deleteSub = async (id: string) => {
@@ -572,8 +582,8 @@ export default function AdminDashboard() {
                   <div className="ml-auto flex gap-2">
                     {sub.status === "pending" && (
                       <>
-                        <button onClick={() => updateSubStatus(sub.id, "approved")} className="flex items-center gap-1.5 rounded-full border border-success/30 bg-success/10 px-3 py-1.5 text-sm text-success transition-colors hover:bg-success/20"><CheckCircle className="w-3.5 h-3.5"/>Approve</button>
-                        <button onClick={() => updateSubStatus(sub.id, "rejected")} className="flex items-center gap-1.5 rounded-full border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-sm text-destructive transition-colors hover:bg-destructive/20"><XCircle className="w-3.5 h-3.5"/>Reject</button>
+                        <button onClick={() => updateSubStatus(sub.id, "approved")} disabled={processingSubmission === sub.id} className="flex items-center gap-1.5 rounded-full border border-success/30 bg-success/10 px-3 py-1.5 text-sm text-success transition-colors hover:bg-success/20 disabled:opacity-50"><CheckCircle className="w-3.5 h-3.5"/>Approve</button>
+                        <button onClick={() => updateSubStatus(sub.id, "rejected")} disabled={processingSubmission === sub.id} className="flex items-center gap-1.5 rounded-full border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-sm text-destructive transition-colors hover:bg-destructive/20 disabled:opacity-50"><XCircle className="w-3.5 h-3.5"/>Reject</button>
                       </>
                     )}
                     <button onClick={() => deleteSub(sub.id)} className="rounded-full border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-destructive transition-colors hover:bg-destructive/20"><Trash2 className="w-3.5 h-3.5"/></button>
