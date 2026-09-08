@@ -51,6 +51,7 @@ export default function MemberDashboard() {
   const [myGroups, setMyGroups] = useState<any[]>([])
   const [openBounties, setOpenBounties] = useState<any[]>([])
   const [reactions, setReactions] = useState<Record<string,Record<string,string[]>>>({})
+  const [activityError, setActivityError] = useState("")
   const [loading, setLoading] = useState(true)
 
   const loadData = async () => {
@@ -96,8 +97,8 @@ export default function MemberDashboard() {
 
     const { data: feedData } = await supabase
       .from("submissions")
-      .select("id, project_name, description, tech_stack, ai_score, xp_earned, codyza_id, status, created_at, github_url, live_url")
-      .order("created_at", { ascending: false })
+      .select("id, project_name, description, tech_stack, ai_score, xp_earned, codyza_id, status, submitted_at, github_url, live_url")
+      .order("submitted_at", { ascending: false })
       .limit(20)
     if (feedData) {
       setCrewFeed(feedData)
@@ -106,7 +107,8 @@ export default function MemberDashboard() {
       if (ids.length) {
         const res = await memberFetch("/api/reactions?ids=" + ids.join(","))
         const rData = await res.json()
-        setReactions(rData)
+        if (res.ok) setReactions(rData)
+        else setActivityError(rData.error || "Reactions could not be loaded")
       }
     }
     setLoading(false)
@@ -130,6 +132,11 @@ export default function MemberDashboard() {
       body: JSON.stringify({ submission_id: submissionId, emoji })
     })
     const data = await res.json()
+    if (!res.ok) {
+      setActivityError(data.error || "Reaction could not be updated")
+      return
+    }
+    setActivityError("")
     setReactions(prev => {
       const next = { ...prev }
       if (!next[submissionId]) next[submissionId] = {}
@@ -372,6 +379,7 @@ export default function MemberDashboard() {
             recent
           </span>
         </div>
+        {activityError && <div role="alert" className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">{activityError}</div>}
         {crewFeed.length === 0 ? (
           <p className="py-8 text-center text-muted-foreground">No activity yet.</p>
         ) : (
@@ -401,7 +409,7 @@ export default function MemberDashboard() {
                         <span key={t} className="rounded border border-border bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{t}</span>
                       ))}
                       <span className="ml-auto font-mono text-xs text-muted-foreground">
-                        {new Date(item.created_at).toLocaleDateString()}
+                        {new Date(item.submitted_at).toLocaleDateString()}
                       </span>
                       {item.ai_score && (
                         <span className={`text-xs font-bold ${scoreClass}`}>{item.ai_score}/10</span>
