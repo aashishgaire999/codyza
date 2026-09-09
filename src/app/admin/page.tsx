@@ -96,10 +96,6 @@ function SessionEditModal({ session, onClose, onSave, saving }: { session: any; 
   )
 }
 
-function adminFetch(input: RequestInfo | URL, init: RequestInit = {}) {
-  return fetch(input, init)
-}
-
 async function requireSuccessfulResponse(response: Response, fallback: string) {
   if (response.ok) return
   const data = await response.json().catch(() => null)
@@ -204,6 +200,17 @@ export default function AdminDashboard() {
   const [editingSession, setEditingSession] = useState<any | null>(null)
   const [savingSessionEdit, setSavingSessionEdit] = useState(false)
   const loadRequestRef = useRef(0)
+
+  // A stale/expired admin session cookie used to surface as a generic
+  // "Admin authorization required" toast on whatever action the admin
+  // happened to click next, with no way to recover except guessing to
+  // reload. Every admin request goes through here, so catching a 401 in one
+  // place drops back to the access-code screen instead, on any action.
+  const adminFetch = async (input: RequestInfo | URL, init: RequestInit = {}) => {
+    const response = await fetch(input, init)
+    if (response.status === 401) setIsAuthenticated(false)
+    return response
+  }
 
   const loadData = async () => {
     const requestId = ++loadRequestRef.current
