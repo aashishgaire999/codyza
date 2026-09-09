@@ -189,6 +189,7 @@ export default function AdminDashboard() {
   const [sendingDirectInvite, setSendingDirectInvite] = useState(false)
   const [directInviteNotice, setDirectInviteNotice] = useState("")
   const [applicationFilter, setApplicationFilter] = useState("pending")
+  const [submissionFilter, setSubmissionFilter] = useState("pending")
   const [reasonBySubmission, setReasonBySubmission] = useState<Record<string, string>>({})
   const [processingSubmission, setProcessingSubmission] = useState<string | null>(null)
   const [sessionView, setSessionView] = useState<"all" | "by-person">("all")
@@ -517,6 +518,12 @@ export default function AdminDashboard() {
     </div>
   )
 
+  const submissionSections = [
+    { key: "pending", label: "pending", items: submissions.filter(s => s.status === "pending") },
+    { key: "approved", label: "approved", items: submissions.filter(s => s.status === "approved") },
+    { key: "rejected", label: "rejected", items: submissions.filter(s => s.status === "rejected") },
+  ]
+
   const applicationSections = [
     { key: "pending", label: "pending", items: applications.filter(a => a.status === "pending") },
     { key: "approved-unredeemed", label: "approved · not in the system yet", items: applications.filter(a => a.status === "approved" && !a.member) },
@@ -623,14 +630,27 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {activeTab === "submissions" && !loading && (
+        {activeTab === "submissions" && !loading && (() => {
+          const activeSection = submissionSections.find(section => section.key === submissionFilter) || submissionSections[0]
+          return (
           <div className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              {submissionSections.map(section => (
+                <button
+                  key={section.key}
+                  onClick={() => { setSubmissionFilter(section.key); setSelected(new Set()) }}
+                  className={`rounded-full border px-4 py-1.5 font-mono text-[11px] uppercase tracking-widest transition-colors ${submissionFilter === section.key ? "border-accent bg-accent/10 text-accent" : "border-border bg-muted text-muted-foreground hover:border-accent/30"}`}
+                >
+                  {section.label} ({section.items.length})
+                </button>
+              ))}
+            </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="text-sm text-muted-foreground">{selected.size > 0 ? `${selected.size} selected` : `${submissions.length} total`}</span>
-                {selected.size === 0
-                  ? <button onClick={() => setSelected(new Set(submissions.map(s => s.id)))} className="text-xs text-accent hover:opacity-80">Select all</button>
-                  : <button onClick={() => setSelected(new Set())} className="text-xs text-muted-foreground hover:text-foreground">Clear</button>}
+                <span className="text-sm text-muted-foreground">{selected.size > 0 ? `${selected.size} selected` : `${activeSection.items.length} in this section`}</span>
+                {activeSection.items.length > 0 && (selected.size === 0
+                  ? <button onClick={() => setSelected(new Set(activeSection.items.map(s => s.id)))} className="text-xs text-accent hover:opacity-80">Select all</button>
+                  : <button onClick={() => setSelected(new Set())} className="text-xs text-muted-foreground hover:text-foreground">Clear</button>)}
               </div>
               <div className="flex gap-2">
                 <button onClick={() => bulkUpdate("approved")} disabled={selected.size === 0 || bulkActioning}
@@ -643,7 +663,9 @@ export default function AdminDashboard() {
                 </button>
               </div>
             </div>
-            {submissions.map(sub => (
+            {activeSection.items.length === 0 ? (
+              <div className="py-16 text-center text-muted-foreground">None in this section.</div>
+            ) : activeSection.items.map(sub => (
               <div key={sub.id} className={`surface-card p-5 transition-colors ${selected.has(sub.id) ? "border-accent/40 bg-accent/5" : ""}`}>
                 <div className="mb-3 flex items-start justify-between">
                   <div className="flex items-start gap-3">
@@ -729,7 +751,8 @@ export default function AdminDashboard() {
               </div>
             ))}
           </div>
-        )}
+          )
+        })()}
 
         {activeTab === "applications" && !loading && (
           <div>
