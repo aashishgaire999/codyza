@@ -130,6 +130,26 @@ export async function POST(req: Request) {
     const deadline = Date.now() + REQUEST_BUDGET_MS
     const supabase = createServiceSupabase()
 
+    // Nothing stopped the same person from submitting the same repo over and
+    // over -- the group check just below only ever guarded against a second
+    // *group* submission while one was pending, not a repeat individual one.
+    // Rejected is deliberately excluded: resubmitting after a rejection (with
+    // real changes) is the intended revise-and-resubmit path.
+    const { data: duplicate } = await supabase
+      .from("submissions")
+      .select("status")
+      .eq("contributor_id", member.id)
+      .eq("github_url", github_url)
+      .in("status", ["pending", "approved"])
+      .maybeSingle()
+    if (duplicate) {
+      return NextResponse.json({
+        error: duplicate.status === "pending"
+          ? "You already have this project submitted and pending review."
+          : "This project was already approved. Submit a different project instead.",
+      }, { status: 409 })
+    }
+
     if (group_id) {
       const { data: membership } = await supabase
         .from("group_members")
